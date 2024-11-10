@@ -1,0 +1,19 @@
+# Core dependencies
+clearml
+pymongo
+qdrant-client
+gradio
+torch
+transformers
+sentence-transformers
+
+# ETL dependencies
+gitpython
+beautifulsoup4
+requests
+python-dotenv
+
+# Utility packages
+numpy
+pandas
+tqdm

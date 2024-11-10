@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Model artifacts
+models/
+*.pt
+*.pth
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+clearml.conf
