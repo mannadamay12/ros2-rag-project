@@ -1,8 +1,8 @@
 # ROS2 RAG System
 
 ## Team
-- GitHub IDs: [Your IDs]
-- HuggingFace IDs: [Your IDs]
+- GitHub IDs: [Your IDs, umamicode]
+- HuggingFace IDs: [Your IDs, sqvareinch]
 
 ## Setup
 1. Installation instructions
