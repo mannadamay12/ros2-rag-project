@@ -1,0 +1,17 @@
+URL: https://docs.ros.org/en/dashing#about-this-documentation
+Page Title: ROS 2 Documentation — ROS 2 Documentation: Dashing  documentation
+
+Headings:
+- ROS 2 Documentation
+- Where to start
+- About ROS 2
+- About this documentation
+
+Paragraphs:
+- Warning
+
+        You're reading the documentation for a version of ROS 2 that has reached its EOL (end-of-life), and is no longer officially supported.
+        If you want up-to-date information, please have a look at Jazzy.
+- Warning
+- You're reading the documentation for a version of ROS 2 that has reached its EOL (end-of-life), and is no longer officially supported.
+        If you want up-to-date information, please have a look at Jazzy.
