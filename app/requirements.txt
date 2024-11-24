@@ -1,0 +1,6 @@
+torch
+transformers
+gradio
+pymongo
+qdrant-client
+clearml

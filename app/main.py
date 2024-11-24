@@ -1,0 +1,1 @@
+print("ROS2-RAG application starting...")

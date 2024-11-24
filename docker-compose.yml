@@ -1,29 +1,47 @@
-version: '3.8'
-
 services:
+  app:
+    build: 
+      context: ./app
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+      - qdrant
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/rag_ros2
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - CLEARML_WEB_HOST=http://clearml:8080
+      - CLEARML_API_HOST=http://clearml:8008
+      - CLEARML_FILES_HOST=http://clearml:8081
+
   mongodb:
     image: mongo:latest
-    container_name: mongodb
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - mongodb_data:/data/db
 
   qdrant:
     image: qdrant/qdrant:latest
-    container_name: qdrant
     ports:
       - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
 
   clearml:
     image: allegroai/clearml:latest
-    container_name: clearml
-    platform: linux/amd64
-    environment:
-      CLEARML_AGENT_GIT_USER: "mannadamay12"
-      CLEARML_AGENT_GIT_PASS: "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"
     ports:
       - "8080:8080"
+      - "8008:8008"
+      - "8081:8081"
+    volumes:
+      - clearml_data:/opt/clearml
 
 volumes:
-  mongo-data:
+  mongodb_data:
+  qdrant_data:
+  clearml_data:

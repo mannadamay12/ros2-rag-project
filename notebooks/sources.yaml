@@ -1,0 +1,66 @@
+documentation_sources:
+  core_docs:
+    - name: "ROS2 Humble Documentation"
+      url: "https://docs.ros.org/en/humble/"
+      version: "humble"
+      sections:
+        - "Tutorials"
+        - "How-To Guides"
+        - "Concepts"
+        - "API Reference"
+    
+    - name: "Navigation2 Documentation"
+      url: "https://docs.nav2.org/"
+      version: "latest"
+      sections:
+        - "Getting Started"
+        - "Tutorials"
+        - "Configuration"
+        - "API Reference"
+
+    - name: "MoveIt2 Documentation"
+      url: "https://moveit.ros.org/"
+      version: "latest"
+      
+    - name: "Gazebo Documentation"
+      url: "https://gazebosim.org/docs"
+      version: "latest"
+
+youtube_channels:
+  - name: "ROS Foundation"
+    channel_id: "UCXEEpqD_iN0_J6fTvXGRakg"
+    playlists:
+      - name: "ROS2 Tutorials"
+        id: "PLK0b4e05LnzYNBzPyyMCAW1U8WP2FNCPu"
+
+  - name: "The Construct"
+    channel_url: "https://www.youtube.com/@TheConstruct"
+    focus: ["ROS2", "Navigation", "Simulation"]
+
+  - name: "Articulated Robotics"
+    channel_url: "https://www.youtube.com/@ArticulatedRobotics"
+    focus: ["ROS2", "Navigation"]
+
+github_repositories:
+  core:
+    - name: "ROS2 Main"
+      url: "https://github.com/ros2/ros2"
+      branch: "humble"
+      
+    - name: "ROS2 Examples"
+      url: "https://github.com/ros2/examples"
+      branch: "humble"
+
+  navigation:
+    - name: "Navigation2"
+      url: "https://github.com/ros-planning/navigation2"
+      branch: "main"
+      
+    - name: "Geometry2"
+      url: "https://github.com/ros2/geometry2"
+      branch: "ros2"
+
+  motion_planning:
+    - name: "MoveIt2"
+      url: "https://github.com/ros-planning/moveit2"
+      branch: "main"
