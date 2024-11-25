@@ -1,0 +1,60 @@
+sources:
+  documentation:
+    ros2:
+      base_url: "https://docs.ros.org/en/jazzy/"
+      sections:
+        - "Installation.html"
+        - "Tutorials.html"
+        - "How-To-Guides.html"
+        - "Concepts.html"
+      version: "jazzy"
+  #   nav2:
+  #     base_url: "https://docs.nav2.org/"
+  #     sections:
+  #       - "getting_started"
+  #       - "development_guides"
+  #       - "concepts"
+  #       - "setup_guides"
+  #       - "tutorials"
+  #       - "plugin_tutorials"
+  #       - "configuration"
+  #       - "tuning"
+  #       - "behavior_trees"
+  #       - "commander_api"
+  #     version: "latest"
+  #   moveit2:
+  #     base_url: "https://moveit.picknik.ai/main/"
+  #     sections:
+  #       - "tutorials"
+  #       - "examples"
+  #       - "concepts"
+  #       - "how_to_guides"
+  #     version: "main"
+  #   gazebo:
+  #     base_url: "https://gazebosim.org/docs/"
+  #     sections:
+  #       - "getstarted"
+  #       - "tutorials"
+  #       - "ros_installation"
+  #       - "architecture"
+  #     version: "latest"
+  # github_repos:
+  #   ros2:
+  #     - name: "ros2/ros2"
+  #       url: "https://github.com/ros2/ros2"
+  #       branch: "main"
+  #     - name: "ros2/examples"
+  #       url: "https://github.com/ros2/examples"
+  #       branch: "humble"
+  #   nav2:
+  #     - name: "ros-planning/navigation2"
+  #       url: "https://github.com/ros-planning/navigation2"
+  #       branch: "main"
+  # youtube_playlists:
+  #   ros2:
+  #     - channel: "ROS2 Official"
+  #       playlist_id: "playlist_id_here"
+  #       language: "en"
+  #     - channel: "The Construct"
+  #       playlist_id: "playlist_id_here"
+  #       language: "en"
