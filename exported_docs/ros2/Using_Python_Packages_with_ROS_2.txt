@@ -1,0 +1,35 @@
+Title: Using Python Packages with ROS 2
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Using-Python-Packages.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Using Python Packages with ROS 2Goal:Explain how to interoperate with other Python packages from the ROS 2 ecosystem.ContentsInstalling viarosdepInstalling via a package managerInstalling via a virtual environmentNoteA cautionary note, if you intended to use pre-packaged binaries (eitherdebfiles, or the binary archive distributions), the Python interpreter must match what was used to build the original binaries.
+If you intend to use something likevirtualenvorpipenv, make sure to use the system interpreter.
+If you use something likeconda, it is very likely that the interpreter will not match the system interpreter and will be incompatible with ROS 2 binaries.Installing viarosdepThe fastest way to include third-party python packages is to use their corresponding rosdep keys, if available.rosdepkeys can be checked via:https://github.com/ros/rosdistro/blob/master/rosdep/base.yamlhttps://github.com/ros/rosdistro/blob/master/rosdep/python.yamlTheserosdepkeys can be added to yourpackage.xmlfile, which indicates to the build system that your package (and dependent packages) depend on those keys.
+In a new workspace, you can also quickly install all rosdep keys with:rosdep install -yr ./path/to/your/workspaceIf there aren’t currentlyrosdepkeys for the package that you are interested in, it is possible to add them by following therosdep key contribution guide.To learn more about therosdeptool and how it works, consult therosdep documentation.Installing via a package managerIf you don’t want to make a rosdep key, but the package is available in your system package manager (egapt), you can install and use the package that way:sudo apt install python3-serialIf the package is available onThe Python Package Index (PyPI)and you want to install globally on your system:python3-mpipinstall-UpyserialIf the package is available on PyPI and you want to install locally to your user:python3 -m pip install -U --user pyserialInstalling via a virtual environmentFirst, create a Colcon workspace:mkdir -p ~/colcon_venv/srccd ~/colcon_venv/Then setup your virtual environment:#Makeavirtualenvandactivateitvirtualenv -p python3 ./venvsource ./venv/bin/activate#Makesurethatcolcondoesn’ttrytobuildthevenvtouch ./venv/COLCON_IGNORENext, install the Python packages that you want in your virtual environment:python3 -m pip install gtsam pyserial… etcNow you can build your workspace and run your python node that depends on packages installed in your virtual environment.#SourceJazzyandbuildsource /opt/ros/jazzy/setup.bashcolcon buildNoteIf you want to release your package using Bloom, you should add the packages you require torosdep, see therosdep key contribution guide.
+
+Code Examples:
+
+Language: unknown
+rosdep install -yr ./path/to/your/workspace
+
+Language: unknown
+sudo apt install python3-serial
+
+Language: unknown
+python3-mpipinstall-Upyserial
+
+Language: unknown
+python3 -m pip install -U --user pyserial
+
+Language: unknown
+mkdir -p ~/colcon_venv/srccd ~/colcon_venv/
+
+Language: unknown
+#Makeavirtualenvandactivateitvirtualenv -p python3 ./venvsource ./venv/bin/activate#Makesurethatcolcondoesn’ttrytobuildthevenvtouch ./venv/COLCON_IGNORE
+
+Language: unknown
+python3 -m pip install gtsam pyserial… etc
+
+Language: unknown
+#SourceJazzyandbuildsource /opt/ros/jazzy/setup.bashcolcon build

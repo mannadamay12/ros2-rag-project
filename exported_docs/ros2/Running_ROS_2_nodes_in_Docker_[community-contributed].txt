@@ -1,0 +1,37 @@
+Title: Running ROS 2 nodes in Docker [community-contributed]
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Run-2-nodes-in-single-or-separate-docker-containers.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Running ROS 2 nodes in Docker [community-contributed]Run two nodes in a single docker containerPull the ROS docker image with tag “jazzy-desktop”.dockerpullosrf/ros:jazzy-desktopRun the image in a container in interactive mode.$dockerrun-itosrf/ros:jazzy-desktop
+root@<container-id>:/#Your best friend is theros2command line help now.root@<container-id>:/#ros2--helpE.g. list all installed packages.root@<container-id>:/#ros2pkglist(youwillseealistofpackages)E.g. list all executables:root@<container-id>:/#ros2pkgexecutables(youwillseealistof<package><executable>)Run a minimal example of 2 C++ nodes (1 topic subscriberlistener, 1 topic publishertalker) from the packagedemo_nodes_cppin this container:ros2rundemo_nodes_cpplistener&ros2rundemo_nodes_cpptalkerRun two nodes in two separate docker containersOpen a terminal. Run the image in a container in interactive mode and launch a topic publisher (executabletalkerfrom the packagedemo_nodes_cpp) withros2run:dockerrun-it--rmosrf/ros:jazzy-desktopros2rundemo_nodes_cpptalkerOpen a second terminal. Run the image in a container in interactive mode and launch a topic subscriber (executablelistenerfrom the packagedemo_nodes_cpp)  withros2run:dockerrun-it--rmosrf/ros:jazzy-desktopros2rundemo_nodes_cpplistenerAs an alternative to the command line invocation, you can create adocker-compose.ymlfile (here version 2) with the following (minimal) content:version:'2'services:talker:image:osrf/ros:jazzy-desktopcommand:ros2 run demo_nodes_cpp talkerlistener:image:osrf/ros:jazzy-desktopcommand:ros2 run demo_nodes_cpp listenerdepends_on:-talkerTo run the containers calldockercomposeupin the same directory. You can close the containers withCtrl+C.
+
+Code Examples:
+
+Language: unknown
+dockerpullosrf/ros:jazzy-desktop
+
+Language: unknown
+$dockerrun-itosrf/ros:jazzy-desktop
+root@<container-id>:/#
+
+Language: unknown
+root@<container-id>:/#ros2--help
+
+Language: unknown
+root@<container-id>:/#ros2pkglist(youwillseealistofpackages)
+
+Language: unknown
+root@<container-id>:/#ros2pkgexecutables(youwillseealistof<package><executable>)
+
+Language: unknown
+ros2rundemo_nodes_cpplistener&ros2rundemo_nodes_cpptalker
+
+Language: unknown
+dockerrun-it--rmosrf/ros:jazzy-desktopros2rundemo_nodes_cpptalker
+
+Language: unknown
+dockerrun-it--rmosrf/ros:jazzy-desktopros2rundemo_nodes_cpplistener
+
+Language: unknown
+version:'2'services:talker:image:osrf/ros:jazzy-desktopcommand:ros2 run demo_nodes_cpp talkerlistener:image:osrf/ros:jazzy-desktopcommand:ros2 run demo_nodes_cpp listenerdepends_on:-talker

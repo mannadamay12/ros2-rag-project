@@ -1,0 +1,105 @@
+Title: Writing a broadcaster (C++)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Writing-A-Tf2-Broadcaster-Cpp.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Writing a broadcaster (C++)Goal:Learn how to broadcast the state of a robot to tf2.Tutorial level:IntermediateTime:15 minutesContentsBackgroundPrerequisitesTasks1 Write the broadcaster node2 Write the launch file3 Build4 RunSummaryBackgroundIn the next two tutorials we will write the code to reproduce the demo from theIntroduction to tf2tutorial.
+After that, the following tutorials focus on extending the demo with more advanced tf2 features, including the usage of timeouts in transformation lookups and time travel.PrerequisitesThis tutorial assumes you have a working knowledge of ROS 2 and you have completed theIntroduction to tf2 tutorialandtf2 static broadcaster tutorial (C++).
+We’ll be reusing thelearning_tf2_cpppackage from that last tutorial.In previous tutorials, you learned how tocreate a workspaceandcreate a package.Tasks1 Write the broadcaster nodeLet’s first create the source files.
+Go to thelearning_tf2_cpppackage we created in the previous tutorial.
+Inside thesrcdirectory download the example broadcaster code by entering the following command:LinuxmacOSWindowswget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/turtle_tf2_broadcaster.cppwget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/turtle_tf2_broadcaster.cppIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/turtle_tf2_broadcaster.cpp -o turtle_tf2_broadcaster.cppOr in powershell:curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/turtle_tf2_broadcaster.cpp -o turtle_tf2_broadcaster.cppOpen the file using your preferred text editor.#include<functional>#include<memory>#include<sstream>#include<string>#include"geometry_msgs/msg/transform_stamped.hpp"#include"rclcpp/rclcpp.hpp"#include"tf2/LinearMath/Quaternion.h"#include"tf2_ros/transform_broadcaster.h"#include"turtlesim/msg/pose.hpp"classFramePublisher:publicrclcpp::Node{public:FramePublisher():Node("turtle_tf2_frame_publisher"){// Declare and acquire `turtlename` parameterturtlename_=this->declare_parameter<std::string>("turtlename","turtle");// Initialize the transform broadcastertf_broadcaster_=std::make_unique<tf2_ros::TransformBroadcaster>(*this);// Subscribe to a turtle{1}{2}/pose topic and call handle_turtle_pose// callback function on each messagestd::ostringstreamstream;stream<<"/"<<turtlename_.c_str()<<"/pose";std::stringtopic_name=stream.str();autohandle_turtle_pose=[this](conststd::shared_ptr<turtlesim::msg::Pose>msg){geometry_msgs::msg::TransformStampedt;// Read message content and assign it to// corresponding tf variablest.header.stamp=this->get_clock()->now();t.header.frame_id="world";t.child_frame_id=turtlename_.c_str();// Turtle only exists in 2D, thus we get x and y translation// coordinates from the message and set the z coordinate to 0t.transform.translation.x=msg->x;t.transform.translation.y=msg->y;t.transform.translation.z=0.0;// For the same reason, turtle can only rotate around one axis// and this why we set rotation in x and y to 0 and obtain// rotation in z axis from the messagetf2::Quaternionq;q.setRPY(0,0,msg->theta);t.transform.rotation.x=q.x();t.transform.rotation.y=q.y();t.transform.rotation.z=q.z();t.transform.rotation.w=q.w();// Send the transformationtf_broadcaster_->sendTransform(t);};subscription_=this->create_subscription<turtlesim::msg::Pose>(topic_name,10,handle_turtle_pose);}private:rclcpp::Subscription<turtlesim::msg::Pose>::SharedPtrsubscription_;std::unique_ptr<tf2_ros::TransformBroadcaster>tf_broadcaster_;std::stringturtlename_;};intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<FramePublisher>());rclcpp::shutdown();return0;}1.1 Examine the codeNow, let’s take a look at the code that is relevant to publishing the turtle pose to tf2.
+Firstly, we define and acquire a single parameterturtlename, which specifies a turtle name, e.g.turtle1orturtle2.turtlename_=this->declare_parameter<std::string>("turtlename","turtle");Afterward, the node subscribes to topicturtleX/poseand runs functionhandle_turtle_poseon every incoming message.subscription_=this->create_subscription<turtlesim::msg::Pose>(topic_name,10,handle_turtle_pose);Now, we create aTransformStampedobject and give it the appropriate metadata.We need to give the transform being published a timestamp, and we’ll just stamp it with the current time by callingthis->get_clock()->now(). This will return the current time used by theNode.Then we need to set the name of the parent frame of the link we’re creating, in this caseworld.Finally, we need to set the name of the child node of the link we’re creating, in this case this is the name of the turtle itself.The handler function for the turtle pose message broadcasts this turtle’s translation and rotation, and publishes it as a transform from frameworldto frameturtleX.geometry_msgs::msg::TransformStampedt;// Read message content and assign it to// corresponding tf variablest.header.stamp=this->get_clock()->now();t.header.frame_id="world";t.child_frame_id=turtlename_.c_str();Here we copy the information from the 3D turtle pose into the 3D transform.// Turtle only exists in 2D, thus we get x and y translation// coordinates from the message and set the z coordinate to 0t.transform.translation.x=msg->x;t.transform.translation.y=msg->y;t.transform.translation.z=0.0;// For the same reason, turtle can only rotate around one axis// and this why we set rotation in x and y to 0 and obtain// rotation in z axis from the messagetf2::Quaternionq;q.setRPY(0,0,msg->theta);t.transform.rotation.x=q.x();t.transform.rotation.y=q.y();t.transform.rotation.z=q.z();t.transform.rotation.w=q.w();Finally we take the transform that we constructed and pass it to thesendTransformmethod of theTransformBroadcasterthat will take care of broadcasting.// Send the transformationtf_broadcaster_->sendTransform(t);1.2 CMakeLists.txtNavigate one level back to thelearning_tf2_cppdirectory, where theCMakeLists.txtandpackage.xmlfiles are located.Now open theCMakeLists.txtadd the executable and name itturtle_tf2_broadcaster, which you’ll use later withros2run.add_executable(turtle_tf2_broadcaster src/turtle_tf2_broadcaster.cpp)ament_target_dependencies(turtle_tf2_broadcastergeometry_msgsrclcpptf2tf2_rosturtlesim)Finally, add theinstall(TARGETS…)section soros2runcan find your executable:install(TARGETSturtle_tf2_broadcasterDESTINATION lib/${PROJECT_NAME})2 Write the launch fileNow create a launch file for this demo.
+Create alaunchfolder in thesrc/learning_tf2_cppdirectory.
+With your text editor, create a new file calledturtle_tf2_demo_launch.pyin thelaunchfolder, and add the following lines:fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNodedefgenerate_launch_description():returnLaunchDescription([Node(package='turtlesim',executable='turtlesim_node',name='sim'),Node(package='learning_tf2_cpp',executable='turtle_tf2_broadcaster',name='broadcaster1',parameters=[{'turtlename':'turtle1'}]),])2.1 Examine the codeFirst we import required modules from thelaunchandlaunch_rospackages.
+It should be noted thatlaunchis a generic launching framework (not ROS 2 specific) andlaunch_roshas ROS 2 specific things, like nodes that we import here.fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNodeNow we run our nodes that start the turtlesim simulation and broadcastturtle1state to the tf2 using ourturtle_tf2_broadcasternode.Node(package='turtlesim',executable='turtlesim_node',name='sim'),Node(package='learning_tf2_cpp',executable='turtle_tf2_broadcaster',name='broadcaster1',parameters=[{'turtlename':'turtle1'}]),2.2 Add dependenciesNavigate one level back to thelearning_tf2_cppdirectory, where theCMakeLists.txtandpackage.xmlfiles are located.Openpackage.xmlwith your text editor.
+Add the following dependencies corresponding to your launch file’s import statements:<exec_depend>launch</exec_depend><exec_depend>launch_ros</exec_depend>This declares the additional requiredlaunchandlaunch_rosdependencies when its code is executed.Make sure to save the file.2.3 CMakeLists.txtReopenCMakeLists.txtand add the line so that the launch files from thelaunch/folder will be installed.install(DIRECTORY launchDESTINATION share/${PROJECT_NAME})You can learn more about creating launch files inthis tutorial.3 BuildRunrosdepin the root of your workspace to check for missing dependencies.LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfStill in the root of your workspace, build your package:LinuxmacOSWindowscolcon build --packages-select learning_tf2_cppcolcon build --packages-select learning_tf2_cppcolcon build --merge-install --packages-select learning_tf2_cppOpen a new terminal, navigate to the root of your workspace, and source the setup files:LinuxmacOSWindows. install/setup.bash. install/setup.bash#CMDcall install\setup.bat#Powershell.\install\setup.ps14 RunNow run the launch file that will start the turtlesim simulation node andturtle_tf2_broadcasternode:ros2 launch learning_tf2_cpp turtle_tf2_demo_launch.pyIn the second terminal window type the following command:ros2 run turtlesim turtle_teleop_keyYou will now see that the turtlesim simulation have started with one turtle that you can control.Now, use thetf2_echotool to check if the turtle pose is actually getting broadcast to tf2:ros2 run tf2_ros tf2_echo world turtle1This should show you the pose of the first turtle.
+Drive around the turtle using the arrow keys (make sure yourturtle_teleop_keyterminal window is active, not your simulator window).
+In your console output you will see something similar to this:At time 1625137663.912474878- Translation: [5.276, 7.930, 0.000]- Rotation: in Quaternion [0.000, 0.000, 0.934, -0.357]At time 1625137664.950813527- Translation: [3.750, 6.563, 0.000]- Rotation: in Quaternion [0.000, 0.000, 0.934, -0.357]At time 1625137665.906280726- Translation: [2.320, 5.282, 0.000]- Rotation: in Quaternion [0.000, 0.000, 0.934, -0.357]At time 1625137666.850775673- Translation: [2.153, 5.133, 0.000]- Rotation: in Quaternion [0.000, 0.000, -0.365, 0.931]If you runtf2_echofor the transform between theworldandturtle2, you should not see a transform, because the second turtle is not there yet.
+However, as soon as we add the second turtle in the next tutorial, the pose ofturtle2will be broadcast to tf2.SummaryIn this tutorial you learned how to broadcast the pose of the robot (position and orientation of the turtle) to tf2 and how to use thetf2_echotool.
+To actually use the transforms broadcasted to tf2, you should move on to the next tutorial about creating atf2 listener.
+
+Code Examples:
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/turtle_tf2_broadcaster.cpp
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/turtle_tf2_broadcaster.cpp
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/turtle_tf2_broadcaster.cpp -o turtle_tf2_broadcaster.cpp
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/turtle_tf2_broadcaster.cpp -o turtle_tf2_broadcaster.cpp
+
+Language: unknown
+#include<functional>#include<memory>#include<sstream>#include<string>#include"geometry_msgs/msg/transform_stamped.hpp"#include"rclcpp/rclcpp.hpp"#include"tf2/LinearMath/Quaternion.h"#include"tf2_ros/transform_broadcaster.h"#include"turtlesim/msg/pose.hpp"classFramePublisher:publicrclcpp::Node{public:FramePublisher():Node("turtle_tf2_frame_publisher"){// Declare and acquire `turtlename` parameterturtlename_=this->declare_parameter<std::string>("turtlename","turtle");// Initialize the transform broadcastertf_broadcaster_=std::make_unique<tf2_ros::TransformBroadcaster>(*this);// Subscribe to a turtle{1}{2}/pose topic and call handle_turtle_pose// callback function on each messagestd::ostringstreamstream;stream<<"/"<<turtlename_.c_str()<<"/pose";std::stringtopic_name=stream.str();autohandle_turtle_pose=[this](conststd::shared_ptr<turtlesim::msg::Pose>msg){geometry_msgs::msg::TransformStampedt;// Read message content and assign it to// corresponding tf variablest.header.stamp=this->get_clock()->now();t.header.frame_id="world";t.child_frame_id=turtlename_.c_str();// Turtle only exists in 2D, thus we get x and y translation// coordinates from the message and set the z coordinate to 0t.transform.translation.x=msg->x;t.transform.translation.y=msg->y;t.transform.translation.z=0.0;// For the same reason, turtle can only rotate around one axis// and this why we set rotation in x and y to 0 and obtain// rotation in z axis from the messagetf2::Quaternionq;q.setRPY(0,0,msg->theta);t.transform.rotation.x=q.x();t.transform.rotation.y=q.y();t.transform.rotation.z=q.z();t.transform.rotation.w=q.w();// Send the transformationtf_broadcaster_->sendTransform(t);};subscription_=this->create_subscription<turtlesim::msg::Pose>(topic_name,10,handle_turtle_pose);}private:rclcpp::Subscription<turtlesim::msg::Pose>::SharedPtrsubscription_;std::unique_ptr<tf2_ros::TransformBroadcaster>tf_broadcaster_;std::stringturtlename_;};intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<FramePublisher>());rclcpp::shutdown();return0;}
+
+Language: unknown
+turtlename_=this->declare_parameter<std::string>("turtlename","turtle");
+
+Language: unknown
+subscription_=this->create_subscription<turtlesim::msg::Pose>(topic_name,10,handle_turtle_pose);
+
+Language: unknown
+geometry_msgs::msg::TransformStampedt;// Read message content and assign it to// corresponding tf variablest.header.stamp=this->get_clock()->now();t.header.frame_id="world";t.child_frame_id=turtlename_.c_str();
+
+Language: unknown
+// Turtle only exists in 2D, thus we get x and y translation// coordinates from the message and set the z coordinate to 0t.transform.translation.x=msg->x;t.transform.translation.y=msg->y;t.transform.translation.z=0.0;// For the same reason, turtle can only rotate around one axis// and this why we set rotation in x and y to 0 and obtain// rotation in z axis from the messagetf2::Quaternionq;q.setRPY(0,0,msg->theta);t.transform.rotation.x=q.x();t.transform.rotation.y=q.y();t.transform.rotation.z=q.z();t.transform.rotation.w=q.w();
+
+Language: unknown
+// Send the transformationtf_broadcaster_->sendTransform(t);
+
+Language: unknown
+add_executable(turtle_tf2_broadcaster src/turtle_tf2_broadcaster.cpp)ament_target_dependencies(turtle_tf2_broadcastergeometry_msgsrclcpptf2tf2_rosturtlesim)
+
+Language: unknown
+install(TARGETSturtle_tf2_broadcasterDESTINATION lib/${PROJECT_NAME})
+
+Language: unknown
+fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNodedefgenerate_launch_description():returnLaunchDescription([Node(package='turtlesim',executable='turtlesim_node',name='sim'),Node(package='learning_tf2_cpp',executable='turtle_tf2_broadcaster',name='broadcaster1',parameters=[{'turtlename':'turtle1'}]),])
+
+Language: unknown
+fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNode
+
+Language: unknown
+Node(package='turtlesim',executable='turtlesim_node',name='sim'),Node(package='learning_tf2_cpp',executable='turtle_tf2_broadcaster',name='broadcaster1',parameters=[{'turtlename':'turtle1'}]),
+
+Language: unknown
+<exec_depend>launch</exec_depend><exec_depend>launch_ros</exec_depend>
+
+Language: unknown
+install(DIRECTORY launchDESTINATION share/${PROJECT_NAME})
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select learning_tf2_cpp
+
+Language: unknown
+colcon build --packages-select learning_tf2_cpp
+
+Language: unknown
+colcon build --merge-install --packages-select learning_tf2_cpp
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+#CMDcall install\setup.bat#Powershell.\install\setup.ps1
+
+Language: unknown
+ros2 launch learning_tf2_cpp turtle_tf2_demo_launch.py
+
+Language: unknown
+ros2 run turtlesim turtle_teleop_key
+
+Language: unknown
+ros2 run tf2_ros tf2_echo world turtle1
+
+Language: unknown
+At time 1625137663.912474878- Translation: [5.276, 7.930, 0.000]- Rotation: in Quaternion [0.000, 0.000, 0.934, -0.357]At time 1625137664.950813527- Translation: [3.750, 6.563, 0.000]- Rotation: in Quaternion [0.000, 0.000, 0.934, -0.357]At time 1625137665.906280726- Translation: [2.320, 5.282, 0.000]- Rotation: in Quaternion [0.000, 0.000, 0.934, -0.357]At time 1625137666.850775673- Translation: [2.153, 5.133, 0.000]- Rotation: in Quaternion [0.000, 0.000, -0.365, 0.931]

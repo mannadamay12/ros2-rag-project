@@ -1,0 +1,13 @@
+Title: Distributions
+URL: https://docs.ros.org/en/jazzy/Releases.html#rolling-distribution
+Section: Installation
+--------------------------------------------------------------------------------
+
+DistributionsWhat is a Distribution?A ROS distribution is a versioned set of ROS packages.
+These are akin to Linux distributions (e.g. Ubuntu).
+The purpose of the ROS distributions is to let developers work against a relatively stable codebase until they are ready to roll everything forward.
+Therefore once a distribution is released, we try to limit changes to bug fixes and non-breaking improvements for the core packages (every thing under ros-desktop-full).
+That generally applies to the whole community, but for “higher” level packages, the rules are less strict, and so it falls to the maintainers of a given package to avoid breaking changes.List of DistributionsBelow is a list of current and historic ROS 2 distributions.
+Rows in the table marked in green are the currently supported distributions.DistroRelease dateLogoEOL dateJazzy JaliscoMay 23rd, 2024May 2029Iron IrwiniMay 23rd, 2023November 2024Humble HawksbillMay 23rd, 2022May 2027Galactic GeocheloneMay 23rd, 2021December 9th, 2022Foxy FitzroyJune 5th, 2020June 20th, 2023Eloquent ElusorNovember 22nd, 2019November 2020Dashing DiademataMay 31st, 2019May 2021Crystal ClemmysDecember 14th, 2018December 2019Bouncy BolsonJuly 2nd, 2018July 2019Ardent ApaloneDecember 8th, 2017December 2018beta3September 13th, 2017December 2017beta2July 5th, 2017September 2017beta1December 19th, 2016Jul 2017alpha1 - alpha8August 31th, 2015December 2016Future DistributionsFor details on upcoming features see theroadmap.There is a new ROS 2 distribution released yearly on May 23rd (World Turtle Day).DistroRelease dateLogoEOL dateKilted KaijuMay 2025TBDNov 2026Rolling DistributionROS 2 Rolling Ridleyis the rolling development distribution of ROS 2.
+It is described inREP 2002and was first introduced in June 2020.The Rolling distribution of ROS 2 serves two purposes:it is a staging area for future stable distributions of ROS 2, andit is a collection of the most recent development releases.As the name implies, Rolling is continuously updated andcan have in-place updates that include breaking changes.
+We recommend that most people use the most recent stable distribution instead (seeList of Distributions).Packages released into the Rolling distribution will be automatically released into future stable distributions of ROS 2.Releasing a ROS 2 packageinto the Rolling distribution follows the same procedures as all other ROS 2 distributions.

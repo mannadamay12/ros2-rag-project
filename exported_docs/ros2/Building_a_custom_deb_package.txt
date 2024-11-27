@@ -1,0 +1,23 @@
+Title: Building a custom deb package
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Building-a-Custom-Deb-Package.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Building a custom deb packageMany Ubuntu users install ROS 2 on their system by installingdeb packages.
+This guide gives a short set of instructions to build local, custom deb packages.Table of ContentsPrerequisitesInstall dependenciesInitialize rosdepBuild the deb from the packagePrerequisitesTo successfully build a custom package, all of the dependencies of the package to be built must be available locally or in rosdep.
+Additionally, all of the dependencies of the package should be properly declared in thepackage.xmlfile of the package.Install dependenciesRun the following command to install utilities needed for the build:$sudoaptinstallpython3-bloompython3-rosdepfakerootdebhelperdh-pythonInitialize rosdepInitialize the rosdep database by calling:$sudorosdepinit
+$rosdepupdateNote that therosdepinitcommand may fail if it has already been initialized in the past; this can safely be ignored.Build the deb from the packageRun the following commands to build the deb:$cd/path/to/pkg_source# this should be the directory that contains the package.xml$bloom-generaterosdebian
+$fakerootdebian/rulesbinaryAssuming that all required dependencies are available and that compilation succeeds, the new package will be available in the parent directory of this directory.
+
+Code Examples:
+
+Language: unknown
+$sudoaptinstallpython3-bloompython3-rosdepfakerootdebhelperdh-python
+
+Language: unknown
+$sudorosdepinit
+$rosdepupdate
+
+Language: unknown
+$cd/path/to/pkg_source# this should be the directory that contains the package.xml$bloom-generaterosdebian
+$fakerootdebian/rulesbinary

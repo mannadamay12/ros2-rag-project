@@ -1,0 +1,57 @@
+Title: First Time Release
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Releasing/First-Time-Release.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+First Time ReleaseThis guide explains how to release ROS 2 packages that you have not released before.
+Due to numerous options available when releasing ROS packages, this guide intends to cover the most common scenario and does not cover every corner-case.Table of ContentsBe part of a release teamCreate a new release repositoryInstall dependenciesSet Up a Personal Access TokenEnsure repositories are up-to-dateGenerate ChangelogBump the package versionBloom ReleaseNext StepsBe part of a release teamYou must be part of arelease team.
+If you are not part of a release team yet, follow either:Join a release teamStart a new release teamCreate a new release repositoryYou need arelease repositoryto release a package.
+FollowCreate a new release repository.Install dependenciesInstall tools that you will use in the upcoming steps according to your platform:deb (eg. Ubuntu)RPM (eg. RHEL)Othersudoaptinstallpython3-bloompython3-catkin-pkgsudodnfinstallpython3-bloompython3-catkin_pkgpip3install-Ubloomcatkin_pkgMake sure you have rosdep initialized:sudorosdepinit
+rosdepupdateNote that therosdepinitcommand may fail if it has already been initialized in the past; this can safely be ignored.Set Up a Personal Access TokenWarningIf the file~/.config/bloomexists on your computer, it is likely that you have done this before so you should skip this section.During the release process, multiple HTTPS Git operations will be performed that require password authentication.
+To avoid being repeatedly asked for a password, aPersonal Access Token (PAT)will be set up.
+If you have multi-factor authentication setup on your GitHub account, youmustsetup a Personal Access Token.Create a Personal Access Token by:Log in to GitHub and go toPersonal access tokens.Click theGenerate new tokenbutton.In the dropdown, selectGenerate new token (classic)SetNoteto something likeBloomtoken.SetExpirationtoNo expiration.Tick thepublic_repoandworkflowcheckboxes.Click theGenerate tokenbutton.After you have created the token, you will end up back at thePersonal access tokenspage.Copy the alphanumeric tokenthat is highlighted in green.Save your GitHub username and PAT to a new file called~/.config/bloom, with the format below:{
+   "github_user": "<your-github-username>",
+   "oauth_token": "<token-you-created-for-bloom>"
+}Ensure repositories are up-to-dateMake sure that:Your repository is hosted on a remote such as GitHub.You have a clone of the repository on your computer and are on the right branch.Both the remote repository and your clone are up-to-date.Generate ChangelogGenerate aCHANGELOG.rstfile per package in your repo using the following command:catkin_generate_changelog--allOpen allCHANGELOG.rstfiles in an editor.
+You will see thatcatkin_generate_changeloghas auto-generated a forthcoming section with notes from commit messages:^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Changelog for package your_package^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Forthcoming-----------*you can modify this commit message*and thisClean up the list of commit messages to concisely convey the notable changes that have been made to the packages since the last release, andcommit all the CHANGELOG.rst files.Do not modify theForthcomingheader.Bump the package versionEvery release of the package must have a unique version number higher than the previous release.
+Run:catkin_prepare_releasewhich performs the following:increases the package version inpackage.xmlreplaces the headingForthcomingwithversion(date)(eg.0.0.1(2022-01-08)) inCHANGELOG.rstcommits those changescreates a tag (eg.0.0.1)pushes the changes and the tag to your remote repositoryNoteBy default the patch version of the package is incremented, such as from0.0.0to0.0.1.
+To increment the minor or major version instead, runcatkin_prepare_release--bumpminororcatkin_prepare_release--bumpmajor.
+For more details, seecatkin_prepare_release--help.Bloom ReleaseRun the following command, replacingmy_repowith the name of your repository:bloom-release--new-track--rosdistrojazzy--trackjazzymy_repoTip--new-tracktells bloom to create a newtrackand configure it.--rosdistrojazzyindicates that this release is for thejazzydistro--trackjazzyindicates that you want the track name to bejazzyYou will be prompted to enter information to configure a new track.
+In a common scenario such as:Your packages are in a repository calledmy_repoYou are releasing a branch calledmainThe repository is hosted on GitHub athttps://github.com/my_organization/my_repo.gitYour release repository is athttps://github.com/ros2-gbp/my_repo-release.gitYou should respond to the prompts as following:ConfigurationValueRelease Repository urlhttps://github.com/ros2-gbp/my_repo-release.gitRepository Namemy_repoUpstream Repository URIhttps://github.com/my_organization/my_repo.gitUpstream VCS TypeVersionRelease TagUpstream Devel BranchmainROS DistroPatches DirectoryRelease Repository Push URLNoteAn empty cell in the table indicates that the default value should be used.
+Simply respond to the prompt by pressing Enter.Bloom will automatically create a pull request for you againstrosdistro.Next StepsOnce your pull request has been submitted, usually within one or two days, one of the maintainers of rosdistro will review and merge your Pull Request.
+If your package build is successful, in 24-48 hours your packages will become available in theros-testingrepository, where you cantest your pre-release binaries.Approximately every two to four weeks, the distribution’s release manager manually synchronizes the contents of ros-testing into the main ROS repository.
+This is when your packages actually become available to the rest of the ROS community.
+To get updates on when the next synchronization (sync) is coming, subscribe to thePackaging and Release Management Category on ROS Discourse.
+
+Code Examples:
+
+Language: unknown
+sudoaptinstallpython3-bloompython3-catkin-pkg
+
+Language: unknown
+sudodnfinstallpython3-bloompython3-catkin_pkg
+
+Language: unknown
+pip3install-Ubloomcatkin_pkg
+
+Language: unknown
+sudorosdepinit
+rosdepupdate
+
+Language: unknown
+{
+   "github_user": "<your-github-username>",
+   "oauth_token": "<token-you-created-for-bloom>"
+}
+
+Language: unknown
+catkin_generate_changelog--all
+
+Language: unknown
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Changelog for package your_package^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Forthcoming-----------*you can modify this commit message*and this
+
+Language: unknown
+catkin_prepare_release
+
+Language: unknown
+bloom-release--new-track--rosdistrojazzy--trackjazzymy_repo

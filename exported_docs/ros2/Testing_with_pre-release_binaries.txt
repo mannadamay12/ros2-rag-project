@@ -1,0 +1,46 @@
+Title: Testing with pre-release binaries
+URL: https://docs.ros.org/en/jazzy/Installation/Testing.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Testing with pre-release binariesMany ROS packages are provided as pre-built binaries.
+Usually, you will get the released version of binaries when followingInstallation.
+There are also pre-released versions of binaries that are useful for testing before making an official release.
+This article describes several options if you would like to try out pre-released versions of ROS binaries.deb testing repositoryWhen packages are released into a ROS distribution (using bloom), the buildfarm builds them into deb packages which are stored temporarily in thebuildingapt repository.
+As dependent packages are rebuilt, an automatic process periodically synchronizes the packages inbuildingto a secondary repository calledros-testing.ros-testingis intended as a soaking area where developers and bleeding-edge users may give the packages extra testing, before they are manually synced into the public ros repository from which users typically install packages.Approximately every two weeks, the rosdistro’s release manager manually synchronizes the contents ofros-testinginto themainROS repository.For Debian-based operating systems, you can install binary packages from theros-testingrepository.Make sure you have a working ROS 2 installation from deb packages (seeInstallation).Edit (with sudo) the file/etc/apt/sources.list.d/ros2.listand changeros2withros2-testing.
+For example, on Ubuntu Noble the contents should look like the following:# deb http://packages.ros.org/ros2/ubuntu noble maindebhttp://packages.ros.org/ros2-testing/ubuntunoblemainUpdate theaptindex:sudoaptupdateYou can now install individual packages from the testing repository, for example:sudoaptinstallros-jazzy-my-just-released-packageAlternatively, you can move your entire ROS 2 installation to the testing repository:sudoaptdist-upgradeOnce you are finished testing, you can switch back to the normal repository by changing back the contents of/etc/apt/sources.list.d/ros2.list:debhttp://packages.ros.org/ros2/ubuntunoblemain# deb http://packages.ros.org/ros2-testing/ubuntu noble mainand doing an update and upgrade:sudoaptupdate
+sudoaptdist-upgradeBinary archivesFor core packages, we run nightly packaging jobs for Ubuntu Linux, RHEL, and Windows.
+These packaging jobs produce archives with pre-built binaries that can be downloaded and extracted to your filesystem.Make sure you have all dependencies installed according to thelatest development setupfor your platform.Go tohttps://ci.ros2.org/view/packaging/and select a packaging job from the list corresponding to your platform.Under the heading “Last Successful Artifacts” you should see a download link (e.g. for Windows,ros2-package-windows-AMD64.zip).Download and extract the archive to your file system.To use the binary archive installation, source thesetup.*file that can be found in the root of the archive.Ubuntu Linux and RHELWindowssourcepath/to/extracted/archive/setup.bashcallpath\to\extracted\archive\setup.batDockerFor Ubuntu Linux, there is also a nightly Docker image based on the nightly binary archive.Pull the Docker image:dockerpullosrf/ros2:nightlyStart an interactive container:dockerrun-itosrf/ros2:nightlyFor support on running GUI applications in Docker, take a look at the tutorialUser GUI’s with Dockeror the toolrocker.
+
+Code Examples:
+
+Language: unknown
+# deb http://packages.ros.org/ros2/ubuntu noble maindebhttp://packages.ros.org/ros2-testing/ubuntunoblemain
+
+Language: unknown
+sudoaptupdate
+
+Language: unknown
+sudoaptinstallros-jazzy-my-just-released-package
+
+Language: unknown
+sudoaptdist-upgrade
+
+Language: unknown
+debhttp://packages.ros.org/ros2/ubuntunoblemain# deb http://packages.ros.org/ros2-testing/ubuntu noble main
+
+Language: unknown
+sudoaptupdate
+sudoaptdist-upgrade
+
+Language: unknown
+sourcepath/to/extracted/archive/setup.bash
+
+Language: unknown
+callpath\to\extracted\archive\setup.bat
+
+Language: unknown
+dockerpullosrf/ros2:nightly
+
+Language: unknown
+dockerrun-itosrf/ros2:nightly

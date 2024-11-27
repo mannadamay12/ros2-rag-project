@@ -1,0 +1,80 @@
+Title: Migrating Launch Files
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Migrating-from-ROS1/Migrating-Launch-Files.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Migrating Launch FilesTable of ContentsBackgroundMigrating tagsNew tags in ROS 2Replacing an include tagSubstitutionsType inference rulesWhile launch files in ROS 1 are always specified using.xmlfiles, ROS 2 supports Python scripts to enable more flexibility (seelaunch package) as well as XML and YAML files.This guide describes how to write ROS 2 XML launch files for an easy migration from ROS 1.BackgroundA description of the ROS 2 launch system and its Python API can be found inLaunch System tutorial.Migrating tagslaunchAvailable in ROS 1.launchis the root element of any ROS 2 launch XML file.nodeAvailable in ROS 1.Launches a new node.Differences from ROS 1:typeattribute is nowexec.nsattribute is nownamespace.The following attributes aren’t available:machine,respawn_delay,clear_params.Example<launch><nodepkg="demo_nodes_cpp"exec="talker"/><nodepkg="demo_nodes_cpp"exec="listener"/></launch>paramAvailable in ROS 1.Used for passing a parameter to a node.There’s no global parameter concept in ROS 2.
+For that reason, it can only be used nested in anodetag.
+Some attributes aren’t supported in ROS 2:type,textfile,binfile,executable.Thecommandattribute is nowvalue="$(command'...')".Example<launch><nodepkg="demo_nodes_cpp"exec="parameter_event"><paramname="foo"value="5"/></node></launch>Type inference rulesHere are some examples of how to write parameters:<nodepkg="my_package"exec="my_executable"name="my_node"><!--A string parameter with value "1"--><paramname="a_string"value="'1'"/><!--A integer parameter with value 1--><paramname="an_int"value="1"/><!--A float parameter with value 1.0--><paramname="a_float"value="1.0"/><!--A string parameter with value "asd"--><paramname="another_string"value="asd"/><!--Another string parameter, with value "asd"--><paramname="string_with_same_value_as_above"value="'asd'"/><!--Another string parameter, with value "'asd'"--><paramname="quoted_string"value="\'asd\'"/><!--A list of strings, with value ["asd", "bsd", "csd"]--><paramname="list_of_strings"value="asd, bsd, csd"value-sep=", "/><!--A list of ints, with value [1, 2, 3]--><paramname="list_of_ints"value="1,2,3"value-sep=","/><!--Another list of strings, with value ["1", "2", "3"]--><paramname="another_list_of_strings"value="'1';'2';'3'"value-sep=";"/><!--A list of strings using an strange separator, with value ["1", "2", "3"]--><paramname="strange_separator"value="'1'//'2'//'3'"value-sep="//"/></node>Parameter groupingIn ROS 2,paramtags are allowed to be nested.
+For example:<nodepkg="my_package"exec="my_executable"name="my_node"ns="/an_absoulute_ns"><paramname="group1"><paramname="group2"><paramname="my_param"value="1"/></param><paramname="another_param"value="2"/></param></node>That will create two parameters:Agroup1.group2.my_paramof value1, hosted by node/an_absolute_ns/my_node.Agroup1.another_paramof value2hosted by node/an_absolute_ns/my_node.It’s also possible to use full parameter names:<nodepkg="my_package"exec="my_executable"name="my_node"ns="/an_absoulute_ns"><paramname="group1.group2.my_param"value="1"/><paramname="group1.another_param"value="2"/></node>rosparamAvailable in ROS 1.Loads parameters from a yaml file.It has been replaced with afromattribute inparamtags.Example<nodepkg="my_package"exec="my_executable"name="my_node"ns="/an_absoulute_ns"><paramfrom="/path/to/file"/></node>remapAvailable in ROS 1.Used to pass remapping rules to a node.It can only be used withinnodetags.Example<launch><nodepkg="demo_nodes_cpp"exec="talker"><remapfrom="chatter"to="my_topic"/></node><nodepkg="demo_nodes_cpp"exec="listener"><remapfrom="chatter"to="my_topic"/></node></launch>includeAvailable in ROS 1.Allows including another launch file.Differences from ROS 1:Available in ROS 1, included content was scoped.
+In ROS 2, it’s not.
+Nest includes ingrouptags to scope them.nsattribute is not supported.
+See example ofpush_ros_namespacetag for a workaround.argtags nested in anincludetag don’t support conditionals (if,unless) or thedescriptionattribute.There is no support for nestedenvtags.set_envandunset_envcan be used instead.Bothclear_paramsandpass_all_argsattributes aren’t supported.ExamplesSeeReplacing an include tag.argAvailable in ROS 1.argis used for declaring a launch argument, or to pass an argument when usingincludetags.Differences from ROS 1:valueattribute is not allowed.
+Uselettag for this.docis nowdescription.When nested within anincludetag,if,unless, anddescriptionattributes aren’t allowed.Example<launch><argname="topic_name"default="chatter"/><nodepkg="demo_nodes_cpp"exec="talker"><remapfrom="chatter"to="$(var topic_name)"/></node><nodepkg="demo_nodes_cpp"exec="listener"><remapfrom="chatter"to="$(var topic_name)"/></node></launch>Passing an argument to the launch fileIn the XML launch file above, thetopic_namedefaults to the namechatter, but can be configured on the command-line.
+Assuming the above launch configuration is in a file namedmylaunch.xml, a different topic name can be used by launching it with the following:ros2launchmylaunch.xmltopic_name:=custom_topic_nameThere is some additional information about passing command-line arguments inUsing Substitutions.envAvailable in ROS 1.Sets an environment variable.It has been replaced withenv,set_envandunset_env:envcan only be used nested in anodeorexecutabletag.ifandunlesstags aren’t supported.set_envcan be nested within the root taglaunchor ingrouptags.
+It accepts the same attributes asenv, and alsoifandunlesstags.unset_envunsets an environment variable.
+It accepts anameattribute and conditionals.Example<launch><set_envname="MY_ENV_VAR"value="MY_VALUE"if="CONDITION_A"/><set_envname="ANOTHER_ENV_VAR"value="ANOTHER_VALUE"unless="CONDITION_B"/><set_envname="SOME_ENV_VAR"value="SOME_VALUE"/><nodepkg="MY_PACKAGE"exec="MY_EXECUTABLE"name="MY_NODE"><envname="NODE_ENV_VAR"value="SOME_VALUE"/></node><unset_envname="MY_ENV_VAR"if="CONDITION_A"/><nodepkg="ANOTHER_PACKAGE"exec="ANOTHER_EXECUTABLE"name="ANOTHER_NODE"/><unset_envname="ANOTHER_ENV_VAR"unless="CONDITION_B"/><unset_envname="SOME_ENV_VAR"/></launch>groupAvailable in ROS 1.Allows limiting the scope of launch configurations.
+Usually used together withlet,includeandpush_ros_namespacetags.Differences from ROS 1:There is nonsattribute.
+See the newpush_ros_namespacetag as a workaround.clear_paramsattribute isn’t available.It doesn’t acceptremapnorparamtags as children.Examplelaunch-prefixconfiguration affects bothexecutableandnodetags’ actions.
+This example will usetimeas a prefix ifuse_time_prefix_in_talkerargument is1, only for the talker.<launch><argname="use_time_prefix_in_talker"default="0"/><group><letname="launch-prefix"value="time"if="$(var use_time_prefix_in_talker)"/><nodepkg="demo_nodes_cpp"exec="talker"/></group><nodepkg="demo_nodes_cpp"exec="listener"/></launch>machineIt is not supported at the moment.testIt is not supported at the moment.New tags in ROS 2set_env and unset_envSeeenvtag decription.push_ros_namespaceincludeandgrouptags don’t accept annsattribute.
+This action can be used as a workaround:<!-Other tags--><group><push_ros_namespacenamespace="my_ns"/><!--Nodes here are namespaced with "my_ns".--><!--If there is an include action here, its nodes will also be namespaced.--><push_ros_namespacenamespace="another_ns"/><!--Nodes here are namespaced with "another_ns/my_ns".--><push_ros_namespacenamespace="/absolute_ns"/><!--Nodes here are namespaced with "/absolute_ns".--><!--The following node receives an absolute namespace, so it will ignore the others previously pushed.--><!--The full path of the node will be /asd/my_node.--><nodepkg="my_pkg"exec="my_executable"name="my_node"ns="/asd"/></group><!--Nodes outside the group action won't be namespaced.--><!-Other tags-->letIt’s a replacement ofargtag with a value attribute.<letname="foo"value="asd"/>executableIt allows running any executable.Example<executablecmd="ls -las"cwd="/var/log"name="my_exec"launch-prefix="something"output="screen"shell="true"><envname="LD_LIBRARY"value="/lib/some.so"/></executable>Replacing an include tagIn order to include a launch file under anamespaceas in ROS 1 then theincludetags must be nested in agrouptag.<group><includefile="another_launch_file"/></group>Then, instead of using thensattribute, add thepush_ros_namespaceaction tag to specify the namespace:<group><push_ros_namespacenamespace="my_ns"/><includefile="another_launch_file"/></group>Nestingincludetags under agrouptag is only required when specifying a namespaceSubstitutionsDocumentation about ROS 1’s substitutions can be found inroslaunch XML wiki.
+Substitutions syntax hasn’t changed, i.e. it still follows the$(substitution-namearg1arg2...)pattern.
+There are, however, some changes w.r.t. ROS 1:envandoptenvtags have been replaced by theenvtag.$(env<NAME>)will fail if the environment variable doesn’t exist.$(env<NAME>'')does the same as ROS 1’s$(optenv<NAME>).$(env<NAME><DEFAULT>)does the same as ROS 1’s$(env<NAME><DEFAULT>)or$(optenv<NAME><DEFAULT>).findhas been replaced withfind-pkg-share(substituting the share directory of an installed package).
+Alternativelyfind-pkg-prefixwill return the root of an installed package.There is a newexec-in-pkgsubstitution.
+e.g.:$(exec-in-pkg<package_name><exec_name>).There is a newfind-execsubstitution.arghas been replaced withvar.
+It looks at configurations defined either withargorlettag.evalanddirnamesubstitutions require escape characters for string values, e.g.if="$(eval'\'$(varvariable)\'==\'val1\'')".anonsubstitution is not supported.Type inference rulesThe rules that were shown inTypeinferencerulessubsection ofparamtag applies to any attribute.
+For example:<!--Setting a string value to an attribute expecting an int will raise an error.--><tag1attr-expecting-an-int="'1'"/><!--Correct version.--><tag1attr-expecting-an-int="1"/><!--Setting an integer in an attribute expecting a string will raise an error.--><tag2attr-expecting-a-str="1"/><!--Correct version.--><tag2attr-expecting-a-str="'1'"/><!--Setting a list of strings in an attribute expecting a string will raise an error.--><tag3attr-expecting-a-str="asd, bsd"str-attr-sep=", "/><!--Correct version.--><tag3attr-expecting-a-str="don't use a separator"/>Some attributes accept more than a single type, for examplevalueattribute ofparamtag.
+It’s usual that parameters that are of typeint(orfloat) also accept anstr, that will be later substituted and tried to convert to anint(orfloat) by the action.
+
+Code Examples:
+
+Language: unknown
+<launch><nodepkg="demo_nodes_cpp"exec="talker"/><nodepkg="demo_nodes_cpp"exec="listener"/></launch>
+
+Language: unknown
+<launch><nodepkg="demo_nodes_cpp"exec="parameter_event"><paramname="foo"value="5"/></node></launch>
+
+Language: unknown
+<nodepkg="my_package"exec="my_executable"name="my_node"><!--A string parameter with value "1"--><paramname="a_string"value="'1'"/><!--A integer parameter with value 1--><paramname="an_int"value="1"/><!--A float parameter with value 1.0--><paramname="a_float"value="1.0"/><!--A string parameter with value "asd"--><paramname="another_string"value="asd"/><!--Another string parameter, with value "asd"--><paramname="string_with_same_value_as_above"value="'asd'"/><!--Another string parameter, with value "'asd'"--><paramname="quoted_string"value="\'asd\'"/><!--A list of strings, with value ["asd", "bsd", "csd"]--><paramname="list_of_strings"value="asd, bsd, csd"value-sep=", "/><!--A list of ints, with value [1, 2, 3]--><paramname="list_of_ints"value="1,2,3"value-sep=","/><!--Another list of strings, with value ["1", "2", "3"]--><paramname="another_list_of_strings"value="'1';'2';'3'"value-sep=";"/><!--A list of strings using an strange separator, with value ["1", "2", "3"]--><paramname="strange_separator"value="'1'//'2'//'3'"value-sep="//"/></node>
+
+Language: unknown
+<nodepkg="my_package"exec="my_executable"name="my_node"ns="/an_absoulute_ns"><paramname="group1"><paramname="group2"><paramname="my_param"value="1"/></param><paramname="another_param"value="2"/></param></node>
+
+Language: unknown
+<nodepkg="my_package"exec="my_executable"name="my_node"ns="/an_absoulute_ns"><paramname="group1.group2.my_param"value="1"/><paramname="group1.another_param"value="2"/></node>
+
+Language: unknown
+<nodepkg="my_package"exec="my_executable"name="my_node"ns="/an_absoulute_ns"><paramfrom="/path/to/file"/></node>
+
+Language: unknown
+<launch><nodepkg="demo_nodes_cpp"exec="talker"><remapfrom="chatter"to="my_topic"/></node><nodepkg="demo_nodes_cpp"exec="listener"><remapfrom="chatter"to="my_topic"/></node></launch>
+
+Language: unknown
+<launch><argname="topic_name"default="chatter"/><nodepkg="demo_nodes_cpp"exec="talker"><remapfrom="chatter"to="$(var topic_name)"/></node><nodepkg="demo_nodes_cpp"exec="listener"><remapfrom="chatter"to="$(var topic_name)"/></node></launch>
+
+Language: unknown
+ros2launchmylaunch.xmltopic_name:=custom_topic_name
+
+Language: unknown
+<launch><set_envname="MY_ENV_VAR"value="MY_VALUE"if="CONDITION_A"/><set_envname="ANOTHER_ENV_VAR"value="ANOTHER_VALUE"unless="CONDITION_B"/><set_envname="SOME_ENV_VAR"value="SOME_VALUE"/><nodepkg="MY_PACKAGE"exec="MY_EXECUTABLE"name="MY_NODE"><envname="NODE_ENV_VAR"value="SOME_VALUE"/></node><unset_envname="MY_ENV_VAR"if="CONDITION_A"/><nodepkg="ANOTHER_PACKAGE"exec="ANOTHER_EXECUTABLE"name="ANOTHER_NODE"/><unset_envname="ANOTHER_ENV_VAR"unless="CONDITION_B"/><unset_envname="SOME_ENV_VAR"/></launch>
+
+Language: unknown
+<launch><argname="use_time_prefix_in_talker"default="0"/><group><letname="launch-prefix"value="time"if="$(var use_time_prefix_in_talker)"/><nodepkg="demo_nodes_cpp"exec="talker"/></group><nodepkg="demo_nodes_cpp"exec="listener"/></launch>
+
+Language: unknown
+<!-Other tags--><group><push_ros_namespacenamespace="my_ns"/><!--Nodes here are namespaced with "my_ns".--><!--If there is an include action here, its nodes will also be namespaced.--><push_ros_namespacenamespace="another_ns"/><!--Nodes here are namespaced with "another_ns/my_ns".--><push_ros_namespacenamespace="/absolute_ns"/><!--Nodes here are namespaced with "/absolute_ns".--><!--The following node receives an absolute namespace, so it will ignore the others previously pushed.--><!--The full path of the node will be /asd/my_node.--><nodepkg="my_pkg"exec="my_executable"name="my_node"ns="/asd"/></group><!--Nodes outside the group action won't be namespaced.--><!-Other tags-->
+
+Language: unknown
+<letname="foo"value="asd"/>
+
+Language: unknown
+<executablecmd="ls -las"cwd="/var/log"name="my_exec"launch-prefix="something"output="screen"shell="true"><envname="LD_LIBRARY"value="/lib/some.so"/></executable>
+
+Language: unknown
+<group><includefile="another_launch_file"/></group>
+
+Language: unknown
+<group><push_ros_namespacenamespace="my_ns"/><includefile="another_launch_file"/></group>
+
+Language: unknown
+<!--Setting a string value to an attribute expecting an int will raise an error.--><tag1attr-expecting-an-int="'1'"/><!--Correct version.--><tag1attr-expecting-an-int="1"/><!--Setting an integer in an attribute expecting a string will raise an error.--><tag2attr-expecting-a-str="1"/><!--Correct version.--><tag2attr-expecting-a-str="'1'"/><!--Setting a list of strings in an attribute expecting a string will raise an error.--><tag3attr-expecting-a-str="asd, bsd"str-attr-sep=", "/><!--Correct version.--><tag3attr-expecting-a-str="don't use a separator"/>

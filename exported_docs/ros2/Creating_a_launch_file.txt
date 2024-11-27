@@ -1,0 +1,84 @@
+Title: Creating a launch file
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Launch/Creating-Launch-Files.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Creating a launch fileGoal:Create a launch file to run a complex ROS 2 system.Tutorial level:IntermediateTime:10 minutesContentsPrerequisitesBackgroundTasks1 Setup2 Write the launch file3 ros2 launch4 Introspect the system with rqt_graphSummaryPrerequisitesThis tutorial uses therqt_graph and turtlesimpackages.You will also need to use a text editor of your preference.As always, don’t forget to source ROS 2 inevery new terminal you open.BackgroundThe launch system in ROS 2 is responsible for helping the user describe the configuration of their system and then execute it as described.
+The configuration of the system includes what programs to run, where to run them, what arguments to pass them, and ROS-specific conventions which make it easy to reuse components throughout the system by giving them each a different configuration.
+It is also responsible for monitoring the state of the processes launched, and reporting and/or reacting to changes in the state of those processes.Launch files written in Python, XML, or YAML can start and stop different nodes as well as trigger and act on various events.
+SeeUsing Python, XML, and YAML for ROS 2 Launch Filesfor a description of the different formats.
+The package providing this framework islaunch_ros, which uses the non-ROS-specificlaunchframework underneath.Thedesign documentdetails the goal of the design of ROS 2’s launch system (not all functionality is currently available).Tasks1 SetupCreate a new directory to store your launch files:mkdir launch2 Write the launch fileLet’s put together a ROS 2 launch file using theturtlesimpackage and its executables.
+As mentioned above, this can either be in Python, XML, or YAML.PythonXMLYAMLCopy and paste the complete code into thelaunch/turtlesim_mimic_launch.pyfile:fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNodedefgenerate_launch_description():returnLaunchDescription([Node(package='turtlesim',namespace='turtlesim1',executable='turtlesim_node',name='sim'),Node(package='turtlesim',namespace='turtlesim2',executable='turtlesim_node',name='sim'),Node(package='turtlesim',executable='mimic',name='mimic',remappings=[('/input/pose','/turtlesim1/turtle1/pose'),('/output/cmd_vel','/turtlesim2/turtle1/cmd_vel'),])])Copy and paste the complete code into thelaunch/turtlesim_mimic_launch.xmlfile:<launch><nodepkg="turtlesim"exec="turtlesim_node"name="sim"namespace="turtlesim1"/><nodepkg="turtlesim"exec="turtlesim_node"name="sim"namespace="turtlesim2"/><nodepkg="turtlesim"exec="mimic"name="mimic"><remapfrom="/input/pose"to="/turtlesim1/turtle1/pose"/><remapfrom="/output/cmd_vel"to="/turtlesim2/turtle1/cmd_vel"/></node></launch>Copy and paste the complete code into thelaunch/turtlesim_mimic_launch.yamlfile:launch:-node:pkg:"turtlesim"exec:"turtlesim_node"name:"sim"namespace:"turtlesim1"-node:pkg:"turtlesim"exec:"turtlesim_node"name:"sim"namespace:"turtlesim2"-node:pkg:"turtlesim"exec:"mimic"name:"mimic"remap:-from:"/input/pose"to:"/turtlesim1/turtle1/pose"-from:"/output/cmd_vel"to:"/turtlesim2/turtle1/cmd_vel"2.1 Examine the launch fileAll of the launch files above are launching a system of three nodes, all from theturtlesimpackage.
+The goal of the system is to launch two turtlesim windows, and have one turtle mimic the movements of the other.When launching the two turtlesim nodes, the only difference between them is their namespace values.
+Unique namespaces allow the system to start two nodes without node name or topic name conflicts.
+Both turtles in this system receive commands over the same topic and publish their pose over the same topic.
+With unique namespaces, messages meant for different turtles can be distinguished.The final node is also from theturtlesimpackage, but a different executable:mimic.
+This node has added configuration details in the form of remappings.mimic’s/input/posetopic is remapped to/turtlesim1/turtle1/poseand it’s/output/cmd_veltopic to/turtlesim2/turtle1/cmd_vel.
+This meansmimicwill subscribe to/turtlesim1/sim’s pose topic and republish it for/turtlesim2/sim’s velocity command topic to subscribe to.
+In other words,turtlesim2will mimicturtlesim1’s movements.PythonXMLYAMLThese import statements pull in some Pythonlaunchmodules.fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNodeNext, the launch description itself begins:defgenerate_launch_description():returnLaunchDescription([])The first two actions in the launch description launch the two turtlesim windows:Node(package='turtlesim',namespace='turtlesim1',executable='turtlesim_node',name='sim'),Node(package='turtlesim',namespace='turtlesim2',executable='turtlesim_node',name='sim'),The final action launches the mimic node with the remaps:Node(package='turtlesim',executable='mimic',name='mimic',remappings=[('/input/pose','/turtlesim1/turtle1/pose'),('/output/cmd_vel','/turtlesim2/turtle1/cmd_vel'),])The first two actions launch the two turtlesim windows:<nodepkg="turtlesim"exec="turtlesim_node"name="sim"namespace="turtlesim1"/><nodepkg="turtlesim"exec="turtlesim_node"name="sim"namespace="turtlesim2"/>The final action launches the mimic node with the remaps:<nodepkg="turtlesim"exec="mimic"name="mimic"><remapfrom="/input/pose"to="/turtlesim1/turtle1/pose"/><remapfrom="/output/cmd_vel"to="/turtlesim2/turtle1/cmd_vel"/></node>The first two actions launch the two turtlesim windows:-node:pkg:"turtlesim"exec:"turtlesim_node"name:"sim"namespace:"turtlesim1"-node:pkg:"turtlesim"exec:"turtlesim_node"name:"sim"namespace:"turtlesim2"The final action launches the mimic node with the remaps:-node:pkg:"turtlesim"exec:"mimic"name:"mimic"remap:-from:"/input/pose"to:"/turtlesim1/turtle1/pose"-from:"/output/cmd_vel"to:"/turtlesim2/turtle1/cmd_vel"3 ros2 launchTo run the launch file created above, enter into the directory you created earlier and run the following command:PythonXMLYAMLcd launchros2 launch turtlesim_mimic_launch.pycd launchros2 launch turtlesim_mimic_launch.xmlcd launchros2 launch turtlesim_mimic_launch.yamlNoteIt is possible to launch a launch file directly (as we do above), or provided by a package.
+When it is provided by a package, the syntax is:ros2 launch <package_name> <launch_file_name>You learned about creating packages inCreating a package.NoteFor packages with launch files, it is a good idea to add anexec_dependdependency on theros2launchpackage in your package’spackage.xml:<exec_depend>ros2launch</exec_depend>This helps make sure that theros2launchcommand is available after building your package.
+It also ensures that alllaunch file formatsare recognized.Two turtlesim windows will open, and you will see the following[INFO]messages telling you which nodes your launch file has started:[INFO] [launch]: Default logging verbosity is set to INFO[INFO] [turtlesim_node-1]: process started with pid [11714][INFO] [turtlesim_node-2]: process started with pid [11715][INFO] [mimic-3]: process started with pid [11716]To see the system in action, open a new terminal and run theros2topicpubcommand on the/turtlesim1/turtle1/cmd_veltopic to get the first turtle moving:ros2 topic pub -r 1 /turtlesim1/turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: -1.8}}"You will see both turtles following the same path.4 Introspect the system with rqt_graphWhile the system is still running, open a new terminal and runrqt_graphto get a better idea of the relationship between the nodes in your launch file.Run the command:rqt_graphA hidden node (theros2topicpubcommand you ran) is publishing data to the/turtlesim1/turtle1/cmd_veltopic on the left, which the/turtlesim1/simnode is subscribed to.
+The rest of the graph shows what was described earlier:mimicis subscribed to/turtlesim1/sim’s pose topic, and publishes to/turtlesim2/sim’s velocity command topic.SummaryLaunch files simplify running complex systems with many nodes and specific configuration details.
+You can create launch files using Python, XML, or YAML, and run them using theros2launchcommand.
+
+Code Examples:
+
+Language: unknown
+mkdir launch
+
+Language: unknown
+fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNodedefgenerate_launch_description():returnLaunchDescription([Node(package='turtlesim',namespace='turtlesim1',executable='turtlesim_node',name='sim'),Node(package='turtlesim',namespace='turtlesim2',executable='turtlesim_node',name='sim'),Node(package='turtlesim',executable='mimic',name='mimic',remappings=[('/input/pose','/turtlesim1/turtle1/pose'),('/output/cmd_vel','/turtlesim2/turtle1/cmd_vel'),])])
+
+Language: unknown
+<launch><nodepkg="turtlesim"exec="turtlesim_node"name="sim"namespace="turtlesim1"/><nodepkg="turtlesim"exec="turtlesim_node"name="sim"namespace="turtlesim2"/><nodepkg="turtlesim"exec="mimic"name="mimic"><remapfrom="/input/pose"to="/turtlesim1/turtle1/pose"/><remapfrom="/output/cmd_vel"to="/turtlesim2/turtle1/cmd_vel"/></node></launch>
+
+Language: unknown
+launch:-node:pkg:"turtlesim"exec:"turtlesim_node"name:"sim"namespace:"turtlesim1"-node:pkg:"turtlesim"exec:"turtlesim_node"name:"sim"namespace:"turtlesim2"-node:pkg:"turtlesim"exec:"mimic"name:"mimic"remap:-from:"/input/pose"to:"/turtlesim1/turtle1/pose"-from:"/output/cmd_vel"to:"/turtlesim2/turtle1/cmd_vel"
+
+Language: unknown
+fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNode
+
+Language: unknown
+defgenerate_launch_description():returnLaunchDescription([])
+
+Language: unknown
+Node(package='turtlesim',namespace='turtlesim1',executable='turtlesim_node',name='sim'),Node(package='turtlesim',namespace='turtlesim2',executable='turtlesim_node',name='sim'),
+
+Language: unknown
+Node(package='turtlesim',executable='mimic',name='mimic',remappings=[('/input/pose','/turtlesim1/turtle1/pose'),('/output/cmd_vel','/turtlesim2/turtle1/cmd_vel'),])
+
+Language: unknown
+<nodepkg="turtlesim"exec="turtlesim_node"name="sim"namespace="turtlesim1"/><nodepkg="turtlesim"exec="turtlesim_node"name="sim"namespace="turtlesim2"/>
+
+Language: unknown
+<nodepkg="turtlesim"exec="mimic"name="mimic"><remapfrom="/input/pose"to="/turtlesim1/turtle1/pose"/><remapfrom="/output/cmd_vel"to="/turtlesim2/turtle1/cmd_vel"/></node>
+
+Language: unknown
+-node:pkg:"turtlesim"exec:"turtlesim_node"name:"sim"namespace:"turtlesim1"-node:pkg:"turtlesim"exec:"turtlesim_node"name:"sim"namespace:"turtlesim2"
+
+Language: unknown
+-node:pkg:"turtlesim"exec:"mimic"name:"mimic"remap:-from:"/input/pose"to:"/turtlesim1/turtle1/pose"-from:"/output/cmd_vel"to:"/turtlesim2/turtle1/cmd_vel"
+
+Language: unknown
+cd launchros2 launch turtlesim_mimic_launch.py
+
+Language: unknown
+cd launchros2 launch turtlesim_mimic_launch.xml
+
+Language: unknown
+cd launchros2 launch turtlesim_mimic_launch.yaml
+
+Language: unknown
+ros2 launch <package_name> <launch_file_name>
+
+Language: unknown
+<exec_depend>ros2launch</exec_depend>
+
+Language: unknown
+[INFO] [launch]: Default logging verbosity is set to INFO[INFO] [turtlesim_node-1]: process started with pid [11714][INFO] [turtlesim_node-2]: process started with pid [11715][INFO] [mimic-3]: process started with pid [11716]
+
+Language: unknown
+ros2 topic pub -r 1 /turtlesim1/turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: -1.8}}"
+
+Language: unknown
+rqt_graph

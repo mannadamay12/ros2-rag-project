@@ -1,0 +1,117 @@
+Title: Usingcolconto build packages
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Usingcolconto build packagesTable of ContentsBackgroundPrerequisitesInstall colconInstall ROS 2BasicsCreate a workspaceAdd some sourcesSource an underlayBuild the workspaceRun testsSource the environmentTry a demoCreate your own packageSetupcolcon_cdSetupcolcontab completionTipsGoal:Build a ROS 2 workspace withcolcon.Tutorial level:BeginnerTime:20 minutesThis is a brief tutorial on how to create and build a ROS 2 workspace withcolcon.
+It is a practical tutorial and not designed to replace the core documentation.Backgroundcolconis an iteration on the ROS build toolscatkin_make,catkin_make_isolated,catkin_toolsandament_tools.
+For more information on the design of colcon seethis document.The source code can be found in thecolcon GitHub organization.PrerequisitesInstall colconLinuxmacOSWindowssudoaptinstallpython3-colcon-common-extensionspython3-mpipinstallcolcon-common-extensionspipinstall-Ucolcon-common-extensionsInstall ROS 2To build the samples, you will need to install ROS 2.Follow theinstallation instructions.AttentionIf installing from deb packages, this tutorial requires thedesktop installation.BasicsA ROS workspace is a directory with a particular structure.
+Commonly there is asrcsubdirectory.
+Inside that subdirectory is where the source code of ROS packages will be located.
+Typically the directory starts otherwise empty.colcon does out of source builds.
+By default it will create the following directories as peers of thesrcdirectory:Thebuilddirectory will be where intermediate files are stored.
+For each package a subfolder will be created in which e.g. CMake is being invoked.Theinstalldirectory is where each package will be installed to.
+By default each package will be installed into a separate subdirectory.Thelogdirectory contains various logging information about each colcon invocation.NoteCompared to catkin there is nodeveldirectory.Create a workspaceFirst, create a directory (ros2_ws) to contain our workspace:LinuxmacOSWindowsmkdir-p~/ros2_ws/srccd~/ros2_wsmkdir-p~/ros2_ws/srccd~/ros2_wsmd\dev\ros2_ws\srccd\dev\ros2_wsAt this point the workspace contains a single empty directorysrc:.
+└──src1directory,0filesAdd some sourcesLet’s clone theexamplesrepository into thesrcdirectory of the workspace:gitclonehttps://github.com/ros2/examplessrc/examples-bjazzyNow the workspace should have the source code to the ROS 2 examples:.
+└──src└──examples├──CONTRIBUTING.md├──LICENSE├──rclcpp├──rclpy└──README.md4directories,3filesSource an underlayIt is important that we have sourced the environment for an existing ROS 2 installation that will provide our workspace with the necessary build dependencies for the example packages.
+This is achieved by sourcing the setup script provided by a binary installation or a source installation, ie. another colcon workspace (seeInstallation).
+We call this environment anunderlay.Our workspace,ros2_ws, will be anoverlayon top of the existing ROS 2 installation.
+In general, it is recommended to use an overlay when you plan to iterate on a small number of packages, rather than putting all of your packages into the same workspace.Build the workspaceAttentionTo build packages on Windows you need to be in a Visual Studio environment, seeBuilding the ROS 2 Codefor more details.In the root of the workspace, runcolconbuild.
+Since build types such asament_cmakedo not support the concept of thedevelspace and require the package to be installed, colcon supports the option--symlink-install.
+This allows the installed files to be changed by changing the files in thesourcespace (e.g. Python files or other non-compiled resources) for faster iteration.LinuxmacOSWindowscolcon build --symlink-installcolcon build --symlink-installcolcon build --symlink-install --merge-installWindows doesn’t allow long paths, somerge-installwill combine all the paths into theinstalldirectory.After the build is finished, we should see thebuild,install, andlogdirectories:.
+├──build
+├──install
+├──log
+└──src4directories,0filesRun testsTo run tests for the packages we just built, run the following:LinuxmacOSWindowscolcon testcolcon testRemember to use ax64NativeToolsCommandPromptforVS2019for executing the following command, as we are going to build a workspace.colcon test --merge-installYou also need to specify--merge-installhere since we used it for building above.Source the environmentWhen colcon has completed building successfully, the output will be in theinstalldirectory.
+Before you can use any of the installed executables or libraries, you will need to add them to your path and library paths.
+colcon will have generated bash/bat files in theinstalldirectory to help set up the environment.
+These files will add all of the required elements to your path and library paths as well as provide any bash or shell commands exported by packages.LinuxmacOSWindowssourceinstall/setup.bash.install/setup.bashcallinstall\setup.batOr with Powershell:install\setup.ps1Try a demoWith the environment sourced, we can run executables built by colcon.
+Let’s run a subscriber node from the examples:ros2runexamples_rclcpp_minimal_subscribersubscriber_member_functionIn another terminal, let’s run a publisher node (don’t forget to source the setup script):ros2runexamples_rclcpp_minimal_publisherpublisher_member_functionYou should see messages from the publisher and subscriber with numbers incrementing.Create your own packagecolcon uses thepackage.xmlspecification defined inREP 149(format 2is also supported).colcon supports multiple build types.
+The recommended build types areament_cmakeandament_python.
+Also supported are purecmakepackages.An example of anament_pythonbuild is theament_index_python package, where the setup.py is the primary entry point for building.A package such asdemo_nodes_cppuses theament_cmakebuild type, and uses CMake as the build tool.For convenience, you can use the toolros2pkgcreateto create a new package based on a template.NoteForcatkinusers, this is the equivalent ofcatkin_create_package.Setupcolcon_cdThe commandcolcon_cdallows you to quickly change the current working directory of your shell to the directory of a package.
+As an examplecolcon_cdsome_ros_packagewould quickly bring you to the directory~/ros2_ws/src/some_ros_package.LinuxmacOSWindowsecho "source /usr/share/colcon_cd/function/colcon_cd.sh" >> ~/.bashrcecho "export _colcon_cd_root=/opt/ros/jazzy/" >> ~/.bashrcecho "source /usr/local/share/colcon_cd/function/colcon_cd.sh" >> ~/.bashrcecho "export _colcon_cd_root=~/ros2_install" >> ~/.bashrcNot yet availableDepending on the way you installedcolcon_cdand where your workspace is, the instructions above may vary, please refer tothe documentationfor more details.
+To undo this in Linux and macOS, locate your system’s shell startup script and remove the appended source and export commands.Setupcolcontab completionThecolconcommand supports command completion for bash and bash-like shells.
+Thecolcon-argcompletepackage must be installed, andsome setup may be requiredto make it work.TipsIf you do not want to build a specific package place an empty file namedCOLCON_IGNOREin the directory and it will not be indexed.If you want to avoid configuring and building tests in CMake packages you can pass:--cmake-args-DBUILD_TESTING=0.If you want to run a single particular test from a package:colcontest--packages-selectYOUR_PKG_NAME--ctest-args-RYOUR_TEST_IN_PKG
+
+Code Examples:
+
+Language: unknown
+sudoaptinstallpython3-colcon-common-extensions
+
+Language: unknown
+python3-mpipinstallcolcon-common-extensions
+
+Language: unknown
+pipinstall-Ucolcon-common-extensions
+
+Language: unknown
+mkdir-p~/ros2_ws/srccd~/ros2_ws
+
+Language: unknown
+mkdir-p~/ros2_ws/srccd~/ros2_ws
+
+Language: unknown
+md\dev\ros2_ws\srccd\dev\ros2_ws
+
+Language: unknown
+.
+└──src1directory,0files
+
+Language: unknown
+gitclonehttps://github.com/ros2/examplessrc/examples-bjazzy
+
+Language: unknown
+.
+└──src└──examples├──CONTRIBUTING.md├──LICENSE├──rclcpp├──rclpy└──README.md4directories,3files
+
+Language: unknown
+colcon build --symlink-install
+
+Language: unknown
+colcon build --symlink-install
+
+Language: unknown
+colcon build --symlink-install --merge-install
+
+Language: unknown
+.
+├──build
+├──install
+├──log
+└──src4directories,0files
+
+Language: unknown
+colcon test
+
+Language: unknown
+colcon test
+
+Language: unknown
+colcon test --merge-install
+
+Language: unknown
+sourceinstall/setup.bash
+
+Language: unknown
+.install/setup.bash
+
+Language: unknown
+callinstall\setup.bat
+
+Language: unknown
+install\setup.ps1
+
+Language: unknown
+ros2runexamples_rclcpp_minimal_subscribersubscriber_member_function
+
+Language: unknown
+ros2runexamples_rclcpp_minimal_publisherpublisher_member_function
+
+Language: unknown
+echo "source /usr/share/colcon_cd/function/colcon_cd.sh" >> ~/.bashrcecho "export _colcon_cd_root=/opt/ros/jazzy/" >> ~/.bashrc
+
+Language: unknown
+echo "source /usr/local/share/colcon_cd/function/colcon_cd.sh" >> ~/.bashrcecho "export _colcon_cd_root=~/ros2_install" >> ~/.bashrc
+
+Language: unknown
+colcontest--packages-selectYOUR_PKG_NAME--ctest-args-RYOUR_TEST_IN_PKG

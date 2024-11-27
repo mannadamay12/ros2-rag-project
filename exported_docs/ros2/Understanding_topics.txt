@@ -1,0 +1,117 @@
+Title: Understanding topics
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Understanding-ROS2-Topics/Understanding-ROS2-Topics.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Understanding topicsGoal:Use rqt_graph and command line tools to introspect ROS 2 topics.Tutorial level:BeginnerTime:20 minutesContentsBackgroundPrerequisitesTasks1 Setup2 rqt_graph3 ros2 topic list4 ros2 topic echo5 ros2 topic info6 ros2 interface show7 ros2 topic pub8 ros2 topic hz9 ros2 topic bw10 ros2 topic find11 Clean upSummaryNext stepsBackgroundROS 2 breaks complex systems down into many modular nodes.
+Topics are a vital element of the ROS graph that act as a bus for nodes to exchange messages.A node may publish data to any number of topics and simultaneously have subscriptions to any number of topics.Topics are one of the main ways in which data is moved between nodes and therefore between different parts of the system.PrerequisitesTheprevious tutorialprovides some useful background information on nodes that is built upon here.As always, don’t forget to source ROS 2 inevery new terminal you open.Tasks1 SetupBy now you should be comfortable starting up turtlesim.Open a new terminal and run:ros2 run turtlesim turtlesim_nodeOpen another terminal and run:ros2 run turtlesim turtle_teleop_keyRecall from theprevious tutorialthat the names of these nodes are/turtlesimand/teleop_turtleby default.2 rqt_graphThroughout this tutorial, we will userqt_graphto visualize the changing nodes and topics, as well as the connections between them.Theturtlesim tutorialtells you how to install rqt and all its plugins, includingrqt_graph.To run rqt_graph, open a new terminal and enter the command:rqt_graphYou can also open rqt_graph by openingrqtand selectingPlugins>Introspection>Node Graph.You should see the above nodes and topic, as well as two actions around the periphery of the graph (let’s ignore those for now).
+If you hover your mouse over the topic in the center, you’ll see the color highlighting like in the image above.The graph is depicting how the/turtlesimnode and the/teleop_turtlenode are communicating with each other over a topic.
+The/teleop_turtlenode is publishing data (the keystrokes you enter to move the turtle around) to the/turtle1/cmd_veltopic, and the/turtlesimnode is subscribed to that topic to receive the data.The highlighting feature of rqt_graph is very helpful when examining more complex systems with many nodes and topics connected in many different ways.rqt_graph is a graphical introspection tool.
+Now we’ll look at some command line tools for introspecting topics.3 ros2 topic listRunning theros2topiclistcommand in a new terminal will return a list of all the topics currently active in the system:/parameter_events/rosout/turtle1/cmd_vel/turtle1/color_sensor/turtle1/poseros2topiclist-twill return the same list of topics, this time with the topic type appended in brackets:/parameter_events [rcl_interfaces/msg/ParameterEvent]/rosout [rcl_interfaces/msg/Log]/turtle1/cmd_vel [geometry_msgs/msg/Twist]/turtle1/color_sensor [turtlesim/msg/Color]/turtle1/pose [turtlesim/msg/Pose]These attributes, particularly the type, are how nodes know they’re talking about the same information as it moves over topics.If you’re wondering where all these topics are in rqt_graph, you can uncheck all the boxes underHide:For now, though, leave those options checked to avoid confusion.4 ros2 topic echoTo see the data being published on a topic, use:ros2 topic echo <topic_name>Since we know that/teleop_turtlepublishes data to/turtlesimover the/turtle1/cmd_veltopic, let’s useechoto introspect that topic:ros2 topic echo /turtle1/cmd_velAt first, this command won’t return any data.
+That’s because it’s waiting for/teleop_turtleto publish something.Return to the terminal whereturtle_teleop_keyis running and use the arrows to move the turtle around.
+Watch the terminal where yourechois running at the same time, and you’ll see position data being published for every movement you make:linear:x: 2.0y: 0.0z: 0.0angular:x: 0.0y: 0.0z: 0.0---Now return to rqt_graph and uncheck theDebugbox./_ros2cli_26646is the node created by theechocommand we just ran (the number might be different).
+Now you can see that the publisher is publishing data over thecmd_veltopic, and two subscribers are subscribed to it.5 ros2 topic infoTopics don’t have to only be one-to-one communication; they can be one-to-many, many-to-one, or many-to-many.Another way to look at this is running:ros2 topic info /turtle1/cmd_velWhich will return:Type: geometry_msgs/msg/TwistPublisher count: 1Subscription count: 26 ros2 interface showNodes send data over topics using messages.
+Publishers and subscribers must send and receive the same type of message to communicate.The topic types we saw earlier after runningros2topiclist-tlet us know what message type is used on each topic.
+Recall that thecmd_veltopic has the type:geometry_msgs/msg/TwistThis means that in the packagegeometry_msgsthere is amsgcalledTwist.Now we can runros2interfaceshow<msg_type>on this type to learn its details.
+Specifically, what structure of data the message expects.ros2 interface show geometry_msgs/msg/TwistFor the message type from above it yields:#Thisexpressesvelocityinfreespacebrokenintoitslinearandangularparts.Vector3  linearfloat64 xfloat64 yfloat64 zVector3  angularfloat64 xfloat64 yfloat64 zThis tells you that the/turtlesimnode is expecting a message with two vectors,linearandangular, of three elements each.
+If you recall the data we saw/teleop_turtlepassing to/turtlesimwith theechocommand, it’s in the same structure:linear:x: 2.0y: 0.0z: 0.0angular:x: 0.0y: 0.0z: 0.0---7 ros2 topic pubNow that you have the message structure, you can publish data to a topic directly from the command line using:ros2 topic pub <topic_name> <msg_type> '<args>'The'<args>'argument is the actual data you’ll pass to the topic, in the structure you just discovered in the previous section.The turtle (and commonly the real robots which it is meant to emulate) require a steady stream of commands to operate continuously.
+So, to get the turtle moving, and keep it moving, you can use the following command.
+It’s important to note that this argument needs to be input in YAML syntax.
+Input the full command like so:ros2 topic pub /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"With no command-line options,ros2topicpubpublishes the command in a steady stream at 1 Hz.At times you may want to publish data to your topic only once (rather than continuously).
+To publish your command just once add the--onceoption.ros2 topic pub --once -w 2 /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"--onceis an optional argument meaning “publish one message then exit”.-w2is an optional argument meaning “wait for two matching subscriptions”.
+This is needed because we have both turtlesim and the topic echo subscribed.You will see the following output in the terminal:Waiting for at least 2 matching subscription(s)...publisher: beginning looppublishing #1: geometry_msgs.msg.Twist(linear=geometry_msgs.msg.Vector3(x=2.0, y=0.0, z=0.0), angular=geometry_msgs.msg.Vector3(x=0.0, y=0.0, z=1.8))And you will see your turtle move like so:You can refresh rqt_graph to see what’s happening graphically.
+You will see that theros2topicpub...node (/_ros2cli_30358) is publishing over the/turtle1/cmd_veltopic, which is being received by both theros2topicecho...node (/_ros2cli_26646) and the/turtlesimnode now.Finally, you can runechoon theposetopic and recheck rqt_graph:ros2 topic echo /turtle1/poseYou can see that the/turtlesimnode is also publishing to theposetopic, which the newechonode has subscribed to.When publishing messages with timestamps,pubhas two methods to automatically fill them out with the current time.
+For messages with astd_msgs/msg/Header, the header field can be set toautoto fill out thestampfield.ros2 topic pub /pose geometry_msgs/msg/PoseStamped '{header: "auto", pose: {position: {x: 1.0, y: 2.0, z: 3.0}}}'If the message does not use a full header, but just has a field with typebuiltin_interfaces/msg/Time, that can be set to the valuenow.ros2 topic pub /reference sensor_msgs/msg/TimeReference '{header: "auto", time_ref: "now", source: "dumy"}'8 ros2 topic hzYou can also view the rate at which data is published using:ros2 topic hz /turtle1/poseIt will return data on the rate at which the/turtlesimnode is publishing data to theposetopic.average rate: 59.354min: 0.005s max: 0.027s std dev: 0.00284s window: 58Recall that you set the rate ofturtle1/cmd_velto publish at a steady 1 Hz usingros2topicpub--rate1.
+If you run the above command withturtle1/cmd_velinstead ofturtle1/pose, you will see an average reflecting that rate.9 ros2 topic bwThe bandwidth used by a topic can be viewed using:ros2 topic bw /turtle1/poseIt returns the bandwidth utilization and number of messages being published to the/turtle1/posetopic.Subscribed to [/turtle1/pose]1.51 KB/s from 62 messagesMessage size mean: 0.02 KB min: 0.02 KB max: 0.02 KB10 ros2 topic findTo list a list of available topics of a given type use:ros2 topic find <topic_type>Recall that thecmd_veltopic has the type:geometry_msgs/msg/TwistUsing thefindcommand outputs topics available when given the message type:ros2 topic find geometry_msgs/msg/TwistThis outputs:/turtle1/cmd_vel11 Clean upAt this point you’ll have a lot of nodes running.
+Don’t forget to stop them by enteringCtrl+Cin each terminal.SummaryNodes publish information over topics, which allows any number of other nodes to subscribe to and access that information.
+In this tutorial you examined the connections between several nodes over topics using rqt_graph and command line tools.
+You should now have a good idea of how data moves around a ROS 2 system.Next stepsNext you’ll learn about another communication type in the ROS graph with the tutorialUnderstanding services.
+
+Code Examples:
+
+Language: unknown
+ros2 run turtlesim turtlesim_node
+
+Language: unknown
+ros2 run turtlesim turtle_teleop_key
+
+Language: unknown
+rqt_graph
+
+Language: unknown
+/parameter_events/rosout/turtle1/cmd_vel/turtle1/color_sensor/turtle1/pose
+
+Language: unknown
+/parameter_events [rcl_interfaces/msg/ParameterEvent]/rosout [rcl_interfaces/msg/Log]/turtle1/cmd_vel [geometry_msgs/msg/Twist]/turtle1/color_sensor [turtlesim/msg/Color]/turtle1/pose [turtlesim/msg/Pose]
+
+Language: unknown
+ros2 topic echo <topic_name>
+
+Language: unknown
+ros2 topic echo /turtle1/cmd_vel
+
+Language: unknown
+linear:x: 2.0y: 0.0z: 0.0angular:x: 0.0y: 0.0z: 0.0---
+
+Language: unknown
+ros2 topic info /turtle1/cmd_vel
+
+Language: unknown
+Type: geometry_msgs/msg/TwistPublisher count: 1Subscription count: 2
+
+Language: unknown
+geometry_msgs/msg/Twist
+
+Language: unknown
+ros2 interface show geometry_msgs/msg/Twist
+
+Language: unknown
+#Thisexpressesvelocityinfreespacebrokenintoitslinearandangularparts.Vector3  linearfloat64 xfloat64 yfloat64 zVector3  angularfloat64 xfloat64 yfloat64 z
+
+Language: unknown
+linear:x: 2.0y: 0.0z: 0.0angular:x: 0.0y: 0.0z: 0.0---
+
+Language: unknown
+ros2 topic pub <topic_name> <msg_type> '<args>'
+
+Language: unknown
+ros2 topic pub /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"
+
+Language: unknown
+ros2 topic pub --once -w 2 /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 1.8}}"
+
+Language: unknown
+Waiting for at least 2 matching subscription(s)...publisher: beginning looppublishing #1: geometry_msgs.msg.Twist(linear=geometry_msgs.msg.Vector3(x=2.0, y=0.0, z=0.0), angular=geometry_msgs.msg.Vector3(x=0.0, y=0.0, z=1.8))
+
+Language: unknown
+ros2 topic echo /turtle1/pose
+
+Language: unknown
+ros2 topic pub /pose geometry_msgs/msg/PoseStamped '{header: "auto", pose: {position: {x: 1.0, y: 2.0, z: 3.0}}}'
+
+Language: unknown
+ros2 topic pub /reference sensor_msgs/msg/TimeReference '{header: "auto", time_ref: "now", source: "dumy"}'
+
+Language: unknown
+ros2 topic hz /turtle1/pose
+
+Language: unknown
+average rate: 59.354min: 0.005s max: 0.027s std dev: 0.00284s window: 58
+
+Language: unknown
+ros2 topic bw /turtle1/pose
+
+Language: unknown
+Subscribed to [/turtle1/pose]1.51 KB/s from 62 messagesMessage size mean: 0.02 KB min: 0.02 KB max: 0.02 KB
+
+Language: unknown
+ros2 topic find <topic_type>
+
+Language: unknown
+geometry_msgs/msg/Twist
+
+Language: unknown
+ros2 topic find geometry_msgs/msg/Twist
+
+Language: unknown
+/turtle1/cmd_vel

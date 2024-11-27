@@ -1,0 +1,9 @@
+Title: Rolling Ridley (rolling)
+URL: https://docs.ros.org/en/jazzy/Releases/Release-Rolling-Ridley.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Rolling Ridley (rolling)Table of ContentsCurrently Supported PlatformsInstallationNew features and changes in this releaseRolling Ridleyis a rolling development release of ROS 2.WarningRolling Ridley is continuously updated and is subject to in-place updates which will at times include breaking changes.
+It is used for ROS 2 development and by maintainers who want their packages released and ready for the next stable distribution.
+We recommend that most users of ROS 2 use the lateststable distribution.For more information seeREP-2002Currently Supported PlatformsRolling Ridley is currently supported on the following platforms:Tier 1 platforms:Ubuntu 24.04 (Noble):amd64andarm64Windows 10 (Visual Studio 2019)Tier 3 platforms:Debian Buster (10):amd64,arm64andarm32Mac macOS 10.14 (Mojave)OpenEmbedded Thud (2.6) / webOS OSE:arm32andx86InstallationInstall Rolling RidleyNew features and changes in this releaseRolling Ridley is an ongoing development distribution.
+Changes between the current stable release and the upcoming one can be found on the page for theupcoming release.

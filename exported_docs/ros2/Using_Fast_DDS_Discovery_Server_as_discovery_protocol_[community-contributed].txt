@@ -1,0 +1,254 @@
+Title: Using Fast DDS Discovery Server as discovery protocol [community-contributed]
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/Discovery-Server/Discovery-Server.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Using Fast DDS Discovery Server as discovery protocol [community-contributed]Goal:This tutorial will show how to launch ROS 2 Nodes using theFast DDS Discovery Serverdiscovery protocol.Tutorial level:AdvancedTime:20 minutesTable of ContentsBackgroundFast DDS Discovery Server v2PrerequisitesRun this tutorialSetup Discovery ServerLaunch listener nodeLaunch talker nodeDemonstrate Discovery Server executionVisualization toolrqt_graphAdvance use casesServer RedundancyBackup ServerDiscovery partitionsROS 2 IntrospectionDaemon’s related toolsNo Daemon toolsCompare Fast DDS Discovery Server with Simple Discovery ProtocolBackgroundStarting from ROS 2 Eloquent Elusor, theFast DDS Discovery Serverprotocol is a feature that offers a centralized dynamic discovery mechanism, as opposed to the distributed mechanism used in DDS by default.
+This tutorial explains how to run some ROS 2 examples using the Fast DDS Discovery Server feature as discovery communication.In order to get more information about the available discovery configuration, please check thefollowing documentationor read theFast DDS Discovery Server specific documentation.TheSimple Discovery Protocolis the standard protocol defined in theDDS standard.
+However, it has known disadvantages in some scenarios.It does notScaleefficiently, as the number of exchanged packets increases significantly as new nodes are added.It requiresmulticastingcapabilities that may not work reliably in some scenarios, e.g. WiFi.TheFast DDS Discovery Serverprovides a Client-Server Architecture that allows nodes to connect with each other using an intermediate server.
+Each node functions as adiscovery client, sharing its info with one or morediscovery serversand receiving discovery information from it.
+This reduces discovery-related network traffic and it does not require multicasting capabilities.These discovery servers can be independent, duplicated or connected with each other in order to create redundancy over the network and avoid having a single point of failure.Fast DDS Discovery Server v2The latest ROS 2 Foxy Fitzroy release (December 2020) included a new version, version 2 of the Fast DDS Discovery Server.
+This version includes a new filter feature that further reduces the number of discovery messages sent.
+This version uses the topic of the different nodes to decide if two nodes wish to communicate, or if they can be left unmatched (i.e. not discovering each other).
+The following figure shows the decrease in discovery messages:This architecture reduces the number of messages sent between the server and clients dramatically.
+In the following graph, the reduction in network traffic over the discovery phase for theRMF Clinic demonstrationis shown:In order to use this functionality, the discovery server can be configured using theXML configuration for Participants.
+It is also possible to configure the discovery server using thefastddstooland anenvironment variable, which is the approach used in this tutorial.
+For a more detailed explanation about the configuration of the discovery server, visitthe Fast DDS Discovery Server documentation.PrerequisitesThis tutorial assumes you have a ROS 2 Foxy (or newer)installation.
+If your installation is using a ROS 2 version lower than Foxy, you cannot use thefastddstool.
+Thus, in order to use the Discovery Server, you can update your repository to use a different Fast DDS version, or configure the discovery server using theFast DDS XML QoS configuration.Run this tutorialThetalker-listenerROS 2 demo creates atalkernode that publishes a “hello world” message every second, and alistenernode that listens to these messages.Bysourcing ROS 2you will get access to the CLI toolfastdds.
+This tool gives access to thediscovery tool, which can be used to launch a discovery server. This server will manage the discovery process for the nodes that connect to it.ImportantDo not forget tosource ROS 2in every new terminal opened.Setup Discovery ServerStart by launching a discovery server with id 0, port 11811 (default port) and listening on all available interfaces.Open a new terminal and run:fastdds discovery --server-id 0Launch listener nodeExecute the listener demo, to listen to the/chattertopic.In a new terminal, set the environment variableROS_DISCOVERY_SERVERto the location of the discovery server.
+(Do not forget to source ROS 2 in every new terminal)LinuxWindowsexport ROS_DISCOVERY_SERVER=127.0.0.1:11811set ROS_DISCOVERY_SERVER=127.0.0.1:11811Launch the listener node. Use the argument--remap__node:=listener_discovery_serverto change the node’s name for this tutorial.ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener_discovery_serverThis will create a ROS 2 node, that will automatically create a client for the discovery server and connect to the server created previously to perform discovery, rather than using multicast.Launch talker nodeOpen a new terminal and set theROS_DISCOVERY_SERVERenvironment variable as before so that the node starts a discovery client.LinuxWindowsexport ROS_DISCOVERY_SERVER=127.0.0.1:11811set ROS_DISCOVERY_SERVER=127.0.0.1:11811ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker_discovery_serverYou should now see the talker publishing “hello world” messages, and the listener receiving these messages.Demonstrate Discovery Server executionSo far, there is no evidence that this example and the standard talker-listener example are running differently.
+To clearly demonstrate this, run another node that is not connected to the discovery server.
+Run a new listener (listening in/chattertopic by default) in a new terminal and check that it is not connected to the talker already running.ros2 run demo_nodes_cpp listener --ros-args --remap __node:=simple_listenerThe new listener node should not be receiving the “hello world” messages.To finally verify that everything is running correctly, a new talker can be created using the simple discovery protocol (the default DDS distributed discovery mechanism) for discovery.ros2 run demo_nodes_cpp talker --ros-args --remap __node:=simple_talkerNow you should see thesimple_listenernode receiving the “hello world” messages fromsimple_talkerbut not the other messages fromtalker_discovery_server.Visualization toolrqt_graphTherqt_graphtool can be used to verify the nodes and structure of this example.
+Remember, in order to userqt_graphwith the discovery server protocol (i.e., to see thelistener_discovery_serverandtalker_discovery_servernodes) theROS_DISCOVERY_SERVERenvironment variable must be set before launching it.Advance use casesThe following sections show different features of the discovery server that allow you to build a robust discovery server over the network.Server RedundancyBy usingfastddstool, multiple discovery servers can be created.
+Discovery clients (ROS nodes) can connect to as many servers as desired.
+This allows to have a redundant network that will work even if some servers or nodes shut down unexpectedly.
+The figure below shows a simple architecture that provides server redundancy.In several terminals, run the following code to establish a communication with redundant servers.fastdds discovery --server-id 0 --ip-address 127.0.0.1 --port 11811fastdds discovery --server-id 1 --ip-address 127.0.0.1 --port 11888--server-idNmeans server with id N. When referencing the servers withROS_DISCOVERY_SERVER, server0must be in first place and server1in second place.LinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"set ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talkerLinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"set ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listenerNow, if one of these servers fails, there will still be discovery capability available and nodes will still discover each other.Backup ServerThe Fast DDS Discovery Server allows creating a server with backup functionality.
+This allows the server to restore the last state it saved in case of a shutdown.In different terminals, run the following code to establish a communication with a backed-up server.fastdds discovery --server-id 0 --ip-address 127.0.0.1 --port 11811 --backupLinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811"set ROS_DISCOVERY_SERVER="127.0.0.1:11811"ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talkerLinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811"set ROS_DISCOVERY_SERVER="127.0.0.1:11811"ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listenerSeveral backup files are created in the discovery server’s working directory (the directory it was launched in).
+The twoSQLitefiles and twojsonfiles contain the information required to start a new server and restore the failed server’s state in case of failure, avoiding the need for the discovery process to happen again, and without losing information.Discovery partitionsCommunication with discovery servers can be split to create virtual partitions in the discovery information.
+This means that two endpoints will only know about each other if there is a shared discovery server or a network of discovery servers between them.
+We are going to execute an example with two independent servers.
+The following figure shows the architecture.With this schemaListener1will be connected toTalker1andTalker2, as they shareServer1.Listener2will connect withTalker1as they shareServer2.
+ButListener2will not hear the messages fromTalker2because they do not share any discovery server or discovery servers, including indirectly via connections between redundant discovery servers.Run the first server listening on localhost with the default port of 11811.fastdds discovery --server-id 0 --ip-address 127.0.0.1 --port 11811In another terminal run the second server listening on localhost using another port, in this case port 11888.fastdds discovery --server-id 1 --ip-address 127.0.0.1 --port 11888Now, run each node in a different terminal. UseROS_DISCOVERY_SERVERenvironment variable to decide which server they are connected to. Be aware that theids must match.LinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"set ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker_1LinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"set ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener_1LinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811"set ROS_DISCOVERY_SERVER="127.0.0.1:11811"ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker_2LinuxWindowsexport ROS_DISCOVERY_SERVER=";127.0.0.1:11888"set ROS_DISCOVERY_SERVER=";127.0.0.1:11888"ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener_2We should see howListener1is receiving messages from both talker nodes, whileListener2is in a different partition fromTalker2and so does not receive messages from it.NoteOnce two endpoints (ROS nodes) have discovered each other, they do not need the discovery server network between them to listen to each other’s messages.ROS 2 IntrospectionTheROS 2 Command Line Interfacesupports several introspection tools to analyze the behavior of a ROS 2 network.
+These tools (i.e.ros2bagrecord,ros2topiclist, etc.) are very helpful to understand a ROS 2 working network.Most of these tools use DDS simple discovery to exchange topic information with every existing participant (using simple discovery, every participant in the network is connected with each other).
+However, the new Discovery Server v2 implements a network traffic reduction scheme that limits the discovery data between participants that do not share a topic.
+This means that nodes will only receive topic’s discovery data if it has a writer or a reader for that topic.
+As most ROS 2 CLIs need a node in the network (some of them rely on a running ROS 2 daemon, and some create their own nodes), using the Discovery Server v2 these nodes will not have all the network information, and thus their functionality will be limited.The Discovery Server v2 functionality allows every Participant to run as aSuper Client, a kind ofClientthat connects to aServer, from which it receives all the available discovery information (instead of just what it needs).
+In this sense, ROS 2 introspection tools can be configured asSuper Client, thus being able to discover every entity that is using the Discovery Server protocol within the network.NoteIn this section we use the termParticipantas a DDS entity. Each DDSParticipantcorresponds with a ROS 2Context, a ROS 2 abstraction over DDS.Nodesare ROS 2 entities that rely on DDS communication interfaces:DataWriterandDataReader.
+EachParticipantcan hold multiple ROS 2 Nodes.
+For further details about these concepts, please visit theNode to Participant mapping design documentDaemon’s related toolsThe ROS 2 Daemon is used in several ROS 2 CLI introspection tools.
+It creates its own Participant to add a ROS 2 Node to the network graph, in order to receive all the data sent.
+In order for the ROS 2 CLI to work when using Discovery Server mechanism, the ROS 2 Daemon needs to be
+configured asSuper Client.
+Therefore, this section is devoted to explain how to use ROS 2 CLI with ROS 2 Daemon running as aSuper Client.
+This will allow the Daemon to discover the entire Node graph, and to receive all topic and endpoint information.
+To do so, a Fast DDS XML configuration file is used to configure the ROS 2 Daemon and CLI tools.Below you can find a XML configuration profile, which for this tutorial should be saved in the working directory as`super_client_configuration_file.xml`file.
+This file will configure every new participant using it, as aSuper Client.<?xml version="1.0" encoding="UTF-8" ?><dds><profilesxmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles"><participantprofile_name="super_client_profile"is_default_profile="true"><rtps><builtin><discovery_config><discoveryProtocol>SUPER_CLIENT</discoveryProtocol><discoveryServersList><RemoteServerprefix="44.53.00.5f.45.50.52.4f.53.49.4d.41"><metatrafficUnicastLocatorList><locator><udpv4><address>127.0.0.1</address><port>11811</port></udpv4></locator></metatrafficUnicastLocatorList></RemoteServer></discoveryServersList></discovery_config></builtin></rtps></participant></profiles></dds>NoteUnder theRemoteServertag, theprefixattribute value should be updated according to the server ID passed on the CLI (seeFast DDS CLI).
+The value specified in the shown XML snippet corresponds to an ID of value 0.First of all, instantiate a Discovery Server usingFast DDS CLIspecifying an ID of value 0.fastdds discovery -i 0 -l 127.0.0.1 -p 11811Run a talker and a listener that will discover each other through the Server (notice thatROS_DISCOVERY_SERVERconfiguration is the same as the one insuper_client_configuration_file.xml).LinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811"set ROS_DISCOVERY_SERVER="127.0.0.1:11811"ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listenerLinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811"set ROS_DISCOVERY_SERVER="127.0.0.1:11811"ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talkerThen, instantiate a ROS 2 Daemon using theSuper Clientconfiguration (remember to source ROS 2 installation in every new terminal).LinuxWindowsexport FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xmlset FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xmlros2 daemon stopros2 daemon startros2 topic listros2 node info /talkerros2 topic info /chatterros2 topic echo /chatterWe can also see the Node’s Graph using the ROS 2 toolrqt_graphas follows (you may need to press the refresh button):LinuxWindowsexport FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xmlset FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xmlrqt_graphNo Daemon toolsSome ROS 2 CLI tools do not use the ROS 2 Daemon.
+In order for these tools to connect with a Discovery Server and receive all the topics information they need to be instantiated as aSuper Clientthat connects to theServer.Following the previous configuration, build a simple system with a talker and a listener.
+First, run aServer:fastdds discovery -i 0 -l 127.0.0.1 -p 11811Then, run the talker and listener in separate terminals:LinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811"set ROS_DISCOVERY_SERVER="127.0.0.1:11811"ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listenerLinuxWindowsexport ROS_DISCOVERY_SERVER="127.0.0.1:11811"set ROS_DISCOVERY_SERVER="127.0.0.1:11811"ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talkerContinue using the ROS 2 CLI with--no-daemonoption with the new configuration.
+New nodes will connect with the existing Server and will know every topic.
+ExportingROS_DISCOVERY_SERVERis not needed as the ROS 2 tools will be configured through theFASTRTPS_DEFAULT_PROFILES_FILE.LinuxWindowsexport FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xmlset FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xmlros2 topic list --no-daemonros2 node info /talker --no-daemon --spin-time 2Compare Fast DDS Discovery Server with Simple Discovery ProtocolIn order to compare executing nodes using theSimple DiscoveryProtocol (the default DDS mechanism for distributed discovery) or theDiscovery Server, two scripts that execute a talker and many listeners and analyze the network traffic during this time are provided.
+For this experiment,tsharkis required to be installed on your system.
+The configuration file is mandatory in order to avoid using intraprocess mode.NoteThese scripts are only supported on Linux, and require a discovery server closure feature that is only available from versions newer than the version provided in ROS 2 Foxy.
+In order to use this functionality, compile ROS 2 with Fast DDS v2.1.0 or higher.These scripts’ features are references for advanced purposes and their study is left to the user.bashnetworktrafficgeneratorpython3graphgeneratorXMLconfigurationRun the bash script with the path tosetup.bashfile to source ROS 2 as an argument.
+This will generate the traffic trace for simple discovery.
+Execute the same script with second argumentSERVER.
+It will generate the trace for using the discovery server.NoteDepending on your configuration oftcpdump, this script may requiresudoprivileges to read traffic across your network device.After both executions are done, run the Python script to generate a graph similar to the one below.$exportFASTRTPS_DEFAULT_PROFILES_FILE="no_intraprocess_configuration.xml"$sudobashgenerate_discovery_packages.bash~/ros2/install/local_setup.bash$sudobashgenerate_discovery_packages.bash~/ros2/install/local_setup.bashSERVER$python3discovery_packets.pyThis graph is the result of a specific run of the experiment.
+The reader can execute the scripts and generate their own results for comparison.
+It can easily be seen that network traffic is reduced when using discovery service.The reduction in traffic is a result of avoiding every node announcing itself and waiting a response from every other node on the network.
+This creates a huge amount of traffic in large architectures.
+The reduction from this method increases with the number of nodes, making this architecture more scalable than the Simple Discovery Protocol approach.The new Fast DDS Discovery Server v2 is available sinceFast DDSv2.0.2, replacing the old discovery server.
+In this new version, those nodes that do not share topics will automatically not discover each other, saving the whole discovery data required to connect them and their endpoints.
+The experiment above does not show this case, but even so the massive reduction in traffic can be appreciated due to the hidden infrastructure topics of ROS 2 nodes.
+
+Code Examples:
+
+Language: unknown
+fastdds discovery --server-id 0
+
+Language: unknown
+export ROS_DISCOVERY_SERVER=127.0.0.1:11811
+
+Language: unknown
+set ROS_DISCOVERY_SERVER=127.0.0.1:11811
+
+Language: unknown
+ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener_discovery_server
+
+Language: unknown
+export ROS_DISCOVERY_SERVER=127.0.0.1:11811
+
+Language: unknown
+set ROS_DISCOVERY_SERVER=127.0.0.1:11811
+
+Language: unknown
+ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker_discovery_server
+
+Language: unknown
+ros2 run demo_nodes_cpp listener --ros-args --remap __node:=simple_listener
+
+Language: unknown
+ros2 run demo_nodes_cpp talker --ros-args --remap __node:=simple_talker
+
+Language: unknown
+fastdds discovery --server-id 0 --ip-address 127.0.0.1 --port 11811
+
+Language: unknown
+fastdds discovery --server-id 1 --ip-address 127.0.0.1 --port 11888
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"
+
+Language: unknown
+ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"
+
+Language: unknown
+ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener
+
+Language: unknown
+fastdds discovery --server-id 0 --ip-address 127.0.0.1 --port 11811 --backup
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener
+
+Language: unknown
+fastdds discovery --server-id 0 --ip-address 127.0.0.1 --port 11811
+
+Language: unknown
+fastdds discovery --server-id 1 --ip-address 127.0.0.1 --port 11888
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"
+
+Language: unknown
+ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker_1
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811;127.0.0.1:11888"
+
+Language: unknown
+ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener_1
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker_2
+
+Language: unknown
+export ROS_DISCOVERY_SERVER=";127.0.0.1:11888"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER=";127.0.0.1:11888"
+
+Language: unknown
+ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener_2
+
+Language: unknown
+<?xml version="1.0" encoding="UTF-8" ?><dds><profilesxmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles"><participantprofile_name="super_client_profile"is_default_profile="true"><rtps><builtin><discovery_config><discoveryProtocol>SUPER_CLIENT</discoveryProtocol><discoveryServersList><RemoteServerprefix="44.53.00.5f.45.50.52.4f.53.49.4d.41"><metatrafficUnicastLocatorList><locator><udpv4><address>127.0.0.1</address><port>11811</port></udpv4></locator></metatrafficUnicastLocatorList></RemoteServer></discoveryServersList></discovery_config></builtin></rtps></participant></profiles></dds>
+
+Language: unknown
+fastdds discovery -i 0 -l 127.0.0.1 -p 11811
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker
+
+Language: unknown
+export FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xml
+
+Language: unknown
+set FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xml
+
+Language: unknown
+ros2 daemon stopros2 daemon startros2 topic listros2 node info /talkerros2 topic info /chatterros2 topic echo /chatter
+
+Language: unknown
+export FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xml
+
+Language: unknown
+set FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xml
+
+Language: unknown
+rqt_graph
+
+Language: unknown
+fastdds discovery -i 0 -l 127.0.0.1 -p 11811
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+ros2 run demo_nodes_cpp listener --ros-args --remap __node:=listener
+
+Language: unknown
+export ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+set ROS_DISCOVERY_SERVER="127.0.0.1:11811"
+
+Language: unknown
+ros2 run demo_nodes_cpp talker --ros-args --remap __node:=talker
+
+Language: unknown
+export FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xml
+
+Language: unknown
+set FASTRTPS_DEFAULT_PROFILES_FILE=super_client_configuration_file.xml
+
+Language: unknown
+ros2 topic list --no-daemonros2 node info /talker --no-daemon --spin-time 2
+
+Language: unknown
+$exportFASTRTPS_DEFAULT_PROFILES_FILE="no_intraprocess_configuration.xml"$sudobashgenerate_discovery_packages.bash~/ros2/install/local_setup.bash$sudobashgenerate_discovery_packages.bash~/ros2/install/local_setup.bashSERVER$python3discovery_packets.py

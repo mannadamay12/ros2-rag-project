@@ -1,0 +1,80 @@
+Title: How to use ros2_tracing to trace and analyze an application
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/ROS2-Tracing-Trace-and-Analyze.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+How to use ros2_tracing to trace and analyze an applicationThis tutorial shows how to useros2_tracingto trace and analyze a ROS 2 application.
+For this tutorial, the application will beperformance_test.OverviewThis tutorial covers:running and tracing aperformance_testrunanalyzing the trace data usingtracetools_analysisto plot the callback durationsPrerequisitesThis tutorial is aimed at real-time Linux systems.
+See thereal-time system setup tutorial.
+However, the tutorial will work if you are using a non-real-time Linux system.Installing and buildingInstall ROS 2 on Linux by following theinstallation instructions.NoteThis tutorial should generally work with all supported Linux distributions.
+However, you might need to adapt some commands.Installbabeltraceandros2trace.sudoapt-getupdate
+sudoapt-getinstall-ybabeltraceros-jazzy-ros2traceros-jazzy-tracetools-analysisSource the ROS 2 installation and verify that tracing is enabled:source/opt/ros/jazzy/setup.bash
+ros2runtracetoolsstatusYou should seeTracingenabledin the output.Then create a workspace, and cloneperformance_testandtracetools_analysis.cd~/
+mkdir-ptracing_ws/srccdtracing_ws/src/
+gitclonehttps://gitlab.com/ApexAI/performance_test.git
+gitclonehttps://github.com/ros-tracing/tracetools_analysis.git-bjazzycd..Install dependencies with rosdep.rosdepupdate
+rosdepinstall--from-pathssrc--ignore-src-yThen build and configureperformance_testfor ROS 2.
+See itsdocumentation.colconbuild--packages-selectperformance_test--cmake-args-DPERFORMANCE_TEST_RCLCPP_ENABLED=ONNext, we will run aperformance_testexperiment and trace it.TracingStep 1: TraceIn one terminal, source the workspace and set up tracing.
+When running the command, a list of ROS 2 userspace events will be printed.
+It will also print the path to the directory that will contain the resulting trace (under~/.ros/tracing).# terminal 1cd~/tracing_wssourceinstall/setup.bash
+ros2trace--session-nameperf-test--listPress enter to start tracing.Step 2: Run ApplicationIn a second terminal, source the workspace.# terminal 2cd~/tracing_wssourceinstall/setup.bashThen run theperformance_testexperiment (or your own application).
+We simply create an experiment with a node publishing ~1 MB messages to another node as fast as possible for 60 seconds using the second highest real-time priority so that we don’t interfere with critical kernel threads.
+We need to runperformance_testasrootto be able to use real-time priorities.# terminal 2sudo./install/performance_test/lib/performance_test/perf_test-crclcpp-single-threaded-executor-p1-s1-r0-mArray1m--reliabilityRELIABLE--max-runtime60--use-rt-prio98If that last command doesn’t work for you (with an error like: “error while loading shared libraries”), run the slightly-different command below.
+This is because, for security reasons, we need to manually pass*PATHenvironment variables for some shared libraries to be found (seethis explanation).# terminal 2sudoenvPATH="$PATH"LD_LIBRARY_PATH="$LD_LIBRARY_PATH"./install/performance_test/lib/performance_test/perf_test-crclcpp-single-threaded-executor-p1-s1-r0-mArray1m--reliabilityRELIABLE--max-runtime60--use-rt-prio98NoteIf you’re not using a real-time kernel, simply run:# terminal 2./install/performance_test/lib/performance_test/perf_test-crclcpp-single-threaded-executor-p1-s1-r0-mArray1m--reliabilityRELIABLE--max-runtime60Step 3: Validate TraceOnce the experiment is done, in the first terminal, press enter again to stop tracing.
+Usebabeltraceto quickly look at the resulting trace.babeltrace~/.ros/tracing/perf-test|lessThe output of the above command is a human-readable version of the raw Common Trace Format (CTF) data, which is a list of trace events.
+Each event has a timestamp, an event type, some information on the process that generated the event, and the values of the fields of the given event type.Use the arrow keys to scroll, or pressqto exit.Next, we will analyze the trace.Analysistracetools_analysisprovides a Python API to easily analyze traces.
+We can use it in aJupyter notebookwithbokehto plot the data.
+Thetracetools_analysisrepository contains afew sample notebooks, includingone notebook to analyze subscription callback durations.For this tutorial, we will plot the durations of the subscription callback in the subscriber node.Install Jupyter notebook and bokeh, and then open the sample notebook.pip3installbokeh
+jupyternotebook~/tracing_ws/src/tracetools_analysis/tracetools_analysis/analysis/callback_duration.ipynbThis will open the notebook in the browser.Replace the value for thepathvariable in the second cell to the path to the trace directory:path='~/.ros/tracing/perf-test'Run the notebook by clicking theRunbutton for each cell.
+Running the cell that does the trace processing might take a few minutes on the first run, but subsequent runs will be much quicker.You should get a plot that looks similar to this:We can see that most of the callbacks take less than 0.01 ms, but there are some outliers taking over 0.02 or 0.03 ms.ConclusionThis tutorial showed how to install tracing-related tools.
+Then it showed how to trace aperformance_testexperiment usingros2_tracingand plot the callback durations usingtracetools_analysis.For more trace analyses, take a look at theother sample notebooksand thetracetools_analysis API documentation.
+Theros2_tracing design documentalso contains a lot of information.
+
+Code Examples:
+
+Language: unknown
+sudoapt-getupdate
+sudoapt-getinstall-ybabeltraceros-jazzy-ros2traceros-jazzy-tracetools-analysis
+
+Language: unknown
+source/opt/ros/jazzy/setup.bash
+ros2runtracetoolsstatus
+
+Language: unknown
+cd~/
+mkdir-ptracing_ws/srccdtracing_ws/src/
+gitclonehttps://gitlab.com/ApexAI/performance_test.git
+gitclonehttps://github.com/ros-tracing/tracetools_analysis.git-bjazzycd..
+
+Language: unknown
+rosdepupdate
+rosdepinstall--from-pathssrc--ignore-src-y
+
+Language: unknown
+colconbuild--packages-selectperformance_test--cmake-args-DPERFORMANCE_TEST_RCLCPP_ENABLED=ON
+
+Language: unknown
+# terminal 1cd~/tracing_wssourceinstall/setup.bash
+ros2trace--session-nameperf-test--list
+
+Language: unknown
+# terminal 2cd~/tracing_wssourceinstall/setup.bash
+
+Language: unknown
+# terminal 2sudo./install/performance_test/lib/performance_test/perf_test-crclcpp-single-threaded-executor-p1-s1-r0-mArray1m--reliabilityRELIABLE--max-runtime60--use-rt-prio98
+
+Language: unknown
+# terminal 2sudoenvPATH="$PATH"LD_LIBRARY_PATH="$LD_LIBRARY_PATH"./install/performance_test/lib/performance_test/perf_test-crclcpp-single-threaded-executor-p1-s1-r0-mArray1m--reliabilityRELIABLE--max-runtime60--use-rt-prio98
+
+Language: unknown
+# terminal 2./install/performance_test/lib/performance_test/perf_test-crclcpp-single-threaded-executor-p1-s1-r0-mArray1m--reliabilityRELIABLE--max-runtime60
+
+Language: unknown
+babeltrace~/.ros/tracing/perf-test|less
+
+Language: unknown
+pip3installbokeh
+jupyternotebook~/tracing_ws/src/tracetools_analysis/tracetools_analysis/analysis/callback_duration.ipynb
+
+Language: unknown
+path='~/.ros/tracing/perf-test'

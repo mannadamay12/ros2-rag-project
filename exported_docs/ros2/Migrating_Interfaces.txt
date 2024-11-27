@@ -1,0 +1,19 @@
+Title: Migrating Interfaces
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Migrating-from-ROS1/Migrating-Interfaces.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Migrating InterfacesTable of ContentsInterface definitionsBuilding interfacesMigrating interface package to ROS 2Messages, services, and actions are collectively calledinterfacesin ROS 2.Interface definitionsMessage files must end in.msgand must be located in the subfoldermsg.
+Service files must end in.srvand must be located in the subfoldersrv.
+Actions files must end in.actionand must be located in the subfolderaction.These files might need to be updated to comply with theROS Interface definition.
+Some primitive types have been removed and the typesdurationandtimewhich were builtin types in ROS 1 have been replaced with normal message definitions and must be used from thebuiltin_interfacespackage.
+Also some naming conventions are stricter than in ROS 1.
+There is additional information in theconceptual article.Building interfacesThe way in which interfaces are built in ROS 2 differs substantially from ROS 1.
+Interfaces can only be built from packages containing aCMakeLists.txt.
+If you are developing a pure Python package, then the interfaces should be placed in a different package containing only the interfaces (which is best practice anyway).
+See thecustom interfaces tutorialfor more information.Migrating interface package to ROS 2In yourpackage.xml:Add<buildtool_depend>rosidl_default_generators</buildtool_depend>.Add<exec_depend>rosidl_default_runtime</exec_depend>.Add<member_of_group>rosidl_interface_packages</member_of_group>For each dependent message package, add<depend>message_package</depend>.In yourCMakeLists.txt:Enable C++17set(CMAKE_CXX_STANDARD17)Addfind_package(rosidl_default_generatorsREQUIRED)For each dependent message package, addfind_package(message_packageREQUIRED)and replace the CMake function call togenerate_messageswithrosidl_generate_interfaces.This will replaceadd_message_filesandadd_service_fileslisting of all the message and service files, which can be removed.
+
+Code Examples:
+
+Language: unknown
+set(CMAKE_CXX_STANDARD17)

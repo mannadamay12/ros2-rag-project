@@ -1,0 +1,147 @@
+Title: Migrating C++ Packages Reference
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Migrating-from-ROS1/Migrating-CPP-Packages.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Migrating C++ Packages ReferenceTable of ContentsBuild toolUpdate yourCMakeLists.txtto useament_cmakeRequire a newer version of CMakeSet the build type to ament_cmakeAdd a call toament_package()Updatefind_package()callsUse modern CMake targetsReplacecatkin_package()with various ament_cmake callsGenerate messagesRemove references to the devel spaceUnit testsLintersUpdate source codeMessages, services, and actionsUse of service objectsUsages of ros::TimeUsages of ros::RateBoostThis page shows how to migrate parts of a C++ package from ROS 1 to ROS 2.
+If this is your first time migrating a C++ package, then read theC++ migration examplefirst.
+Afterwards, use this page as a reference while you migrate your own packages.Build toolInstead of usingcatkin_make,catkin_make_isolatedorcatkinbuildROS 2 uses the command line toolcolconto build and install a set of packages.
+See thebeginner tutorialto get started withcolcon.Update yourCMakeLists.txtto useament_cmakeROS 2 C++ packages useCMakewith convenience functions provided byament_cmake.
+Apply the following changes to useament_cmakeinstead ofcatkin.Require a newer version of CMakeROS 2 relies on newer versions of CMake than used by ROS 1.
+Find the minimum version of CMake used by the ROS distribution you want to support inREP 2000, and use that version at the top of yourCMakeLists.txt.
+For example,3.14.4 is the minimum recommended support for ROS Humble.cmake_minimum_required(VERSION3.14.4)Set the build type to ament_cmakeRemove any dependencies oncatkinfrom yourpackage.xml# Remove this!<buildtool_depend>catkin</buildtool_depend>Add a new dependency onament_cmake_ros(example):<buildtool_depend>ament_cmake_ros</buildtool_depend>Add an<export>section to yourpackage.xmlif it does not have one already.
+Set the<build_type>toament_cmake(example)<export><build_type>ament_cmake</build_type></export>Add a call toament_package()Insert a call toament_package()at the bottom of yourCMakeLists.txt(example)# Add this to the bottom of your CMakeLists.txtament_package()Updatefind_package()callsReplace thefind_package(catkinCOMPONENTS...)call with individualfind_package()calls (example):For example, change this:find_package(catkinREQUIREDCOMPONENTSfoobarstd_msgs)find_package(bazREQUIRED)To this:find_package(ament_cmake_rosREQUIRED)find_package(fooREQUIRED)find_package(barREQUIRED)find_package(std_msgsREQUIRED)find_package(bazREQUIRED)Use modern CMake targetsPrefer to use per-target CMake functions so that your package can export modern CMake targets.If yourCMakeLists.txtusesinclude_directories(), then delete those calls.# Delete calls to include_directories like this one!
+include_directories(include ${catkin_INCLUDE_DIRS})Add a calltarget_include_directories()for every library in your pacakage (example).target_include_directories(my_libraryPUBLIC"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>""$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")Change alltarget_link_libraries()calls to use modern CMake targets.
+For example, if your package in ROS 1 uses old-style standard CMake variables like this.target_link_libraries(my_library ${catkin_LIBRARIES} ${baz_LIBRARIES})Then change it to use specific modern CMake targets instead.
+Use${package_name_TARGETS}if the package you’re depending on is a message package such asstd_msgs.target_link_libraries(my_libraryPUBLICfoo::foobar::bar${std_msgs_TARGETS}baz::baz)ChoosePUBLICorPRIVATEbased on how the dependency is used by your library (example).UsePUBLICif the dependency is needed by downstream users, for example, your library’s public API uses it.UsePRIVATEif the dependency is only used internally by your library.Replacecatkin_package()with various ament_cmake callsImagine yourCMakeLists.txthas a call tocatkin_packagelike this:catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES my_library
+    CATKIN_DEPENDS foo bar std_msgs
+    DEPENDS baz
+)
+
+install(TARGETS my_library
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)Replacingcatkin_package(INCLUDE_DIRS...)If you’ve used modern CMake targets andtarget_include_directories(), you don’t need to do anything further.
+Downstream users will get the include directories by depending on your modern CMake targets.Replacingcatkin_package(LIBRARIES...)Useament_export_targets()andinstall(TARGETS...EXPORT...)to replace theLIBRARIESargument.Use theEXPORTkeyword when installing yourmy_librarytarget (example).install(TARGETSmy_libraryEXPORTexport_my_packageARCHIVEDESTINATIONlibLIBRARYDESTINATIONlibRUNTIMEDESTINATIONbin)The above is a good default for library targets.
+If your package used differentCATKIN_*_DESTINATIONvariables, convert them as follows:catkinament_cmakeCATKIN_GLOBAL_BIN_DESTINATIONbinCATKIN_GLOBAL_INCLUDE_DESTINATIONincludeCATKIN_GLOBAL_LIB_DESTINATIONlibCATKIN_GLOBAL_LIBEXEC_DESTINATIONlibCATKIN_GLOBAL_SHARE_DESTINATIONshareCATKIN_PACKAGE_BIN_DESTINATIONlib/${PROJECT_NAME}CATKIN_PACKAGE_INCLUDE_DESTINATIONinclude/${PROJECT_NAME}CATKIN_PACKAGE_LIB_DESTINATIONlibCATKIN_PACKAGE_SHARE_DESTINATIONshare/${PROJECT_NAME}Add a call toament_export_targets()with the same name you gave to theEXPORTkeyword (example).ament_export_targets(export_my_package)Replacingcatkin_package(CATKIN_DEPENDS..DEPENDS..)Your package’s users mustfind_package()dependencies used by your package’s public API.
+In ROS 1 this was done for downstream users with theCATKIN_DEPENDSandDEPENDSarguments.
+Useament_export_dependenciesto do this in ROS 2.ament_export_dependencies(foobarstd_msgsbaz)Generate messagesIf your package contains both C++ code and ROS message, service, or action definitions, then consider splitting it into two packages:A package with only the ROS message, service, and/or action definitionsA package with the C++ codeAdd the following dependencies to thepackage.xmlof the package that contains ROS messages:Add a<buildtool_depend>onrosidl_default_generators(example)<buildtool_depend>rosidl_default_generators</buildtool_depend>Add an<exec_depend>onrosidl_default_runtime(example)<exec_depend>rosidl_default_runtime</exec_depend>Add a<member_of_group>tag with the group namerosidl_interface_packages(example)<member_of_group>rosidl_interface_packages</member_of_group>In yourCMakeLists.txt, replace the invocation ofadd_message_files,add_service_filesandgenerate_messageswithrosidl_generate_interfaces.
+The first argument must be${PROJECT_NAME}due tothis bug.For example, if your ROS 1 package looks like this:add_message_files(DIRECTORYmsgFILESFooBar.msgBaz.msg)add_service_files(DIRECTORYsrvFILESPing.srv)add_action_files(DIRECTORYactionFILESDoPong.action)generate_messages(DEPENDENCIESactionlib_msgsstd_msgsgeometry_msgs)Then change it to this (example)rosidl_generate_interfaces(${PROJECT_NAME}"msg/FooBar.msg""msg/Baz.msg""srv/Ping.srv""action/DoPong.action"DEPENDENCIESactionlib_msgsstd_msgsgeometry_msgs)Remove references to the devel spaceRemove any references to thedevel spacesuch asCATKIN_DEVEL_PREFIX.
+There is no equivalent to thedevel spacein ROS 2.Unit testsIf your package usesgtestthen:ReplaceCATKIN_ENABLE_TESTINGwithBUILD_TESTING.Replacecatkin_add_gtestwithament_add_gtest.Add afind_package()forament_cmake_gtestinstead ofGTestFor example, if your ROS 1 package adds tests like this:if (CATKIN_ENABLE_TESTING)
+  find_package(GTest REQUIRED)
+  include_directories(${GTEST_INCLUDE_DIRS})
+  catkin_add_gtest(my_test src/test/some_test.cpp)
+  target_link_libraries(my_test
+    # ...
+    ${GTEST_LIBRARIES})
+endif()Then change it to this:if(BUILD_TESTING)find_package(ament_cmake_gtestREQUIRED)ament_add_gtest(my_testsrc/test/test_something.cpp)target_link_libraries(my_test#...)endif()Add<test_depend>ament_cmake_gtest</test_depend>to yourpackage.xml(example).<test_depend>ament_cmake_gtest</test_depend>LintersThe ROS 2 codestyle guidediffers from ROS 1.If you choose to follow the ROS 2 style guide, then turn on automatic linter tests by adding these lines in aif(BUILD_TESTING)block:if(BUILD_TESTING)find_package(ament_lint_autoREQUIRED)ament_lint_auto_find_test_dependencies()# ...endif()Add the following dependencies to yourpackage.xml:<test_depend>ament_lint_auto</test_depend><test_depend>ament_lint_common</test_depend>Update source codeMessages, services, and actionsThe namespace of ROS 2 messages, services, and actions use a subnamespace (msg,srv, oraction, respectively) after the package name.
+Therefore an include looks like:#include<my_interfaces/msg/my_message.hpp>.
+The C++ type is then named:my_interfaces::msg::MyMessage.Shared pointer types are provided as typedefs within the message structs:my_interfaces::msg::MyMessage::SharedPtras well asmy_interfaces::msg::MyMessage::ConstSharedPtr.For more details please see the article about thegenerated C++ interfaces.The migration requires includes to change by:inserting the subfoldermsgbetween the package name and message datatypechanging the included filename from CamelCase to underscore separationchanging from*.hto*.hpp// ROS 1 style is in comments, ROS 2 follows, uncommented.// # include <geometry_msgs/PointStamped.h>#include<geometry_msgs/msg/point_stamped.hpp>// geometry_msgs::PointStamped point_stamped;geometry_msgs::msg::PointStampedpoint_stamped;The migration requires code to insert themsgnamespace into all instances.Use of service objectsService callbacks in ROS 2 do not have boolean return values.
+Instead of returning false on failures, throwing exceptions is recommended.// ROS 1 style is in comments, ROS 2 follows, uncommented.// #include "nav_msgs/GetMap.h"#include"nav_msgs/srv/get_map.hpp"// bool service_callback(//   nav_msgs::GetMap::Request & request,//   nav_msgs::GetMap::Response & response)voidservice_callback(conststd::shared_ptr<nav_msgs::srv::GetMap::Request>request,std::shared_ptr<nav_msgs::srv::GetMap::Response>response){// ...// return true;  // or false for failure}Usages of ros::TimeFor usages ofros::Time:Replace all instances ofros::Timewithrclcpp::TimeIf your messages or code makes use of std_msgs::Time:Convert all instances of std_msgs::Time to builtin_interfaces::msg::TimeConvert all#include"std_msgs/time.hto#include"builtin_interfaces/msg/time.hpp"Convert all instances using the std_msgs::Time fieldnsecto the builtin_interfaces::msg::Time fieldnanosecUsages of ros::RateThere is an equivalent typerclcpp::Rateobject which is basically a drop in replacement forros::Rate.BoostMuch of the functionality previously provided by Boost has been integrated into the C++ standard library.
+As such we would like to take advantage of the new core features and avoid the dependency on boost where possible.Shared PointersTo switch shared pointers from boost to standard C++ replace instances of:#include<boost/shared_ptr.hpp>with#include<memory>boost::shared_ptrwithstd::shared_ptrThere may also be variants such asweak_ptrwhich you want to convert as well.Also it is recommended practice to useusinginstead oftypedef.usinghas the ability to work better in templated logic.
+For detailssee hereThread/MutexesAnother common part of boost used in ROS codebases are mutexes inboost::thread.Replaceboost::mutex::scoped_lockwithstd::unique_lock<std::mutex>Replaceboost::mutexwithstd::mutexReplace#include<boost/thread/mutex.hpp>with#include<mutex>Unordered MapReplace:#include<boost/unordered_map.hpp>with#include<unordered_map>boost::unordered_mapwithstd::unordered_mapfunctionReplace:#include<boost/function.hpp>with#include<functional>boost::functionwithstd::function
+
+Code Examples:
+
+Language: unknown
+cmake_minimum_required(VERSION3.14.4)
+
+Language: unknown
+# Remove this!<buildtool_depend>catkin</buildtool_depend>
+
+Language: unknown
+<buildtool_depend>ament_cmake_ros</buildtool_depend>
+
+Language: unknown
+<export><build_type>ament_cmake</build_type></export>
+
+Language: unknown
+# Add this to the bottom of your CMakeLists.txtament_package()
+
+Language: unknown
+find_package(catkinREQUIREDCOMPONENTSfoobarstd_msgs)find_package(bazREQUIRED)
+
+Language: unknown
+find_package(ament_cmake_rosREQUIRED)find_package(fooREQUIRED)find_package(barREQUIRED)find_package(std_msgsREQUIRED)find_package(bazREQUIRED)
+
+Language: unknown
+# Delete calls to include_directories like this one!
+include_directories(include ${catkin_INCLUDE_DIRS})
+
+Language: unknown
+target_include_directories(my_libraryPUBLIC"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>""$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+
+Language: unknown
+target_link_libraries(my_library ${catkin_LIBRARIES} ${baz_LIBRARIES})
+
+Language: unknown
+target_link_libraries(my_libraryPUBLICfoo::foobar::bar${std_msgs_TARGETS}baz::baz)
+
+Language: unknown
+catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES my_library
+    CATKIN_DEPENDS foo bar std_msgs
+    DEPENDS baz
+)
+
+install(TARGETS my_library
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
+Language: unknown
+install(TARGETSmy_libraryEXPORTexport_my_packageARCHIVEDESTINATIONlibLIBRARYDESTINATIONlibRUNTIMEDESTINATIONbin)
+
+Language: unknown
+ament_export_targets(export_my_package)
+
+Language: unknown
+ament_export_dependencies(foobarstd_msgsbaz)
+
+Language: unknown
+<buildtool_depend>rosidl_default_generators</buildtool_depend>
+
+Language: unknown
+<exec_depend>rosidl_default_runtime</exec_depend>
+
+Language: unknown
+<member_of_group>rosidl_interface_packages</member_of_group>
+
+Language: unknown
+add_message_files(DIRECTORYmsgFILESFooBar.msgBaz.msg)add_service_files(DIRECTORYsrvFILESPing.srv)add_action_files(DIRECTORYactionFILESDoPong.action)generate_messages(DEPENDENCIESactionlib_msgsstd_msgsgeometry_msgs)
+
+Language: unknown
+rosidl_generate_interfaces(${PROJECT_NAME}"msg/FooBar.msg""msg/Baz.msg""srv/Ping.srv""action/DoPong.action"DEPENDENCIESactionlib_msgsstd_msgsgeometry_msgs)
+
+Language: unknown
+if (CATKIN_ENABLE_TESTING)
+  find_package(GTest REQUIRED)
+  include_directories(${GTEST_INCLUDE_DIRS})
+  catkin_add_gtest(my_test src/test/some_test.cpp)
+  target_link_libraries(my_test
+    # ...
+    ${GTEST_LIBRARIES})
+endif()
+
+Language: unknown
+if(BUILD_TESTING)find_package(ament_cmake_gtestREQUIRED)ament_add_gtest(my_testsrc/test/test_something.cpp)target_link_libraries(my_test#...)endif()
+
+Language: unknown
+<test_depend>ament_cmake_gtest</test_depend>
+
+Language: unknown
+if(BUILD_TESTING)find_package(ament_lint_autoREQUIRED)ament_lint_auto_find_test_dependencies()# ...endif()
+
+Language: unknown
+<test_depend>ament_lint_auto</test_depend><test_depend>ament_lint_common</test_depend>
+
+Language: unknown
+// ROS 1 style is in comments, ROS 2 follows, uncommented.// # include <geometry_msgs/PointStamped.h>#include<geometry_msgs/msg/point_stamped.hpp>// geometry_msgs::PointStamped point_stamped;geometry_msgs::msg::PointStampedpoint_stamped;
+
+Language: unknown
+// ROS 1 style is in comments, ROS 2 follows, uncommented.// #include "nav_msgs/GetMap.h"#include"nav_msgs/srv/get_map.hpp"// bool service_callback(//   nav_msgs::GetMap::Request & request,//   nav_msgs::GetMap::Response & response)voidservice_callback(conststd::shared_ptr<nav_msgs::srv::GetMap::Request>request,std::shared_ptr<nav_msgs::srv::GetMap::Response>response){// ...// return true;  // or false for failure}

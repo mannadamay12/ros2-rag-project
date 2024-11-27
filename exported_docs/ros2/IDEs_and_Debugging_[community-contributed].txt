@@ -1,0 +1,67 @@
+Title: IDEs and Debugging [community-contributed]
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/ROS-2-IDEs.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+IDEs and Debugging [community-contributed]ROS 2 is not made around a specific development environment and the main focus is on building / running from the command line.
+Nonetheless Integrated Development Environments (IDEs) can be used to develop, run and/or debug ROS 2 nodes.Below are listed some IDEs and instructions on how to use them with ROS 2.ContentsGeneralInstalled Python CodeVisual Studio CodePythonPyCharmIntegrate for code inspectionAttach to ProcessRun/DebugGeneralInstalled Python CodeBy default, when building workspaces with:colconbuildThe Python code will be coped over into thebuild/installdirectories.
+So when attaching a debugger to aros2runcommand from within an IDE, the code being run (from thebuild/install) is not the same as the files opened in the IDE project.There are 2 options to deal with this:Open the source files frombuild/installdirectory and place breakpoints there.Build the workspace with the–symlink-installflag to colcon, which will symlink the source files to thebuild/installdirectory instead.Visual Studio CodeVSCodeis a versatile and free development environment.VSCode is relatively easy to use with ROS 2.
+Simply activate your environment in a command line and start the VSCode application from the same terminal and use as normal.
+So:Create your ROS workspace as you would normally.In a terminal, source both ROS 2 and your install (if it was built already).Start VSCode from the same command line. The terminal will be blocked until the application is closed again.LinuxmacOSWindowssource/opt/ros/jazzy/setup.bashcd~/dev_wssource./install/setup.bash
+/usr/bin/code./src/my_node/. ~/ros2_install/ros2-osx/setup.bashcd ~/dev_ws. ./install/setup.bash/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code ./src/my_node/#ForCMD:call C:\dev\ros2\local_setup.batcd C:\dev_wscall .\install\local_setup.bat"C:\Program Files\Microsoft VS Code\Code.exe" .\src\my_node\#ForPowerShell:C:\dev\ros2\local_setup.ps1cd C:\dev_ws.\install\local_setup.ps1& "C:\Program Files\Microsoft VS Code\Code.exe" .\src\my_node\VSCode and any terminal created inside VSCode will correctly inherit from the parent environment and should have ROS and installed package available.NoteAfter adding packages or making major changes you might need to source your install again.
+The simplest way to do this is to close VSCode and restart it as above.PythonIn your workspace, verify the correct interpreter is used.
+Through sourcing the basic commandpythonshould be correct, but VSCode likes to resort to an absolute path for Python.
+In the bottom right corner click on “Selected Python Interpreter” to change it.If your ROS 2 Python version is from a virtual environment, VSCode will try to source it at each run command.
+But we already started VSCode from a sourced environment, so this extra step is not necessary.
+You can disable this for the current workspace by finding “Settings” > “Extensions” > “Python” > “Activate Environment” and disabling the check.Now simply run a file or create a configuration inlaunch.json.
+Debugging a node is easiest by creating a configuration like apython...command, instead ofros2run/launch....
+An example oflaunch.jsoncould be:{"version":"0.2.0","configurations":[{"name":"Python: File","type":"python","request":"launch","program":"my_node.py"},]}Instead you could also create a configuration for attaching to a running process, under “Attach using Process Id”.SeeSetup ROS 2 with VSCode and Dockerfor full instructions on how to use VSCode, in combination with Docker.PyCharmPyCharmis an IDE specifically for Python.Of course it can only be meaningfully used for nodes made in Python.With PyCharm you can either attach to an existing process (probably started by you viaros2run...orros2launch...) or run the node directly from Python (equivalent topython[file.py].Integrate for code inspectionYou can setup your PyCharm project such that it is fully aware of ROS 2 code, allowing code completion and suggestion.LinuxOpen a terminal, source ROS and start PyCharm:source/opt/ros/humble/setup.bashcdpath/to/dev_ws
+/opt/pycharm/bin/pycharm.shAfter selecting the correct interpreter, everything should work.NoteThis is untested.WindowsFirst sourcing ROS and then starting PyCharm from the command line seems to have no effect on Windows.
+Instead, some settings need to be tweaked.Create your ROS workspace as you would normally.Start PyCharm normally.Open a project. This should be the root directory of the ROS node you’re developing, e.g.C:\dev_ws\src\my_node.Click “Add new interpreter” > “Add local interpreter…”.
+Select a system interpreter (or virtual environment if you’re using one) and select the executable of your ROS Python version (typicallyC:\Python38\python.exe).If you now open one of your code files, you will see warnings about missing imports.
+Trying to run the file will confirm these issues.Under the “Python Interpreters” window, find and select your ROS interpreter.
+Edit the name to something recognizable.
+More importantly, now click the “Show Interpreter Paths” button.In the new window, you will see the paths already associated with this interpreter.
+Click the “+” button and add two more paths (according to your ROS install):C:\dev\ros2_humble\binC:\dev\ros2_humble\Lib\site-packagesPyCharm will re-index and when finished it should correctly interpret your project, recognising the ROS 2 system packages.
+You can navigate through code, get completion and read doc blurbs as expected.If there are dependencies built alongside with your package, they are probably not yet recognized and result in invalid IDE warnings and runtime errors.Resolve this by:Making sure thePATHoverride in the run/debug configuration includes both the ROS 2 install and your workspace, e.g.:C:\dev\ros2_humble\local_setup.ps1
+C:\dev_ws\install\local_setup.ps1echo$ENV:PathAdding the relevant folders from theinstall/directory to your project sources.Go to “Settings…” and under “Project: “ > “Project Structure” click “Add content root”.
+Add all the relevantsite-packagesfolders underinstall/Lib/*.Finally, make sure your run/debug configuration has the option “include content roots in PYTHONPATH” enabled.TipUsing the–merge-installoption with your colcon build will limit the number of depending directories, making it easier to configure PyCharm.Attach to ProcessEven without any configuration to PyCharm, you can always just attach to a running Python node.
+Open your project source and simply run your node as usual:ros2runmy_nodemainThen in PyCharm select “Run” > “Attach to Process…”.
+It might take a second, but a small window should show listing the currently running Python instances, including your node.
+There can be multiple Python processes, so there may be some trial-and-error to find the right one.After selecting an instance, the usual debugging tools are available.
+You can pause it or create breakpoints in the code and step through it.NoteThe code in your project might not be the files being executed, seethis.Run/DebugFollow the steps for integration first.Running your Python file from PyCharm will likely result in import errors.
+This is because PyCharm extends thePYTHONPATHenvironment variable, but it leavesPATHuntouched.
+Necessary library files inros/binare not found.Edit the run/debug configuration for your file and under “Environment Variables:” add a new variable.
+It is currently not supported to extend the existingPATH, so we need to override it.
+From a sourced ROS terminal, export the content ofPATHwith:echo$Env:PATH.
+Copy the result.Back in PyCharm, paste it asPATH, apply changes and run or debug your node.
+It should work like any Python project now, allowing easy additions of breakpoints and other debug methods.NoteOn Windows it seems the capitalization of thePATHvariable under “Environment Variables:” must be “path” (all lowercase) in order to work.
+
+Code Examples:
+
+Language: unknown
+colconbuild
+
+Language: unknown
+source/opt/ros/jazzy/setup.bashcd~/dev_wssource./install/setup.bash
+/usr/bin/code./src/my_node/
+
+Language: unknown
+. ~/ros2_install/ros2-osx/setup.bashcd ~/dev_ws. ./install/setup.bash/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code ./src/my_node/
+
+Language: unknown
+#ForCMD:call C:\dev\ros2\local_setup.batcd C:\dev_wscall .\install\local_setup.bat"C:\Program Files\Microsoft VS Code\Code.exe" .\src\my_node\#ForPowerShell:C:\dev\ros2\local_setup.ps1cd C:\dev_ws.\install\local_setup.ps1& "C:\Program Files\Microsoft VS Code\Code.exe" .\src\my_node\
+
+Language: unknown
+{"version":"0.2.0","configurations":[{"name":"Python: File","type":"python","request":"launch","program":"my_node.py"},]}
+
+Language: unknown
+source/opt/ros/humble/setup.bashcdpath/to/dev_ws
+/opt/pycharm/bin/pycharm.sh
+
+Language: unknown
+C:\dev\ros2_humble\local_setup.ps1
+C:\dev_ws\install\local_setup.ps1echo$ENV:Path
+
+Language: unknown
+ros2runmy_nodemain

@@ -1,0 +1,6 @@
+Title: Beginner: CLI tools
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Beginner: CLI toolsConfiguring environmentUsingturtlesim,ros2, andrqtUnderstanding nodesUnderstanding topicsUnderstanding servicesUnderstanding parametersUnderstanding actionsUsingrqt_consoleto view logsLaunching nodesRecording and playing back data

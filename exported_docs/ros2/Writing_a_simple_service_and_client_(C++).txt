@@ -1,0 +1,108 @@
+Title: Writing a simple service and client (C++)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Service-And-Client.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Writing a simple service and client (C++)Goal:Create and run service and client nodes using C++.Tutorial level:BeginnerTime:20 minutesContentsBackgroundPrerequisitesTasks1 Create a package2 Write the service node3 Write the client node4 Build and runSummaryNext stepsRelated contentBackgroundWhennodescommunicate usingservices, the node that sends a request for data is called the client node, and the one that responds to the request is the service node.
+The structure of the request and response is determined by a.srvfile.The example used here is a simple integer addition system; one node requests the sum of two integers, and the other responds with the result.PrerequisitesIn previous tutorials, you learned how tocreate a workspaceandcreate a package.Tasks1 Create a packageOpen a new terminal andsource your ROS 2 installationso thatros2commands will work.Navigate into theros2_wsdirectory created in aprevious tutorial.Recall that packages should be created in thesrcdirectory, not the root of the workspace.
+Navigate intoros2_ws/srcand create a new package:ros2 pkg create --build-type ament_cmake --license Apache-2.0 cpp_srvcli --dependencies rclcpp example_interfacesYour terminal will return a message verifying the creation of your packagecpp_srvcliand all its necessary files and folders.The--dependenciesargument will automatically add the necessary dependency lines topackage.xmlandCMakeLists.txt.example_interfacesis the package that includesthe .srv fileyou will need to structure your requests and responses:int64 aint64 b---int64 sumThe first two lines are the parameters of the request, and below the dashes is the response.1.1 Updatepackage.xmlBecause you used the--dependenciesoption during package creation, you don’t have to manually add dependencies topackage.xmlorCMakeLists.txt.As always, though, make sure to add the description, maintainer email and name, and license information topackage.xml.<description>C++clientservertutorial</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>2 Write the service nodeInside theros2_ws/src/cpp_srvcli/srcdirectory, create a new file calledadd_two_ints_server.cppand paste the following code within:#include"rclcpp/rclcpp.hpp"#include"example_interfaces/srv/add_two_ints.hpp"#include<memory>voidadd(conststd::shared_ptr<example_interfaces::srv::AddTwoInts::Request>request,std::shared_ptr<example_interfaces::srv::AddTwoInts::Response>response){response->sum=request->a+request->b;RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Incoming request\na: %ld"" b: %ld",request->a,request->b);RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"sending back response: [%ld]",(longint)response->sum);}intmain(intargc,char**argv){rclcpp::init(argc,argv);std::shared_ptr<rclcpp::Node>node=rclcpp::Node::make_shared("add_two_ints_server");rclcpp::Service<example_interfaces::srv::AddTwoInts>::SharedPtrservice=node->create_service<example_interfaces::srv::AddTwoInts>("add_two_ints",&add);RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Ready to add two ints.");rclcpp::spin(node);rclcpp::shutdown();}2.1 Examine the codeThe first two#includestatements are your package dependencies.Theaddfunction adds two integers from the request and gives the sum to the response, while notifying the console of its status using logs.voidadd(conststd::shared_ptr<example_interfaces::srv::AddTwoInts::Request>request,std::shared_ptr<example_interfaces::srv::AddTwoInts::Response>response){response->sum=request->a+request->b;RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Incoming request\na: %ld"" b: %ld",request->a,request->b);RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"sending back response: [%ld]",(longint)response->sum);}Themainfunction accomplishes the following, line by line:Initializes ROS 2 C++ client library:rclcpp::init(argc,argv);Creates a node namedadd_two_ints_server:std::shared_ptr<rclcpp::Node>node=rclcpp::Node::make_shared("add_two_ints_server");Creates a service namedadd_two_intsfor that node and automatically advertises it over the networks with the&addmethod:rclcpp::Service<example_interfaces::srv::AddTwoInts>::SharedPtrservice=node->create_service<example_interfaces::srv::AddTwoInts>("add_two_ints",&add);Prints a log message when it’s ready:RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Ready to add two ints.");Spins the node, making the service available.rclcpp::spin(node);2.2 Add executableTheadd_executablemacro generates an executable you can run usingros2run.
+Add the following code block toCMakeLists.txtto create an executable namedserver:add_executable(server src/add_two_ints_server.cpp)ament_target_dependencies(server rclcpp example_interfaces)Soros2runcan find the executable, add the following lines to the end of the file, right beforeament_package():install(TARGETSserverDESTINATION lib/${PROJECT_NAME})You could build your package now, source the local setup files, and run it, but let’s create the client node first so you can see the full system at work.3 Write the client nodeInside theros2_ws/src/cpp_srvcli/srcdirectory, create a new file calledadd_two_ints_client.cppand paste the following code within:#include"rclcpp/rclcpp.hpp"#include"example_interfaces/srv/add_two_ints.hpp"#include<chrono>#include<cstdlib>#include<memory>usingnamespacestd::chrono_literals;intmain(intargc,char**argv){rclcpp::init(argc,argv);if(argc!=3){RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"usage: add_two_ints_client X Y");return1;}std::shared_ptr<rclcpp::Node>node=rclcpp::Node::make_shared("add_two_ints_client");rclcpp::Client<example_interfaces::srv::AddTwoInts>::SharedPtrclient=node->create_client<example_interfaces::srv::AddTwoInts>("add_two_ints");autorequest=std::make_shared<example_interfaces::srv::AddTwoInts::Request>();request->a=atoll(argv[1]);request->b=atoll(argv[2]);while(!client->wait_for_service(1s)){if(!rclcpp::ok()){RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Interrupted while waiting for the service. Exiting.");return0;}RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"service not available, waiting again...");}autoresult=client->async_send_request(request);// Wait for the result.if(rclcpp::spin_until_future_complete(node,result)==rclcpp::FutureReturnCode::SUCCESS){RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Sum: %ld",result.get()->sum);}else{RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Failed to call service add_two_ints");}rclcpp::shutdown();return0;}3.1 Examine the codeSimilar to the service node, the following lines of code create the node and then create the client for that node:std::shared_ptr<rclcpp::Node>node=rclcpp::Node::make_shared("add_two_ints_client");rclcpp::Client<example_interfaces::srv::AddTwoInts>::SharedPtrclient=node->create_client<example_interfaces::srv::AddTwoInts>("add_two_ints");Next, the request is created.
+Its structure is defined by the.srvfile mentioned earlier.autorequest=std::make_shared<example_interfaces::srv::AddTwoInts::Request>();request->a=atoll(argv[1]);request->b=atoll(argv[2]);Thewhileloop gives the client 1 second to search for service nodes in the network.
+If it can’t find any, it will continue waiting.RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"service not available, waiting again...");If the client is canceled (e.g. by you enteringCtrl+Cinto the terminal), it will return an error log message stating it was interrupted.RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Interrupted while waiting for the service. Exiting.");Then the client sends its request, and the node spins until it receives its response, or fails.3.2 Add executableReturn toCMakeLists.txtto add the executable and target for the new node.
+After removing some unnecessary boilerplate from the automatically generated file, yourCMakeLists.txtshould look like this:cmake_minimum_required(VERSION 3.5)project(cpp_srvcli)find_package(ament_cmake REQUIRED)find_package(rclcpp REQUIRED)find_package(example_interfaces REQUIRED)add_executable(server src/add_two_ints_server.cpp)ament_target_dependencies(server rclcpp example_interfaces)add_executable(client src/add_two_ints_client.cpp)ament_target_dependencies(client rclcpp example_interfaces)install(TARGETSserverclientDESTINATION lib/${PROJECT_NAME})ament_package()4 Build and runIt’s good practice to runrosdepin the root of your workspace (ros2_ws) to check for missing dependencies before building:LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you can skip ahead to next step.rosdep only runs on Linux, so you can skip ahead to next step.Navigate back to the root of your workspace,ros2_ws, and build your new package:LinuxmacOSWindowscolcon build --packages-select cpp_srvclicolcon build --packages-select cpp_srvclicolcon build --merge-install --packages-select cpp_srvcliOpen a new terminal, navigate toros2_ws, and source the setup files:LinuxmacOSWindowssource install/setup.bash. install/setup.bashcall install/setup.batNow run the service node:ros2 run cpp_srvcli serverThe terminal should return the following message, and then wait:[INFO] [rclcpp]: Ready to add two ints.Open another terminal, source the setup files from insideros2_wsagain.
+Start the client node, followed by any two integers separated by a space:ros2 run cpp_srvcli client 2 3If you chose2and3, for example, the client would receive a response like this:[INFO] [rclcpp]: Sum: 5Return to the terminal where your service node is running.
+You will see that it published log messages when it received the request and the data it received, and the response it sent back:[INFO] [rclcpp]: Incoming requesta: 2 b: 3[INFO] [rclcpp]: sending back response: [5]EnterCtrl+Cin the server terminal to stop the node from spinning.SummaryYou created two nodes to request and respond to data over a service.
+You added their dependencies and executables to the package configuration files so that you could build and run them, and see a service/client system at work.Next stepsIn the last few tutorials you’ve been utilizing interfaces to pass data across topics and services.
+Next, you’ll learn how tocreate custom interfaces.Related contentThere are several ways you could write a service and client in C++; check out theminimal_serviceandminimal_clientpackages in theros2/examplesrepo.
+
+Code Examples:
+
+Language: unknown
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 cpp_srvcli --dependencies rclcpp example_interfaces
+
+Language: unknown
+int64 aint64 b---int64 sum
+
+Language: unknown
+<description>C++clientservertutorial</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>
+
+Language: unknown
+#include"rclcpp/rclcpp.hpp"#include"example_interfaces/srv/add_two_ints.hpp"#include<memory>voidadd(conststd::shared_ptr<example_interfaces::srv::AddTwoInts::Request>request,std::shared_ptr<example_interfaces::srv::AddTwoInts::Response>response){response->sum=request->a+request->b;RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Incoming request\na: %ld"" b: %ld",request->a,request->b);RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"sending back response: [%ld]",(longint)response->sum);}intmain(intargc,char**argv){rclcpp::init(argc,argv);std::shared_ptr<rclcpp::Node>node=rclcpp::Node::make_shared("add_two_ints_server");rclcpp::Service<example_interfaces::srv::AddTwoInts>::SharedPtrservice=node->create_service<example_interfaces::srv::AddTwoInts>("add_two_ints",&add);RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Ready to add two ints.");rclcpp::spin(node);rclcpp::shutdown();}
+
+Language: unknown
+voidadd(conststd::shared_ptr<example_interfaces::srv::AddTwoInts::Request>request,std::shared_ptr<example_interfaces::srv::AddTwoInts::Response>response){response->sum=request->a+request->b;RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Incoming request\na: %ld"" b: %ld",request->a,request->b);RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"sending back response: [%ld]",(longint)response->sum);}
+
+Language: unknown
+rclcpp::init(argc,argv);
+
+Language: unknown
+std::shared_ptr<rclcpp::Node>node=rclcpp::Node::make_shared("add_two_ints_server");
+
+Language: unknown
+rclcpp::Service<example_interfaces::srv::AddTwoInts>::SharedPtrservice=node->create_service<example_interfaces::srv::AddTwoInts>("add_two_ints",&add);
+
+Language: unknown
+RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Ready to add two ints.");
+
+Language: unknown
+rclcpp::spin(node);
+
+Language: unknown
+add_executable(server src/add_two_ints_server.cpp)ament_target_dependencies(server rclcpp example_interfaces)
+
+Language: unknown
+install(TARGETSserverDESTINATION lib/${PROJECT_NAME})
+
+Language: unknown
+#include"rclcpp/rclcpp.hpp"#include"example_interfaces/srv/add_two_ints.hpp"#include<chrono>#include<cstdlib>#include<memory>usingnamespacestd::chrono_literals;intmain(intargc,char**argv){rclcpp::init(argc,argv);if(argc!=3){RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"usage: add_two_ints_client X Y");return1;}std::shared_ptr<rclcpp::Node>node=rclcpp::Node::make_shared("add_two_ints_client");rclcpp::Client<example_interfaces::srv::AddTwoInts>::SharedPtrclient=node->create_client<example_interfaces::srv::AddTwoInts>("add_two_ints");autorequest=std::make_shared<example_interfaces::srv::AddTwoInts::Request>();request->a=atoll(argv[1]);request->b=atoll(argv[2]);while(!client->wait_for_service(1s)){if(!rclcpp::ok()){RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Interrupted while waiting for the service. Exiting.");return0;}RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"service not available, waiting again...");}autoresult=client->async_send_request(request);// Wait for the result.if(rclcpp::spin_until_future_complete(node,result)==rclcpp::FutureReturnCode::SUCCESS){RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Sum: %ld",result.get()->sum);}else{RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Failed to call service add_two_ints");}rclcpp::shutdown();return0;}
+
+Language: unknown
+std::shared_ptr<rclcpp::Node>node=rclcpp::Node::make_shared("add_two_ints_client");rclcpp::Client<example_interfaces::srv::AddTwoInts>::SharedPtrclient=node->create_client<example_interfaces::srv::AddTwoInts>("add_two_ints");
+
+Language: unknown
+autorequest=std::make_shared<example_interfaces::srv::AddTwoInts::Request>();request->a=atoll(argv[1]);request->b=atoll(argv[2]);
+
+Language: unknown
+RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"service not available, waiting again...");
+
+Language: unknown
+RCLCPP_ERROR(rclcpp::get_logger("rclcpp"),"Interrupted while waiting for the service. Exiting.");
+
+Language: unknown
+cmake_minimum_required(VERSION 3.5)project(cpp_srvcli)find_package(ament_cmake REQUIRED)find_package(rclcpp REQUIRED)find_package(example_interfaces REQUIRED)add_executable(server src/add_two_ints_server.cpp)ament_target_dependencies(server rclcpp example_interfaces)add_executable(client src/add_two_ints_client.cpp)ament_target_dependencies(client rclcpp example_interfaces)install(TARGETSserverclientDESTINATION lib/${PROJECT_NAME})ament_package()
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select cpp_srvcli
+
+Language: unknown
+colcon build --packages-select cpp_srvcli
+
+Language: unknown
+colcon build --merge-install --packages-select cpp_srvcli
+
+Language: unknown
+source install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install/setup.bat
+
+Language: unknown
+ros2 run cpp_srvcli server
+
+Language: unknown
+[INFO] [rclcpp]: Ready to add two ints.
+
+Language: unknown
+ros2 run cpp_srvcli client 2 3
+
+Language: unknown
+[INFO] [rclcpp]: Sum: 5
+
+Language: unknown
+[INFO] [rclcpp]: Incoming requesta: 2 b: 3[INFO] [rclcpp]: sending back response: [5]

@@ -1,0 +1,6 @@
+Title: Advanced Concepts
+URL: https://docs.ros.org/en/jazzy/Concepts/Advanced.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Advanced ConceptsThese conceptual documents are intended for developers who plan to modify or contribute to the ROS 2 core.The build systemInternal ROS 2 interfacesROS 2 middleware implementations

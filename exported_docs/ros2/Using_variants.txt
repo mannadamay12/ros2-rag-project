@@ -1,0 +1,20 @@
+Title: Using variants
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Using-Variants.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Using variantsMetapackages do not provide software directly but depend on a group of other related packages to provide a convienent installation mechanism for the complete group of packages.[1][2]Variants are a list of official metapackages for commonly useful groups of ROS packages.[1]https://wiki.debian.org/metapackage[2]https://help.ubuntu.com/community/MetaPackagesThe different variants in ROS 2 are specified inREP-2001.In addition to the official variants, there may be metapackages for specific institutions or robots as described inREP-108.Adding variantsAdditional variants that are of general use to the ROS community can be proposed by contributing an update toREP-2001 via pull requestdescribing the packages included in the new variant.
+Institution and robot specific variants can be published directly by their respective maintainers and no update to REP-2001 is required.Creating project-specific variantsIf you are creating ROS packages to use privately in your own projects, you can create variants specific to your projects using the official variants as examples.
+To do so you need only create two files:A minimal variant package is created as a package with theament_cmakebuild type, abuildtool_dependonament_cmakeandexec_dependentries for each package you want to include in the variant.<?xml version="1.0"?><?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?><packageformat="2"><name>my_project_variant</name><version>1.0.0</version><description>Apackagetoaggregateallpackagesinmy_project.</description><maintaineremail="maintainer-email">MaintainerName</maintainer><license>Apache-2.0</license><!-- packages in my_project --><exec_depend>my_project_msgs</exec_depend><exec_depend>my_project_services</exec_depend><exec_depend>my_project_examples</exec_depend><export><build_type>ament_cmake</build_type></export></package>A minimal ament_cmake package includes aCMakeLists.txtwhich registers the package.xml as an ament package for use in ROS 2.cmake_minimum_required(VERSION3.5)project(my_project_variantNONE)find_package(ament_cmakeREQUIRED)ament_package()You can then build and install your variant package alongside your other private packages.Creating custom variants with platform-specific toolsSome platforms have tools for creating basic packages that do not require a full ROS build farm environment or equivalent infrastructure.
+It is possible to use these tools to create platform-dependent variants.
+This approach does not include support for ROS packaging tools and is platform dependent but requires much less infrastructure to produce if you are creating collections of existing packages rather than a mix of public and private ROS packages.
+For example, on Debian or Ubuntu systems you can use theequivsutilities.
+The Debian Administrator’s handbook has aSection on meta-packages.
+
+Code Examples:
+
+Language: unknown
+<?xml version="1.0"?><?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?><packageformat="2"><name>my_project_variant</name><version>1.0.0</version><description>Apackagetoaggregateallpackagesinmy_project.</description><maintaineremail="maintainer-email">MaintainerName</maintainer><license>Apache-2.0</license><!-- packages in my_project --><exec_depend>my_project_msgs</exec_depend><exec_depend>my_project_services</exec_depend><exec_depend>my_project_examples</exec_depend><export><build_type>ament_cmake</build_type></export></package>
+
+Language: unknown
+cmake_minimum_required(VERSION3.5)project(my_project_variantNONE)find_package(ament_cmakeREQUIRED)ament_package()

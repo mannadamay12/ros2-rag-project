@@ -1,0 +1,10 @@
+Title: RTI Connext DDS
+URL: https://docs.ros.org/en/jazzy/Installation/DDS-Implementations/Install-Connext-University-Eval.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+RTI Connext DDSA libraries-only version of RTI Connext DDS 6.0.1 may be installed per theinstallation instructionsfor
+Debian/Ubuntu Linux (amd64) platforms only, under anon-commercial license.A full-suite installation of RTI Connext DDS is available for many additional platforms, for universities, evaluation, or purchase.
+This installation includes diagnostic tools, layered services, and security.  See below for installation details.RTI University ProgramUniversity researchers and classroom users may be eligible for a free academic license through theRTI University Program.
+This includes a one-year (renewable) license to the unabridged version of Connext DDS Secure, which includes diagnostic tools and layered services.
+The university license application can be foundhere.RTI Connext DDS EvaluationTo install RTI Connext DDSversion 6.0.1Evalution:Visit theRTI Free Trial (6.0.1) site.Download the version(s) to match your environment.Contactlicense@rti.comfor an evaluation license.Install RTI Connext 6.0.1 by running the installation program.  When finished, it will run the RTI Launcher.Use the RTI Launcher to install the license file (rti_license.dat) if needed.  The launcher may also be used to launch the diagnostic tools and services.

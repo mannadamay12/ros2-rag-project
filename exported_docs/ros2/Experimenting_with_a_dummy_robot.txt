@@ -1,0 +1,21 @@
+Title: Experimenting with a dummy robot
+URL: https://docs.ros.org/en/jazzy/Tutorials/Demos/dummy-robot-demo.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Experimenting with a dummy robotIn this demo, we present a simple demo robot with all components from publishing joint states over publishing fake laser data until visualizing the robot model on a map in RViz.Launching the demoWe assume your ROS 2 installation dir as~/ros2_ws. Please change the directories according to your platform.To start the demo, we execute the demo bringup launch file, which we are going to explain in more details in the next section.Source Builddeb Packagemkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+git clone -b ${ROS_DISTRO}https://github.com/ros2/demoscd .. && colcon build –packages-up-to dummy_robot_bringup
+source ~/ros2_ws/install/setup.bash
+ros2 launch dummy_robot_bringup dummy_robot_bringup_launch.pysudo apt install ros-${ROS_DISTRO}-dummy-robot-bringup
+ros2 launch dummy_robot_bringup dummy_robot_bringup_launch.pyYou should see some prints inside your terminal along the lines of the following:[INFO][launch]:DefaultloggingverbosityissettoINFO[INFO][dummy_map_server-1]:processstartedwithpid[2922][INFO][robot_state_publisher-2]:processstartedwithpid[2923][INFO][dummy_joint_states-3]:processstartedwithpid[2924][INFO][dummy_laser-4]:processstartedwithpid[2925][dummy_laser-4][INFO][1714837459.645517297][dummy_laser]:angleinc:0.004363[dummy_laser-4][INFO][1714837459.645613393][dummy_laser]:scansize:1081[dummy_laser-4][INFO][1714837459.645626640][dummy_laser]:scantimeincrement:0.000000[robot_state_publisher-2][INFO][1714837459.652977937][robot_state_publisher]:RobotinitializedIf you now open RViz2 in a new terminal, you’ll see your robot. 🎉$source~/ros2_ws/install/setup.bash
+$rviz2This opens RViz2. Assuming you have your dummy_robot_bringup still launched, you can now add the TF display plugin and configure your global frame toworld. Once you did that, you should see a similar picture:What’s happening?If you have a closer look at the launch file, we start a couple of nodes at the same time.dummy_map_serverdummy_laserdummy_joint_statesrobot_state_publisherThe first two packages are relatively simple. Thedummy_map_serverconstantly publishes an empty map with a periodic update. Thedummy_laserdoes basically the same; publishing dummy fake laser scans.Thedummy_joint_statesnode is publishing fake joint state data. As we are publishing a simple RRbot with only two joints, this node publishes joint states values for these two joints.Therobot_state_publisheris doing the actual interesting work. It parses the given URDF file, extracts the robot model and listens to the incoming joint states. With this information, it publishes TF values for our robot which we visualize in RViz.Hooray!
+
+Code Examples:
+
+Language: unknown
+[INFO][launch]:DefaultloggingverbosityissettoINFO[INFO][dummy_map_server-1]:processstartedwithpid[2922][INFO][robot_state_publisher-2]:processstartedwithpid[2923][INFO][dummy_joint_states-3]:processstartedwithpid[2924][INFO][dummy_laser-4]:processstartedwithpid[2925][dummy_laser-4][INFO][1714837459.645517297][dummy_laser]:angleinc:0.004363[dummy_laser-4][INFO][1714837459.645613393][dummy_laser]:scansize:1081[dummy_laser-4][INFO][1714837459.645626640][dummy_laser]:scantimeincrement:0.000000[robot_state_publisher-2][INFO][1714837459.652977937][robot_state_publisher]:Robotinitialized
+
+Language: unknown
+$source~/ros2_ws/install/setup.bash
+$rviz2

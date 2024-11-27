@@ -1,0 +1,141 @@
+Title: Writing a simple publisher and subscriber (C++)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Cpp-Publisher-And-Subscriber.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Writing a simple publisher and subscriber (C++)Goal:Create and run a publisher and subscriber node using C++.Tutorial level:BeginnerTime:20 minutesContentsBackgroundPrerequisitesTasks1 Create a package2 Write the publisher node3 Write the subscriber node4 Build and runSummaryNext stepsRelated contentBackgroundNodesare executable processes that communicate over the ROS graph.
+In this tutorial, the nodes will pass information in the form of string messages to each other over atopic.
+The example used here is a simple “talker” and “listener” system; one node publishes data and the other subscribes to the topic so it can receive that data.The code used in these examples can be foundhere.PrerequisitesIn previous tutorials, you learned how tocreate a workspaceandcreate a package.Tasks1 Create a packageOpen a new terminal andsource your ROS 2 installationso thatros2commands will work.Navigate into theros2_wsdirectory created in aprevious tutorial.Recall that packages should be created in thesrcdirectory, not the root of the workspace.
+So, navigate intoros2_ws/src, and run the package creation command:ros2 pkg create --build-type ament_cmake --license Apache-2.0 cpp_pubsubYour terminal will return a message verifying the creation of your packagecpp_pubsuband all its necessary files and folders.Navigate intoros2_ws/src/cpp_pubsub/src.
+Recall that this is the directory in any CMake package where the source files containing executables belong.2 Write the publisher nodeDownload the example talker code by entering the following command:LinuxmacOSWindowswget -O publisher_lambda_function.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_publisher/lambda.cppwget -O publisher_lambda_function.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_publisher/lambda.cppIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_publisher/lambda.cpp -o publisher_lambda_function.cppOr in powershell:curl https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_publisher/lambda.cpp -o publisher_lambda_function.cppNow there will be a new file namedpublisher_lambda_function.cpp.
+Open the file using your preferred text editor.#include<chrono>#include<memory>#include<string>#include"rclcpp/rclcpp.hpp"#include"std_msgs/msg/string.hpp"usingnamespacestd::chrono_literals;/* This example creates a subclass of Node and uses a fancy C++11 lambda* function to shorten the callback syntax, at the expense of making the* code somewhat more difficult to understand at first glance. */classMinimalPublisher:publicrclcpp::Node{public:MinimalPublisher():Node("minimal_publisher"),count_(0){publisher_=this->create_publisher<std_msgs::msg::String>("topic",10);autotimer_callback=[this]()->void{automessage=std_msgs::msg::String();message.data="Hello, world! "+std::to_string(this->count_++);RCLCPP_INFO(this->get_logger(),"Publishing: '%s'",message.data.c_str());this->publisher_->publish(message);};timer_=this->create_wall_timer(500ms,timer_callback);}private:rclcpp::TimerBase::SharedPtrtimer_;rclcpp::Publisher<std_msgs::msg::String>::SharedPtrpublisher_;size_tcount_;};intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalPublisher>());rclcpp::shutdown();return0;}2.1 Examine the codeThe top of the code includes the standard C++ headers you will be using.
+After the standard C++ headers is therclcpp/rclcpp.hppinclude which allows you to use the most common pieces of the ROS 2 system.
+Last isstd_msgs/msg/string.hpp, which includes the built-in message type you will use to publish data.#include<chrono>#include<memory>#include<string>#include"rclcpp/rclcpp.hpp"#include"std_msgs/msg/string.hpp"usingnamespacestd::chrono_literals;These lines represent the node’s dependencies.
+Recall that dependencies have to be added topackage.xmlandCMakeLists.txt, which you’ll do in the next section.The next line creates the node classMinimalPublisherby inheriting fromrclcpp::Node.
+Everythisin the code is referring to the node.classMinimalPublisher:publicrclcpp::NodeThe public constructor names the nodeminimal_publisherand initializescount_to 0.
+Inside the constructor, the publisher is initialized with theStringmessage type, the topic nametopic, and the required queue size to limit messages in the event of a backup.
+Next, alambda functioncalledtimer_callbackis declared.
+It performs a by-reference capture of the current objectthis, takes no input arguments and returns void.
+Thetimer_callbackfunction creates a new message of typeString, sets its data with the desired string and publishes it.
+TheRCLCPP_INFOmacro ensures every published message is printed to the console.
+At last,timer_is initialized, which causes thetimer_callbackfunction to be executed twice a second.public:MinimalPublisher():Node("minimal_publisher"),count_(0){publisher_=this->create_publisher<std_msgs::msg::String>("topic",10);autotimer_callback=[this]()->void{automessage=std_msgs::msg::String();message.data="Hello, world! "+std::to_string(this->count_++);RCLCPP_INFO(this->get_logger(),"Publishing: '%s'",message.data.c_str());this->publisher_->publish(message);};timer_=this->create_wall_timer(500ms,timer_callback);}In the bottom of the class is the declaration of the timer, publisher, and counter fields.private:rclcpp::TimerBase::SharedPtrtimer_;rclcpp::Publisher<std_msgs::msg::String>::SharedPtrpublisher_;size_tcount_;Following theMinimalPublisherclass ismain, where the node actually executes.rclcpp::initinitializes ROS 2, andrclcpp::spinstarts processing data from the node, including callbacks from the timer.intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalPublisher>());rclcpp::shutdown();return0;}2.2 Add dependenciesNavigate one level back to theros2_ws/src/cpp_pubsubdirectory, where theCMakeLists.txtandpackage.xmlfiles have been created for you.Openpackage.xmlwith your text editor.As mentioned in theprevious tutorial, make sure to fill in the<description>,<maintainer>and<license>tags:<description>Examplesofminimalpublisher/subscriberusingrclcpp</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>Add a new line after theament_cmakebuildtool dependency and paste the following dependencies corresponding to your node’s include statements:<depend>rclcpp</depend><depend>std_msgs</depend>This declares the package needsrclcppandstd_msgswhen its code is built and executed.Make sure to save the file.2.3 CMakeLists.txtNow open theCMakeLists.txtfile.
+Below the existing dependencyfind_package(ament_cmakeREQUIRED), add the lines:find_package(rclcpp REQUIRED)find_package(std_msgs REQUIRED)After that, add the executable and name ittalkerso you can run your node usingros2run:add_executable(talker src/publisher_lambda_function.cpp)ament_target_dependencies(talker rclcpp std_msgs)Finally, add theinstall(TARGETS...)section soros2runcan find your executable:install(TARGETStalkerDESTINATION lib/${PROJECT_NAME})You can clean up yourCMakeLists.txtby removing some unnecessary sections and comments, so it looks like this:cmake_minimum_required(VERSION 3.5)project(cpp_pubsub)#DefaulttoC++14if(NOT CMAKE_CXX_STANDARD)set(CMAKE_CXX_STANDARD 14)endif()if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")add_compile_options(-Wall -Wextra -Wpedantic)endif()find_package(ament_cmake REQUIRED)find_package(rclcpp REQUIRED)find_package(std_msgs REQUIRED)add_executable(talker src/publisher_lambda_function.cpp)ament_target_dependencies(talker rclcpp std_msgs)install(TARGETStalkerDESTINATION lib/${PROJECT_NAME})ament_package()You could build your package now, source the local setup files, and run it, but let’s create the subscriber node first so you can see the full system at work.3 Write the subscriber nodeReturn toros2_ws/src/cpp_pubsub/srcto create the next node.
+Enter the following code in your terminal:LinuxmacOSWindowswget -O subscriber_lambda_function.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/lambda.cppwget -O subscriber_lambda_function.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/lambda.cppIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/lambda.cpp -o subscriber_lambda_function.cppOr in powershell:curl https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/lambda.cpp -o subscriber_lambda_function.cppCheck to ensure that these files exist:publisher_lambda_function.cpp  subscriber_lambda_function.cppOpen thesubscriber_lambda_function.cppwith your text editor.#include<memory>#include"rclcpp/rclcpp.hpp"#include"std_msgs/msg/string.hpp"classMinimalSubscriber:publicrclcpp::Node{public:MinimalSubscriber():Node("minimal_subscriber"){autotopic_callback=[this](std_msgs::msg::String::UniquePtrmsg)->void{RCLCPP_INFO(this->get_logger(),"I heard: '%s'",msg->data.c_str());};subscription_=this->create_subscription<std_msgs::msg::String>("topic",10,topic_callback);}private:rclcpp::Subscription<std_msgs::msg::String>::SharedPtrsubscription_;};intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalSubscriber>());rclcpp::shutdown();return0;}3.1 Examine the codeThe subscriber node’s code is nearly identical to the publisher’s.
+Now the node is namedminimal_subscriber, and the constructor uses the node’screate_subscriptionfunction to execute the callback.There is no timer because the subscriber simply responds whenever data is published to thetopictopic.Thetopic_callbackfunction receives the string message data published over the topic, and simply writes it to the console using theRCLCPP_INFOmacro.Recall from thetopic tutorialthat the topic name and message type used by the publisher and subscriber must match to allow them to communicate.public:MinimalSubscriber():Node("minimal_subscriber"){autotopic_callback=[this](std_msgs::msg::String::UniquePtrmsg)->void{RCLCPP_INFO(this->get_logger(),"I heard: '%s'",msg->data.c_str());};subscription_=this->create_subscription<std_msgs::msg::String>("topic",10,topic_callback);}The only field declaration in this class is the subscription.private:rclcpp::Subscription<std_msgs::msg::String>::SharedPtrsubscription_;Themainfunction is exactly the same, except now it spins theMinimalSubscribernode.
+For the publisher node, spinning meant starting the timer, but for the subscriber it simply means preparing to receive messages whenever they come.Since this node has the same dependencies as the publisher node, there’s nothing new to add topackage.xml.3.2 CMakeLists.txtReopenCMakeLists.txtand add the executable and target for the subscriber node below the publisher’s entries.add_executable(listenersrc/subscriber_lambda_function.cpp)ament_target_dependencies(listenerrclcppstd_msgs)install(TARGETStalkerlistenerDESTINATIONlib/${PROJECT_NAME})Make sure to save the file, and then your pub/sub system should be ready.4 Build and runYou likely already have therclcppandstd_msgspackages installed as part of your ROS 2 system.
+It’s good practice to runrosdepin the root of your workspace (ros2_ws) to check for missing dependencies before building:LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you can skip ahead to next step.rosdep only runs on Linux, so you can skip ahead to next step.Still in the root of your workspace,ros2_ws, build your new package:LinuxmacOSWindowscolcon build --packages-select cpp_pubsubcolcon build --packages-select cpp_pubsubcolcon build --merge-install --packages-select cpp_pubsubOpen a new terminal, navigate toros2_ws, and source the setup files:LinuxmacOSWindows. install/setup.bash. install/setup.bashcall install/setup.batNow run the talker node:ros2 run cpp_pubsub talkerThe terminal should start publishing info messages every 0.5 seconds, like so:[INFO] [minimal_publisher]: Publishing: "Hello World: 0"[INFO] [minimal_publisher]: Publishing: "Hello World: 1"[INFO] [minimal_publisher]: Publishing: "Hello World: 2"[INFO] [minimal_publisher]: Publishing: "Hello World: 3"[INFO] [minimal_publisher]: Publishing: "Hello World: 4"Open another terminal, source the setup files from insideros2_wsagain, and then start the listener node:ros2 run cpp_pubsub listenerThe listener will start printing messages to the console, starting at whatever message count the publisher is on at that time, like so:[INFO] [minimal_subscriber]: I heard: "Hello World: 10"[INFO] [minimal_subscriber]: I heard: "Hello World: 11"[INFO] [minimal_subscriber]: I heard: "Hello World: 12"[INFO] [minimal_subscriber]: I heard: "Hello World: 13"[INFO] [minimal_subscriber]: I heard: "Hello World: 14"EnterCtrl+Cin each terminal to stop the nodes from spinning.SummaryYou created two nodes to publish and subscribe to data over a topic.
+Before compiling and running them, you added their dependencies and executables to the package configuration files.Next stepsNext you’ll create another simple ROS 2 package using the service/client model.
+Again, you can choose to write it in eitherC++orPython.Related contentThere are several ways you could write a publisher and subscriber in C++; check out theminimal_publisherandminimal_subscriberpackages in theros2/examplesrepo.
+
+Code Examples:
+
+Language: unknown
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 cpp_pubsub
+
+Language: unknown
+wget -O publisher_lambda_function.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_publisher/lambda.cpp
+
+Language: unknown
+wget -O publisher_lambda_function.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_publisher/lambda.cpp
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_publisher/lambda.cpp -o publisher_lambda_function.cpp
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_publisher/lambda.cpp -o publisher_lambda_function.cpp
+
+Language: unknown
+#include<chrono>#include<memory>#include<string>#include"rclcpp/rclcpp.hpp"#include"std_msgs/msg/string.hpp"usingnamespacestd::chrono_literals;/* This example creates a subclass of Node and uses a fancy C++11 lambda* function to shorten the callback syntax, at the expense of making the* code somewhat more difficult to understand at first glance. */classMinimalPublisher:publicrclcpp::Node{public:MinimalPublisher():Node("minimal_publisher"),count_(0){publisher_=this->create_publisher<std_msgs::msg::String>("topic",10);autotimer_callback=[this]()->void{automessage=std_msgs::msg::String();message.data="Hello, world! "+std::to_string(this->count_++);RCLCPP_INFO(this->get_logger(),"Publishing: '%s'",message.data.c_str());this->publisher_->publish(message);};timer_=this->create_wall_timer(500ms,timer_callback);}private:rclcpp::TimerBase::SharedPtrtimer_;rclcpp::Publisher<std_msgs::msg::String>::SharedPtrpublisher_;size_tcount_;};intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalPublisher>());rclcpp::shutdown();return0;}
+
+Language: unknown
+#include<chrono>#include<memory>#include<string>#include"rclcpp/rclcpp.hpp"#include"std_msgs/msg/string.hpp"usingnamespacestd::chrono_literals;
+
+Language: unknown
+classMinimalPublisher:publicrclcpp::Node
+
+Language: unknown
+public:MinimalPublisher():Node("minimal_publisher"),count_(0){publisher_=this->create_publisher<std_msgs::msg::String>("topic",10);autotimer_callback=[this]()->void{automessage=std_msgs::msg::String();message.data="Hello, world! "+std::to_string(this->count_++);RCLCPP_INFO(this->get_logger(),"Publishing: '%s'",message.data.c_str());this->publisher_->publish(message);};timer_=this->create_wall_timer(500ms,timer_callback);}
+
+Language: unknown
+private:rclcpp::TimerBase::SharedPtrtimer_;rclcpp::Publisher<std_msgs::msg::String>::SharedPtrpublisher_;size_tcount_;
+
+Language: unknown
+intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalPublisher>());rclcpp::shutdown();return0;}
+
+Language: unknown
+<description>Examplesofminimalpublisher/subscriberusingrclcpp</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>
+
+Language: unknown
+<depend>rclcpp</depend><depend>std_msgs</depend>
+
+Language: unknown
+find_package(rclcpp REQUIRED)find_package(std_msgs REQUIRED)
+
+Language: unknown
+add_executable(talker src/publisher_lambda_function.cpp)ament_target_dependencies(talker rclcpp std_msgs)
+
+Language: unknown
+install(TARGETStalkerDESTINATION lib/${PROJECT_NAME})
+
+Language: unknown
+cmake_minimum_required(VERSION 3.5)project(cpp_pubsub)#DefaulttoC++14if(NOT CMAKE_CXX_STANDARD)set(CMAKE_CXX_STANDARD 14)endif()if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")add_compile_options(-Wall -Wextra -Wpedantic)endif()find_package(ament_cmake REQUIRED)find_package(rclcpp REQUIRED)find_package(std_msgs REQUIRED)add_executable(talker src/publisher_lambda_function.cpp)ament_target_dependencies(talker rclcpp std_msgs)install(TARGETStalkerDESTINATION lib/${PROJECT_NAME})ament_package()
+
+Language: unknown
+wget -O subscriber_lambda_function.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/lambda.cpp
+
+Language: unknown
+wget -O subscriber_lambda_function.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/lambda.cpp
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/lambda.cpp -o subscriber_lambda_function.cpp
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/lambda.cpp -o subscriber_lambda_function.cpp
+
+Language: unknown
+publisher_lambda_function.cpp  subscriber_lambda_function.cpp
+
+Language: unknown
+#include<memory>#include"rclcpp/rclcpp.hpp"#include"std_msgs/msg/string.hpp"classMinimalSubscriber:publicrclcpp::Node{public:MinimalSubscriber():Node("minimal_subscriber"){autotopic_callback=[this](std_msgs::msg::String::UniquePtrmsg)->void{RCLCPP_INFO(this->get_logger(),"I heard: '%s'",msg->data.c_str());};subscription_=this->create_subscription<std_msgs::msg::String>("topic",10,topic_callback);}private:rclcpp::Subscription<std_msgs::msg::String>::SharedPtrsubscription_;};intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalSubscriber>());rclcpp::shutdown();return0;}
+
+Language: unknown
+public:MinimalSubscriber():Node("minimal_subscriber"){autotopic_callback=[this](std_msgs::msg::String::UniquePtrmsg)->void{RCLCPP_INFO(this->get_logger(),"I heard: '%s'",msg->data.c_str());};subscription_=this->create_subscription<std_msgs::msg::String>("topic",10,topic_callback);}
+
+Language: unknown
+private:rclcpp::Subscription<std_msgs::msg::String>::SharedPtrsubscription_;
+
+Language: unknown
+add_executable(listenersrc/subscriber_lambda_function.cpp)ament_target_dependencies(listenerrclcppstd_msgs)install(TARGETStalkerlistenerDESTINATIONlib/${PROJECT_NAME})
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select cpp_pubsub
+
+Language: unknown
+colcon build --packages-select cpp_pubsub
+
+Language: unknown
+colcon build --merge-install --packages-select cpp_pubsub
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install/setup.bat
+
+Language: unknown
+ros2 run cpp_pubsub talker
+
+Language: unknown
+[INFO] [minimal_publisher]: Publishing: "Hello World: 0"[INFO] [minimal_publisher]: Publishing: "Hello World: 1"[INFO] [minimal_publisher]: Publishing: "Hello World: 2"[INFO] [minimal_publisher]: Publishing: "Hello World: 3"[INFO] [minimal_publisher]: Publishing: "Hello World: 4"
+
+Language: unknown
+ros2 run cpp_pubsub listener
+
+Language: unknown
+[INFO] [minimal_subscriber]: I heard: "Hello World: 10"[INFO] [minimal_subscriber]: I heard: "Hello World: 11"[INFO] [minimal_subscriber]: I heard: "Hello World: 12"[INFO] [minimal_subscriber]: I heard: "Hello World: 13"[INFO] [minimal_subscriber]: I heard: "Hello World: 14"

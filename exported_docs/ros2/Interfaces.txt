@@ -1,0 +1,94 @@
+Title: Interfaces
+URL: https://docs.ros.org/en/jazzy/Concepts/Basic/About-Interfaces.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+InterfacesTable of ContentsBackgroundMessagesFieldsField typesField namesField default valueConstantsServicesActionsBackgroundROS applications typically communicate through interfaces of one of three types:topics,services, oractions.
+ROS 2 uses a simplified description language, the interface definition language (IDL), to describe these interfaces.
+This description makes it easy for ROS tools to automatically generate source code for the interface type in several target languages.In this document we will describe the supported types:msg:.msgfiles are simple text files that describe the fields of a ROS message. They are used to generate source code for messages in different languages.srv:.srvfiles describe a service. They are composed of two parts: a request and a response. The request and response are message declarations.action:.actionfiles describe actions. They are composed of three parts: a goal, a result, and feedback.
+Each part is a message declaration itself.MessagesMessages are a way for a ROS 2 node to send data on the network to other ROS nodes, with no response expected.
+For instance, if a ROS 2 node reads temperature data from a sensor, it can then publish that data on the ROS 2 network using aTemperaturemessage.
+Other nodes on the ROS 2 network can subscribe to that data and receive theTemperaturemessage.Messages are described and defined in.msgfiles in themsg/directory of a ROS package..msgfiles are composed of two parts: fields and constants.FieldsEach field consists of a type and a name, separated by a space, i.e:fieldtype1fieldname1
+fieldtype2fieldname2
+fieldtype3fieldname3For example:int32my_int
+stringmy_stringField typesField types can be:a built-in-typenames of Message descriptions defined on their own, such as “geometry_msgs/PoseStamped”Built-in-types currently supported:Type nameC++PythonDDS typeboolboolbuiltins.boolbooleanbyteuint8_tbuiltins.bytes*octetcharcharbuiltins.int*charfloat32floatbuiltins.float*floatfloat64doublebuiltins.float*doubleint8int8_tbuiltins.int*octetuint8uint8_tbuiltins.int*octetint16int16_tbuiltins.int*shortuint16uint16_tbuiltins.int*unsigned shortint32int32_tbuiltins.int*longuint32uint32_tbuiltins.int*unsigned longint64int64_tbuiltins.int*long longuint64uint64_tbuiltins.int*unsigned long longstringstd::stringbuiltins.strstringwstringstd::u16stringbuiltins.strwstringEvery built-in-type can be used to define arrays:Type nameC++PythonDDS typestatic arraystd::array<T, N>builtins.list*T[N]unbounded dynamic arraystd::vectorbuiltins.listsequencebounded dynamic arraycustom_class<T, N>builtins.list*sequence<T, N>bounded stringstd::stringbuiltins.str*stringAll types that are more permissive than their ROS definition enforce the ROS constraints in range and length by software.Example of message definition using arrays and bounded types:int32[]unbounded_integer_array
+int32[5]five_integers_array
+int32[<=5]up_to_five_integers_array
+
+stringstring_of_unbounded_size
+string<=10up_to_ten_characters_string
+
+string[<=5]up_to_five_unbounded_strings
+string<=10[]unbounded_array_of_strings_up_to_ten_characters_each
+string<=10[<=5]up_to_five_strings_up_to_ten_characters_eachField namesField names must be lowercase alphanumeric characters with underscores for separating words.
+They must start with an alphabetic character, and they must not end with an underscore or have two consecutive underscores.Field default valueDefault values can be set to any field in the message type.
+Currently default values are not supported for string arrays and complex types (i.e. types not present in the built-in-types table above; that applies to all nested messages).Defining a default value is done by adding a third element to the field definition line, i.e:fieldtypefieldnamefielddefaultvalueFor example:uint8x42int16y-2000
+stringfull_name"John Doe"int32[]samples[-200,-100,0,100,200]Notestring values must be defined in single'or double"quotescurrently string values are not escapedConstantsEach constant definition is like a field description with a default value, except that this value can never be changed programatically.
+This value assignment is indicated by use of an equal ‘=’ sign, e.g.constanttypeCONSTANTNAME=constantvalueFor example:int32X=123int32Y=-123
+stringFOO="foo"stringEXAMPLE='bar'NoteConstants names have to be UPPERCASEServicesServices are a request/response communication, where the client (requester) is waiting for the server (responder) to make a short computation and return a result.Services are described and defined in.srvfiles in thesrv/directory of a ROS package.A service description file consists of a request and a response msg type, separated by---.
+Any two.msgfiles concatenated with a---are a legal service description.Here is a very simple example of a service that takes in a string and returns a string:stringstr
+---
+stringstrWe can of course get much more complicated (if you want to refer to a message from the same package you must not mention the package name):# request constantsint8FOO=1int8BAR=2# request fieldsint8foobar
+another_pkg/AnotherMessagemsg
+---# response constantsuint32SECRET=123456# response fieldsanother_pkg/YetAnotherMessageval
+CustomMessageDefinedInThisPackagevalue
+uint32an_integerYou cannot embed another service inside of a service.ActionsActions are a long-running request/response communication, where the action client (requester) is waiting for the action server (the responder) to take some action and return a result.
+In contrast to services, actions can be long-running (many seconds or minutes), provide feedback while they are happening, and can be interrupted.Action definitions have the following form:<request_type><request_fieldname>---<response_type><response_fieldname>---<feedback_type><feedback_fieldname>Like services, the request fields are before and the response fields are after the first triple-dash (---), respectively.
+There is also a third set of fields after the second triple-dash, which is the fields to be sent when sending feedback.There can be arbitrary numbers of request fields (including zero), arbitrary numbers of response fields (including zero), and arbitrary numbers of feedback fields (including zero).The<request_type>,<response_type>, and<feedback_type>follow all of the same rules as the<type>for a message.
+The<request_fieldname>,<response_fieldname>, and<feedback_fieldname>follow all of the same rules as the<fieldname>for a message.For instance, theFibonacciaction definition contains the following:int32order---int32[]sequence---int32[]sequenceThis is an action definition where the action client is sending a singleint32field representing the number of Fibonacci steps to take, and expecting the action server to produce an array ofint32containing the complete steps.
+Along the way, the action server may also provide an intermediate array ofint32containing the steps accomplished up until a certain point.
+
+Code Examples:
+
+Language: unknown
+fieldtype1fieldname1
+fieldtype2fieldname2
+fieldtype3fieldname3
+
+Language: unknown
+int32my_int
+stringmy_string
+
+Language: unknown
+int32[]unbounded_integer_array
+int32[5]five_integers_array
+int32[<=5]up_to_five_integers_array
+
+stringstring_of_unbounded_size
+string<=10up_to_ten_characters_string
+
+string[<=5]up_to_five_unbounded_strings
+string<=10[]unbounded_array_of_strings_up_to_ten_characters_each
+string<=10[<=5]up_to_five_strings_up_to_ten_characters_each
+
+Language: unknown
+fieldtypefieldnamefielddefaultvalue
+
+Language: unknown
+uint8x42int16y-2000
+stringfull_name"John Doe"int32[]samples[-200,-100,0,100,200]
+
+Language: unknown
+constanttypeCONSTANTNAME=constantvalue
+
+Language: unknown
+int32X=123int32Y=-123
+stringFOO="foo"stringEXAMPLE='bar'
+
+Language: unknown
+stringstr
+---
+stringstr
+
+Language: unknown
+# request constantsint8FOO=1int8BAR=2# request fieldsint8foobar
+another_pkg/AnotherMessagemsg
+---# response constantsuint32SECRET=123456# response fieldsanother_pkg/YetAnotherMessageval
+CustomMessageDefinedInThisPackagevalue
+uint32an_integer
+
+Language: unknown
+<request_type><request_fieldname>---<response_type><response_fieldname>---<feedback_type><feedback_fieldname>
+
+Language: unknown
+int32order---int32[]sequence---int32[]sequence

@@ -1,0 +1,91 @@
+Title: Ubuntu (source)
+URL: https://docs.ros.org/en/jazzy/Installation/Alternatives/Ubuntu-Development-Setup.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Ubuntu (source)Table of ContentsSystem requirementsSystem setupSet localeEnable required repositoriesInstall development toolsBuild ROS 2Get ROS 2 codeInstall dependencies using rosdepInstall additional RMW implementations (optional)Build the code in the workspaceSetup environmentTry some examplesNext stepsAlternate compilersClangStay up to dateTroubleshootUninstallSystem requirementsThe current Debian-based target platforms for Jazzy Jalisco are:Tier 1: Ubuntu Linux - Noble (24.04) 64-bitTier 3: Ubuntu Linux - Jammy (22.04) 64-bitTier 3: Debian Linux - Bookworm (12) 64-bitAs defined inREP 2000.System setupSet localeMake sure you have a locale which supportsUTF-8.
+If you are in a minimal environment (such as a docker container), the locale may be something minimal likePOSIX.
+We test with the following settings. However, it should be fine if you’re using a different UTF-8 supported locale.locale# check for UTF-8sudoaptupdate&&sudoaptinstalllocales
+sudolocale-genen_USen_US.UTF-8
+sudoupdate-localeLC_ALL=en_US.UTF-8LANG=en_US.UTF-8exportLANG=en_US.UTF-8
+
+locale# verify settingsEnable required repositoriesYou will need to add the ROS 2 apt repository to your system.First ensure that theUbuntu Universe repositoryis enabled.sudoaptinstallsoftware-properties-common
+sudoadd-apt-repositoryuniverseNow add the ROS 2 GPG key with apt.sudoaptupdate&&sudoaptinstallcurl-y
+sudocurl-sSLhttps://raw.githubusercontent.com/ros/rosdistro/master/ros.key-o/usr/share/keyrings/ros-archive-keyring.gpgThen add the repository to your sources list.echo"deb [arch=$(dpkg--print-architecture)signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu$(./etc/os-release&&echo$UBUNTU_CODENAME)main"|sudotee/etc/apt/sources.list.d/ros2.list>/dev/nullInstall development toolssudoaptupdate&&sudoaptinstall-y\python3-flake8-blind-except\python3-flake8-class-newline\python3-flake8-deprecated\python3-mypy\python3-pip\python3-pytest\python3-pytest-cov\python3-pytest-mock\python3-pytest-repeat\python3-pytest-rerunfailures\python3-pytest-runner\python3-pytest-timeout\ros-dev-toolsBuild ROS 2Get ROS 2 codeCreate a workspace and clone all repos:mkdir-p~/ros2_jazzy/srccd~/ros2_jazzy
+vcsimport--inputhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repossrcInstall dependencies using rosdepROS 2 packages are built on frequently updated Ubuntu systems.
+It is always recommended that you ensure your system is up to date before installing new packages.sudoaptupgradesudorosdepinit
+rosdepupdate
+rosdepinstall--from-pathssrc--ignore-src-y--skip-keys"fastcdr rti-connext-dds-6.0.1 urdfdom_headers"Note: If you’re using a distribution that is based on Ubuntu (like Linux Mint) but does not identify itself as such, you’ll get an error message likeUnsupportedOS[mint]. In this case append--os=ubuntu:nobleto the above command.Install additional RMW implementations (optional)The default middleware that ROS 2 uses isFastDDS, but the middleware (RMW) can be replaced at build or runtime.
+See theguideon how to work with multiple RMWs.Build the code in the workspaceIf you have already installed ROS 2 another way (either via debs or the binary distribution), make sure that you run the below commands in a fresh environment that does not have those other installations sourced.
+Also ensure that you do not havesource/opt/ros/${ROS_DISTRO}/setup.bashin your.bashrc.
+You can make sure that ROS 2 is not sourced with the commandprintenv|grep-iROS.
+The output should be empty.More info on working with a ROS workspace can be found inthis tutorial.cd~/ros2_jazzy/
+colconbuild--symlink-installNoteIf you are having trouble compiling all examples and this is preventing you from completing a successful build, you can use the--packages-skipcolcon flag to ignore the package that is causing problems.
+For instance, if you don’t want to install the large OpenCV library, you could skip building the packages that depend on it using the command:colconbuild--symlink-install--packages-skipimage_toolsintra_process_demoSetup environmentSet up your environment by sourcing the following file.# Replace ".bash" with your shell if you're not using bash# Possible values are: setup.bash, setup.sh, setup.zsh.~/ros2_jazzy/install/local_setup.bashTry some examplesIn one terminal, source the setup file and then run a C++talker:.~/ros2_jazzy/install/local_setup.bash
+ros2rundemo_nodes_cpptalkerIn another terminal source the setup file and then run a Pythonlistener:.~/ros2_jazzy/install/local_setup.bash
+ros2rundemo_nodes_pylistenerYou should see thetalkersaying that it’sPublishingmessages and thelistenersayingIheardthose messages.
+This verifies both the C++ and Python APIs are working properly.
+Hooray!Next stepsContinue with thetutorials and demosto configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.Alternate compilersUsing a different compiler besides gcc to compile ROS 2 is easy.
+If you set the environment variablesCCandCXXto executables for a working C and C++ compiler, respectively, and retrigger CMake configuration (by using--cmake-force-configureor by deleting the packages you want to be affected), CMake will reconfigure and use the different compiler.ClangTo configure CMake to detect and use Clang:sudoaptinstallclangexportCC=clangexportCXX=clang++
+colconbuild--cmake-force-configureStay up to dateSeeMaintain source checkoutto periodically refresh your source installation.TroubleshootTroubleshooting techniques can be foundhere.UninstallIf you installed your workspace with colcon as instructed above, “uninstalling” could be just a matter of opening a new terminal and not sourcing the workspace’ssetupfile.
+This way, your environment will behave as though there is no Jazzy install on your system.If you’re also trying to free up space, you can delete the entire workspace directory with:rm-rf~/ros2_jazzy
+
+Code Examples:
+
+Language: unknown
+locale# check for UTF-8sudoaptupdate&&sudoaptinstalllocales
+sudolocale-genen_USen_US.UTF-8
+sudoupdate-localeLC_ALL=en_US.UTF-8LANG=en_US.UTF-8exportLANG=en_US.UTF-8
+
+locale# verify settings
+
+Language: unknown
+sudoaptinstallsoftware-properties-common
+sudoadd-apt-repositoryuniverse
+
+Language: unknown
+sudoaptupdate&&sudoaptinstallcurl-y
+sudocurl-sSLhttps://raw.githubusercontent.com/ros/rosdistro/master/ros.key-o/usr/share/keyrings/ros-archive-keyring.gpg
+
+Language: unknown
+echo"deb [arch=$(dpkg--print-architecture)signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu$(./etc/os-release&&echo$UBUNTU_CODENAME)main"|sudotee/etc/apt/sources.list.d/ros2.list>/dev/null
+
+Language: unknown
+sudoaptupdate&&sudoaptinstall-y\python3-flake8-blind-except\python3-flake8-class-newline\python3-flake8-deprecated\python3-mypy\python3-pip\python3-pytest\python3-pytest-cov\python3-pytest-mock\python3-pytest-repeat\python3-pytest-rerunfailures\python3-pytest-runner\python3-pytest-timeout\ros-dev-tools
+
+Language: unknown
+mkdir-p~/ros2_jazzy/srccd~/ros2_jazzy
+vcsimport--inputhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repossrc
+
+Language: unknown
+sudoaptupgrade
+
+Language: unknown
+sudorosdepinit
+rosdepupdate
+rosdepinstall--from-pathssrc--ignore-src-y--skip-keys"fastcdr rti-connext-dds-6.0.1 urdfdom_headers"
+
+Language: unknown
+cd~/ros2_jazzy/
+colconbuild--symlink-install
+
+Language: unknown
+colconbuild--symlink-install--packages-skipimage_toolsintra_process_demo
+
+Language: unknown
+# Replace ".bash" with your shell if you're not using bash# Possible values are: setup.bash, setup.sh, setup.zsh.~/ros2_jazzy/install/local_setup.bash
+
+Language: unknown
+.~/ros2_jazzy/install/local_setup.bash
+ros2rundemo_nodes_cpptalker
+
+Language: unknown
+.~/ros2_jazzy/install/local_setup.bash
+ros2rundemo_nodes_pylistener
+
+Language: unknown
+sudoaptinstallclangexportCC=clangexportCXX=clang++
+colconbuild--cmake-force-configure
+
+Language: unknown
+rm-rf~/ros2_jazzy

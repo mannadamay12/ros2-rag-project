@@ -1,0 +1,79 @@
+Title: Ubuntu (deb packages)
+URL: https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Ubuntu (deb packages)Table of ContentsResourcesSystem setupSet localeEnable required repositoriesInstall development tools (optional)Install ROS 2Install additional RMW implementations (optional)Setup environmentTry some examplesNext stepsTroubleshootUninstallDeb packages for ROS 2 Jazzy Jalisco are currently available for Ubuntu Noble (24.04).
+The target platforms are defined inREP 2000.ResourcesStatus Page:ROS 2 Jazzy (Ubuntu Noble 24.04):amd64,arm64Jenkins InstanceRepositoriesSystem setupSet localeMake sure you have a locale which supportsUTF-8.
+If you are in a minimal environment (such as a docker container), the locale may be something minimal likePOSIX.
+We test with the following settings. However, it should be fine if you’re using a different UTF-8 supported locale.locale# check for UTF-8sudoaptupdate&&sudoaptinstalllocales
+sudolocale-genen_USen_US.UTF-8
+sudoupdate-localeLC_ALL=en_US.UTF-8LANG=en_US.UTF-8exportLANG=en_US.UTF-8
+
+locale# verify settingsEnable required repositoriesYou will need to add the ROS 2 apt repository to your system.First ensure that theUbuntu Universe repositoryis enabled.sudoaptinstallsoftware-properties-common
+sudoadd-apt-repositoryuniverseNow add the ROS 2 GPG key with apt.sudoaptupdate&&sudoaptinstallcurl-y
+sudocurl-sSLhttps://raw.githubusercontent.com/ros/rosdistro/master/ros.key-o/usr/share/keyrings/ros-archive-keyring.gpgThen add the repository to your sources list.echo"deb [arch=$(dpkg--print-architecture)signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu$(./etc/os-release&&echo$UBUNTU_CODENAME)main"|sudotee/etc/apt/sources.list.d/ros2.list>/dev/nullInstall development tools (optional)If you are going to build ROS packages or otherwise do development, you can also install the development tools:sudoaptupdate&&sudoaptinstallros-dev-toolsInstall ROS 2Update your apt repository caches after setting up the repositories.sudoaptupdateROS 2 packages are built on frequently updated Ubuntu systems.
+It is always recommended that you ensure your system is up to date before installing new packages.sudoaptupgradeDesktop Install (Recommended): ROS, RViz, demos, tutorials.sudoaptinstallros-jazzy-desktopROS-Base Install (Bare Bones): Communication libraries, message packages, command line tools.
+No GUI tools.sudoaptinstallros-jazzy-ros-baseInstall additional RMW implementations (optional)The default middleware that ROS 2 uses isFastDDS, but the middleware (RMW) can be replaced at runtime.
+See theguideon how to work with multiple RMWs.Setup environmentSet up your environment by sourcing the following file.# Replace ".bash" with your shell if you're not using bash# Possible values are: setup.bash, setup.sh, setup.zshsource/opt/ros/jazzy/setup.bashTry some examplesIf you installedros-jazzy-desktopabove you can try some examples.In one terminal, source the setup file and then run a C++talker:source/opt/ros/jazzy/setup.bash
+ros2rundemo_nodes_cpptalkerIn another terminal source the setup file and then run a Pythonlistener:source/opt/ros/jazzy/setup.bash
+ros2rundemo_nodes_pylistenerYou should see thetalkersaying that it’sPublishingmessages and thelistenersayingIheardthose messages.
+This verifies both the C++ and Python APIs are working properly.
+Hooray!Next stepsContinue with thetutorials and demosto configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.TroubleshootTroubleshooting techniques can be foundhere.UninstallIf you need to uninstall ROS 2 or switch to a source-based install once you
+have already installed from binaries, run the following command:sudoaptremove~nros-jazzy-*&&sudoaptautoremoveYou may also want to remove the repository:sudorm/etc/apt/sources.list.d/ros2.list
+sudoaptupdate
+sudoaptautoremove# Consider upgrading for packages previously shadowed.sudoaptupgrade
+
+Code Examples:
+
+Language: unknown
+locale# check for UTF-8sudoaptupdate&&sudoaptinstalllocales
+sudolocale-genen_USen_US.UTF-8
+sudoupdate-localeLC_ALL=en_US.UTF-8LANG=en_US.UTF-8exportLANG=en_US.UTF-8
+
+locale# verify settings
+
+Language: unknown
+sudoaptinstallsoftware-properties-common
+sudoadd-apt-repositoryuniverse
+
+Language: unknown
+sudoaptupdate&&sudoaptinstallcurl-y
+sudocurl-sSLhttps://raw.githubusercontent.com/ros/rosdistro/master/ros.key-o/usr/share/keyrings/ros-archive-keyring.gpg
+
+Language: unknown
+echo"deb [arch=$(dpkg--print-architecture)signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu$(./etc/os-release&&echo$UBUNTU_CODENAME)main"|sudotee/etc/apt/sources.list.d/ros2.list>/dev/null
+
+Language: unknown
+sudoaptupdate&&sudoaptinstallros-dev-tools
+
+Language: unknown
+sudoaptupdate
+
+Language: unknown
+sudoaptupgrade
+
+Language: unknown
+sudoaptinstallros-jazzy-desktop
+
+Language: unknown
+sudoaptinstallros-jazzy-ros-base
+
+Language: unknown
+# Replace ".bash" with your shell if you're not using bash# Possible values are: setup.bash, setup.sh, setup.zshsource/opt/ros/jazzy/setup.bash
+
+Language: unknown
+source/opt/ros/jazzy/setup.bash
+ros2rundemo_nodes_cpptalker
+
+Language: unknown
+source/opt/ros/jazzy/setup.bash
+ros2rundemo_nodes_pylistener
+
+Language: unknown
+sudoaptremove~nros-jazzy-*&&sudoaptautoremove
+
+Language: unknown
+sudorm/etc/apt/sources.list.d/ros2.list
+sudoaptupdate
+sudoaptautoremove# Consider upgrading for packages previously shadowed.sudoaptupgrade

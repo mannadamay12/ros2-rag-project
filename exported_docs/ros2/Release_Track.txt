@@ -1,0 +1,55 @@
+Title: Release Track
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Releasing/Release-Track.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Release TrackTable of ContentsWhat is a Track?Track ConfigurationsRelease Repository urlRepository NameUpstream Repository URIUpstream VCS TypeVersionRelease TagUpstream Devel BranchROS DistroPatches DirectoryRelease Repository Push URLWhat is a Track?Bloom requires the user to enter configuration information when releasing packages for the first time.
+It is beneficial to store such configurations in the release repository so we don’t have to manually enter configurations that won’t change for subsequent releases.Since some of the configurations will differ when releasing the package for different ROS distributions, bloom usesrelease tracks to store the configurations for releasingper distribution.
+By convention you should create tracks with the same name as the ROS distro you are releasing for.All release track configurations are stored intracks.yamlon the master branch of your release repository.Track ConfigurationsTrack configurations are explained in more detail along with the prompts from bloom.Release Repository urlThis is the url of your release repository, and should be of formhttps://github.com/ros2-gbp/my_repo-release.gitif your release repository is hosted on ros2-gbp.Noreasonabledefaultreleaserepositoryurlcouldbedeterminedfrompreviousreleases.
+Releaserepositoryurl[pressentertoabort]:Paste your release repository URL and press Enter.Bloom may additionally ask you about initializing the new repository, as following:Freshlyinitializedgitrepositorydetected.
+Aninitialemptycommitisgoingtobemade.
+Continue[Y/n]?Simply press Enter to accept the default of yes.Repository NameThe repository name is trivial, but it is recommended to set this to the name of your project.RepositoryName:upstreamDefaultvalue,leavethisasupstreamifyouareunsure<name>Nameoftherepository(usedinthearchivename)['upstream']:Type the name of your project (eg.my_project) and press Enter.Upstream Repository URITheupstream repositoryis the repository where your source code is.
+This is most likely an https link to your project hosted on a git hosting service such as GitHub or GitLab.UpstreamRepositoryURI:<uri>AnyvalidURI.Thisvariablecanbetemplated,forexampleansvnurlcanbetemplatedassuch:"https://svn.foo.com/foo/tags/foo-:{version}"wherethe:{version}tokenwillbereplacedwiththeversionforthisrelease.[None]:Make sure youuse the https address(eg.https://github.com/my_organization/my_repo.git) and not the ssh address.Upstream VCS TypeThis is theUpstream Repository URI’s version control system (VCS) type.
+You must specify the type of vcs your repository is using, fromsvn,git,hgortar.UpstreamVCSType:svnUpstreamURIisasvnrepositorygitUpstreamURIisagitrepositoryhgUpstreamURIisahgrepositorytarUpstreamURIisatarball['git']:Most repositories will be using git, but some legacy repositories might be using hg or svn.VersionThis is the version of the package you are releasing. (eg.1.0.3)Version::{ask}Thismeansthattheuserwillbepromptedfortheversioneachrelease.Thisalsomeansthattheupstreamdevelwillbeignored.:{auto}Thismeanstheversionwillbeguessedfromthedevelbranch.Thismeansthatthedevelbranchmustbeset,thedevelbranchmustexist,andtheremustbeavalidpackage.xmlintheupstreamdevelbranch.<version>Thiswillbetheversionused.Itmustbeupdatedforeachnewupstreamversion.[':{auto}']:Setting this to:{auto}(the default, and recommended setup) will automatically determine the version from the devel branch’s package.xml.Setting this to:{ask}will bring up a prompt asking for the version every time you run a release with bloom.Release TagThe Release Tag refers to which tag or branch you want to import the code from.ReleaseTag::{version}Thismeansthatthereleasetagwillmatchthe:{version}tag.Thiscanbefurthertemplated,forexample:"foo-:{version}"or"v:{version}"Thiscandescribeanyvcsreference.Forgitthatmeans{tag,branch,hash},forhgthatmeans{tag,branch,hash},forsvnthatmeansarevisionnumber.Fortarthisvaluedoublesasthesubdirectory(iftherepositoryisinfoo/ofthetarball,puttingfooherewillcausethecontentsoffoo/tobeimportedtoupstreaminsteadoffooitself).:{ask}Thismeanstheuserwillbepromptedforthereleasetagoneachrelease.:{none}Forsvnandtaronlyyoucansetthereleasetagto:{none},sothatitisignored.Forsvnthismeansnorevisionnumberisused.[':{version}']:Setting this to:{version}(the default, and recommended setup) will make the release tag match the version tag.A less common setup is to set this to a branch name to always pull in that branch at the time of release from the upstream project.Alternatively, if you want to be prompted to enter a different tag every time you do a release, enter:{ask}.:{ask}is useful if the upstream project has frequent tagged releases and you want to refer to the new tag every time you’re releasing.Upstream Devel BranchThe upstream devel branch is the name of the branch in yourupstream repository.
+If you use separate branches for each ROS distribution, this field would be different for each release track.
+It is used to determine the version of the package you are releasing whenVersionis set to:{auto}.UpstreamDevelBranch:<vcsreference>Branchinupstreamrepositoryonwhichtosearchfortheversion.Thisisusedonlywhenversionissetto':{auto}'.[None]:To release from a branch calledjazzy, enterjazzy.
+Leaving this asNonewould result in the version being determined from the default branch of your repository (this is not recommended).ROS DistroThis is the distribution you’re planning on releasing the package into.ROSDistro:<ROSdistro>ThiscanbeanyvalidROSdistro,e.g.indigo,kinetic,lunar,melodic['indigo']:If you plan on releasing into ROS jazzy, enterjazzy.Patches DirectoryThis is the directory where any additional patches to the releases are.PatchesDirectory:<pathinbloombranch>Thiscanbeanyvalidrelativepathinthebloombranch.Thecontentsofthisfolderwillbeoverlaidontotheupstreambranchaftereachimport-upstream.Additionally,anypackage.xmlfilesfoundintheoverlaywillhavethe:{version}stringreplacedwiththecurrentversionbeingreleased.:{none}Usethisifyouwanttodisableoverlayingoffiles.[None]:Adding additional patches to a release is a rarely used feature.
+For almost all packages, this should be left as the defaultNone.Release Repository Push URLReleaseRepositoryPushURL::{none}Thisindicatesthatthedefaultreleaseurlshouldbeused.<url>(optional)Usedwhenpushingtoremotereleaserepositories.Thisisonlyneededwhenthereleaseuriwhichisintherosdistrofileisnotwritable.Thisisuseful,forexample,whenareleaserwouldliketouseasshurltopushratherthanahttps://url.[None]:Can be left as the default in most cases.
+
+Code Examples:
+
+Language: unknown
+Noreasonabledefaultreleaserepositoryurlcouldbedeterminedfrompreviousreleases.
+Releaserepositoryurl[pressentertoabort]:
+
+Language: unknown
+Freshlyinitializedgitrepositorydetected.
+Aninitialemptycommitisgoingtobemade.
+Continue[Y/n]?
+
+Language: unknown
+RepositoryName:upstreamDefaultvalue,leavethisasupstreamifyouareunsure<name>Nameoftherepository(usedinthearchivename)['upstream']:
+
+Language: unknown
+UpstreamRepositoryURI:<uri>AnyvalidURI.Thisvariablecanbetemplated,forexampleansvnurlcanbetemplatedassuch:"https://svn.foo.com/foo/tags/foo-:{version}"wherethe:{version}tokenwillbereplacedwiththeversionforthisrelease.[None]:
+
+Language: unknown
+UpstreamVCSType:svnUpstreamURIisasvnrepositorygitUpstreamURIisagitrepositoryhgUpstreamURIisahgrepositorytarUpstreamURIisatarball['git']:
+
+Language: unknown
+Version::{ask}Thismeansthattheuserwillbepromptedfortheversioneachrelease.Thisalsomeansthattheupstreamdevelwillbeignored.:{auto}Thismeanstheversionwillbeguessedfromthedevelbranch.Thismeansthatthedevelbranchmustbeset,thedevelbranchmustexist,andtheremustbeavalidpackage.xmlintheupstreamdevelbranch.<version>Thiswillbetheversionused.Itmustbeupdatedforeachnewupstreamversion.[':{auto}']:
+
+Language: unknown
+ReleaseTag::{version}Thismeansthatthereleasetagwillmatchthe:{version}tag.Thiscanbefurthertemplated,forexample:"foo-:{version}"or"v:{version}"Thiscandescribeanyvcsreference.Forgitthatmeans{tag,branch,hash},forhgthatmeans{tag,branch,hash},forsvnthatmeansarevisionnumber.Fortarthisvaluedoublesasthesubdirectory(iftherepositoryisinfoo/ofthetarball,puttingfooherewillcausethecontentsoffoo/tobeimportedtoupstreaminsteadoffooitself).:{ask}Thismeanstheuserwillbepromptedforthereleasetagoneachrelease.:{none}Forsvnandtaronlyyoucansetthereleasetagto:{none},sothatitisignored.Forsvnthismeansnorevisionnumberisused.[':{version}']:
+
+Language: unknown
+UpstreamDevelBranch:<vcsreference>Branchinupstreamrepositoryonwhichtosearchfortheversion.Thisisusedonlywhenversionissetto':{auto}'.[None]:
+
+Language: unknown
+ROSDistro:<ROSdistro>ThiscanbeanyvalidROSdistro,e.g.indigo,kinetic,lunar,melodic['indigo']:
+
+Language: unknown
+PatchesDirectory:<pathinbloombranch>Thiscanbeanyvalidrelativepathinthebloombranch.Thecontentsofthisfolderwillbeoverlaidontotheupstreambranchaftereachimport-upstream.Additionally,anypackage.xmlfilesfoundintheoverlaywillhavethe:{version}stringreplacedwiththecurrentversionbeingreleased.:{none}Usethisifyouwanttodisableoverlayingoffiles.[None]:
+
+Language: unknown
+ReleaseRepositoryPushURL::{none}Thisindicatesthatthedefaultreleaseurlshouldbeused.<url>(optional)Usedwhenpushingtoremotereleaserepositories.Thisisonlyneededwhenthereleaseuriwhichisintherosdistrofileisnotwritable.Thisisuseful,forexample,whenareleaserwouldliketouseasshurltopushratherthanahttps://url.[None]:

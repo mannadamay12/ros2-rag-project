@@ -1,0 +1,25 @@
+Title: Writing Basic Tests with Python
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Testing/Python.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Writing Basic Tests with PythonStarting point: we’ll assume you have abasic ament_python packageset up already and you want to add some tests to it.If you are using ament_cmake_python, refer to the theament_cmake_python docsfor how to make tests dicoverable.
+The test contents and invocation withcolconremain the same.Package Setupsetup.pyYoursetup.pymust have a test dependency onpytestwithin the call tosetup(...):tests_require=['pytest'],Test Files and FoldersYour test code needs to go in a folder namedtestsin the root of your package.Any file that contains tests that you want to run must have the patterntest_FOO.pywhereFOOcan be replaced with anything.Example package layout:awesome_ros_package/awesome_ros_package/__init__.pyfozzie.pypackage.xmlsetup.cfgsetup.pytests/test_init.pytest_copyright.pytest_fozzie.pyTest ContentsYou can now write tests to your heart’s content. There areplenty of resources on pytest, but in short, you can write functions with thetest_prefix and include whatever assert statements you’d like.deftest_math():assert2+2==5# This should fail for most mathematical systemsRunning TestsSee thetutorial on how to run tests from the command linefor more information on running the tests and inspecting the test results.Special CommandsBeyond thestandard colcon testing commandsyou can also specify arguments to thepytestframework from the command line with the--pytest-argsflag.
+For example, you can specify the name of the function to run withcolcon test --packages-select <name-of-pkg> --pytest-args -k name_of_the_test_functionTo see the pytest output while running the tests, use these flags:colcon test --event-handlers console_cohesion+
+
+Code Examples:
+
+Language: unknown
+tests_require=['pytest'],
+
+Language: unknown
+awesome_ros_package/awesome_ros_package/__init__.pyfozzie.pypackage.xmlsetup.cfgsetup.pytests/test_init.pytest_copyright.pytest_fozzie.py
+
+Language: unknown
+deftest_math():assert2+2==5# This should fail for most mathematical systems
+
+Language: unknown
+colcon test --packages-select <name-of-pkg> --pytest-args -k name_of_the_test_function
+
+Language: unknown
+colcon test --event-handlers console_cohesion+

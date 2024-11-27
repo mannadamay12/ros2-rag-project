@@ -1,0 +1,112 @@
+Title: Writing a static broadcaster (C++)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Writing-A-Tf2-Static-Broadcaster-Cpp.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Writing a static broadcaster (C++)Goal:Learn how to broadcast static coordinate frames to tf2.Tutorial level:IntermediateTime:15 minutesContentsBackgroundPrerequisitesTasks1 Create a package2 Write the static broadcaster node3 Build4 RunThe proper way to publish static transformsSummaryBackgroundPublishing static transforms is useful to define the relationship between a robot base and its sensors or non-moving parts.
+For example, it is easiest to reason about laser scan measurements in a frame at the center of the laser scanner.This is a standalone tutorial covering the basics of static transforms, which consists of two parts.
+In the first part we will write code to publish static transforms to tf2.
+In the second part we will explain how to use the commandlinestatic_transform_publisherexecutable tool intf2_ros.In the next two tutorials we will write the code to reproduce the demo from theIntroduction to tf2tutorial.
+After that, the following tutorials focus on extending the demo with more advanced tf2 features.PrerequisitesIn previous tutorials, you learned how tocreate a workspaceandcreate a package.Tasks1 Create a packageFirst we will create a package that will be used for this tutorial and the following ones.
+The package calledlearning_tf2_cppwill depend ongeometry_msgs,rclcpp,tf2,tf2_ros, andturtlesim.
+Code for this tutorial is storedhere.Open a new terminal andsource your ROS 2 installationso thatros2commands will work.
+Navigate to workspace’ssrcfolder and create a new package:ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies geometry_msgs rclcpp tf2 tf2_ros turtlesim -- learning_tf2_cppYour terminal will return a message verifying the creation of your packagelearning_tf2_cppand all its necessary files and folders.2 Write the static broadcaster nodeLet’s first create the source files.
+Inside thesrc/learning_tf2_cpp/srcdirectory download the example static broadcaster code by entering the following command:LinuxmacOSWindowswget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/static_turtle_tf2_broadcaster.cppwget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/static_turtle_tf2_broadcaster.cppIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/static_turtle_tf2_broadcaster.cpp -o static_turtle_tf2_broadcaster.cppOr in powershell:curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/static_turtle_tf2_broadcaster.cpp -o static_turtle_tf2_broadcaster.cppOpen the file using your preferred text editor.#include<memory>#include"geometry_msgs/msg/transform_stamped.hpp"#include"rclcpp/rclcpp.hpp"#include"tf2/LinearMath/Quaternion.h"#include"tf2_ros/static_transform_broadcaster.h"classStaticFramePublisher:publicrclcpp::Node{public:explicitStaticFramePublisher(char*transformation[]):Node("static_turtle_tf2_broadcaster"){tf_static_broadcaster_=std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);// Publish static transforms once at startupthis->make_transforms(transformation);}private:voidmake_transforms(char*transformation[]){geometry_msgs::msg::TransformStampedt;t.header.stamp=this->get_clock()->now();t.header.frame_id="world";t.child_frame_id=transformation[1];t.transform.translation.x=atof(transformation[2]);t.transform.translation.y=atof(transformation[3]);t.transform.translation.z=atof(transformation[4]);tf2::Quaternionq;q.setRPY(atof(transformation[5]),atof(transformation[6]),atof(transformation[7]));t.transform.rotation.x=q.x();t.transform.rotation.y=q.y();t.transform.rotation.z=q.z();t.transform.rotation.w=q.w();tf_static_broadcaster_->sendTransform(t);}std::shared_ptr<tf2_ros::StaticTransformBroadcaster>tf_static_broadcaster_;};intmain(intargc,char*argv[]){autologger=rclcpp::get_logger("logger");// Obtain parameters from command line argumentsif(argc!=8){RCLCPP_INFO(logger,"Invalid number of parameters\nusage: ""$ ros2 run learning_tf2_cpp static_turtle_tf2_broadcaster ""child_frame_name x y z roll pitch yaw");return1;}// As the parent frame of the transform is `world`, it is// necessary to check that the frame name passed is differentif(strcmp(argv[1],"world")==0){RCLCPP_INFO(logger,"Your static turtle name cannot be 'world'");return1;}// Pass parameters and initialize noderclcpp::init(argc,argv);rclcpp::spin(std::make_shared<StaticFramePublisher>(argv));rclcpp::shutdown();return0;}2.1 Examine the codeNow let’s look at the code that is relevant to publishing the static turtle pose to tf2.
+The first lines include the required header files.
+First we includegeometry_msgs/msg/transform_stamped.hppto access theTransformStampedmessage type, which we will publish to the transformation tree.#include"geometry_msgs/msg/transform_stamped.hpp"Afterward,rclcppis included so itsrclcpp::Nodeclass can be used.#include"rclcpp/rclcpp.hpp"tf2::Quaternionis a class for a quaternion that provides convenient functions for converting Euler angles to quaternions and vice versa.
+We also includetf2_ros/static_transform_broadcaster.hto use theStaticTransformBroadcasterto make the publishing of static transforms easy.#include"tf2/LinearMath/Quaternion.h"#include"tf2_ros/static_transform_broadcaster.h"TheStaticFramePublisherclass constructor initializes the node with the namestatic_turtle_tf2_broadcaster.
+Then,StaticTransformBroadcasteris created, which will send one static transformation upon the startup.tf_static_broadcaster_=std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);this->make_transforms(transformation);Here we create aTransformStampedobject, which will be the message we will send over once populated.
+Before passing the actual transform values we need to give it the appropriate metadata.We need to give the transform being published a timestamp and we’ll just stamp it with the current time,this->get_clock()->now()Then we need to set the name of the parent frame of the link we’re creating, in this caseworldFinally, we need to set the name of the child frame of the link we’re creatinggeometry_msgs::msg::TransformStampedt;t.header.stamp=this->get_clock()->now();t.header.frame_id="world";t.child_frame_id=transformation[1];Here we populate the 6D pose (translation and rotation) of the turtle.t.transform.translation.x=atof(transformation[2]);t.transform.translation.y=atof(transformation[3]);t.transform.translation.z=atof(transformation[4]);tf2::Quaternionq;q.setRPY(atof(transformation[5]),atof(transformation[6]),atof(transformation[7]));t.transform.rotation.x=q.x();t.transform.rotation.y=q.y();t.transform.rotation.z=q.z();t.transform.rotation.w=q.w();Finally, we broadcast static transform using thesendTransform()function.tf_static_broadcaster_->sendTransform(t);2.2 Update package.xmlNavigate one level back to thesrc/learning_tf2_cppdirectory, where theCMakeLists.txtandpackage.xmlfiles have been created for you.Openpackage.xmlwith your text editor.As mentioned in theCreate a packagetutorial, make sure to fill in the<description>,<maintainer>and<license>tags:<description>Learningtf2withrclcpp</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>Make sure to save the file.2.3 CMakeLists.txtAdd the executable to the CMakeLists.txt and name itstatic_turtle_tf2_broadcaster, which you’ll use later withros2run.add_executable(static_turtle_tf2_broadcaster src/static_turtle_tf2_broadcaster.cpp)ament_target_dependencies(static_turtle_tf2_broadcastergeometry_msgsrclcpptf2tf2_ros)Finally, add theinstall(TARGETS…)section soros2runcan find your executable:install(TARGETSstatic_turtle_tf2_broadcasterDESTINATION lib/${PROJECT_NAME})3 BuildIt’s good practice to runrosdepin the root of your workspace to check for missing dependencies before building:LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfStill in the root of your workspace, build your new package:LinuxmacOSWindowscolcon build --packages-select learning_tf2_cppcolcon build --packages-select learning_tf2_cppcolcon build --merge-install --packages-select learning_tf2_cppOpen a new terminal, navigate to the root of your workspace, and source the setup files:LinuxmacOSWindows. install/setup.bash. install/setup.bash#CMDcall install\setup.bat#Powershell.\install\setup.ps14 RunNow run thestatic_turtle_tf2_broadcasternode:ros2 run learning_tf2_cpp static_turtle_tf2_broadcaster mystaticturtle 0 0 1 0 0 0This sets a turtle pose broadcast formystaticturtleto float 1 meter above the ground.We can now check that the static transform has been published by echoing thetf_statictopicros2 topic echo /tf_staticIf everything went well you should see a single static transformtransforms:- header:stamp:sec: 1622908754nanosec: 208515730frame_id: worldchild_frame_id: mystaticturtletransform:translation:x: 0.0y: 0.0z: 1.0rotation:x: 0.0y: 0.0z: 0.0w: 1.0The proper way to publish static transformsThis tutorial aimed to show howStaticTransformBroadcastercan be used to publish static transforms.
+In your real development process you shouldn’t have to write this code yourself and should use the dedicatedtf2_rostool to do so.tf2_rosprovides an executable namedstatic_transform_publisherthat can be used either as a commandline tool or a node that you can add to your launchfiles.The following command publishes a static coordinate transform to tf2 using an x/y/z offset in meters and roll/pitch/yaw in radians.
+In ROS 2, roll/pitch/yaw refers to rotation about the x/y/z-axis, respectively.ros2 run tf2_ros static_transform_publisher --x x --y y --z z --yaw yaw --pitch pitch --roll roll --frame-id frame_id --child-frame-id child_frame_idThe following command publishes a static coordinate transform to tf2 using an x/y/z offset in meters and roll/pitch/yaw as a quaternion.ros2 run tf2_ros static_transform_publisher --x x --y y --z z --qx qx --qy qy --qz qz --qw qw --frame-id frame_id --child-frame-id child_frame_idstatic_transform_publisheris designed both as a command-line tool for manual use, as well as for use withinlaunchfiles for setting static transforms. For example:from launch import LaunchDescriptionfrom launch_ros.actions import Nodedef generate_launch_description():return LaunchDescription([Node(package='tf2_ros',executable='static_transform_publisher',arguments = ['--x', '0', '--y', '0', '--z', '1', '--yaw', '0', '--pitch', '0', '--roll', '0', '--frame-id', 'world', '--child-frame-id', 'mystaticturtle']),])Note that all arguments except for--frame-idand--child-frame-idare optional; if a particular option isn’t specified, then the identity will be assumed.SummaryIn this tutorial you learned how static transforms are useful to define static relationships between frames, likemystaticturtlein relation to theworldframe.
+In addition, you learned how static transforms can be useful for understanding sensor data, such as from laser scanners, by relating the data to a common coordinate frame.
+Finally, you wrote your own node to publish static transforms to tf2 and learned how to publish required static transformations usingstatic_transform_publisherexecutable and launch files.
+
+Code Examples:
+
+Language: unknown
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies geometry_msgs rclcpp tf2 tf2_ros turtlesim -- learning_tf2_cpp
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/static_turtle_tf2_broadcaster.cpp
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/static_turtle_tf2_broadcaster.cpp
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/static_turtle_tf2_broadcaster.cpp -o static_turtle_tf2_broadcaster.cpp
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_cpp/src/static_turtle_tf2_broadcaster.cpp -o static_turtle_tf2_broadcaster.cpp
+
+Language: unknown
+#include<memory>#include"geometry_msgs/msg/transform_stamped.hpp"#include"rclcpp/rclcpp.hpp"#include"tf2/LinearMath/Quaternion.h"#include"tf2_ros/static_transform_broadcaster.h"classStaticFramePublisher:publicrclcpp::Node{public:explicitStaticFramePublisher(char*transformation[]):Node("static_turtle_tf2_broadcaster"){tf_static_broadcaster_=std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);// Publish static transforms once at startupthis->make_transforms(transformation);}private:voidmake_transforms(char*transformation[]){geometry_msgs::msg::TransformStampedt;t.header.stamp=this->get_clock()->now();t.header.frame_id="world";t.child_frame_id=transformation[1];t.transform.translation.x=atof(transformation[2]);t.transform.translation.y=atof(transformation[3]);t.transform.translation.z=atof(transformation[4]);tf2::Quaternionq;q.setRPY(atof(transformation[5]),atof(transformation[6]),atof(transformation[7]));t.transform.rotation.x=q.x();t.transform.rotation.y=q.y();t.transform.rotation.z=q.z();t.transform.rotation.w=q.w();tf_static_broadcaster_->sendTransform(t);}std::shared_ptr<tf2_ros::StaticTransformBroadcaster>tf_static_broadcaster_;};intmain(intargc,char*argv[]){autologger=rclcpp::get_logger("logger");// Obtain parameters from command line argumentsif(argc!=8){RCLCPP_INFO(logger,"Invalid number of parameters\nusage: ""$ ros2 run learning_tf2_cpp static_turtle_tf2_broadcaster ""child_frame_name x y z roll pitch yaw");return1;}// As the parent frame of the transform is `world`, it is// necessary to check that the frame name passed is differentif(strcmp(argv[1],"world")==0){RCLCPP_INFO(logger,"Your static turtle name cannot be 'world'");return1;}// Pass parameters and initialize noderclcpp::init(argc,argv);rclcpp::spin(std::make_shared<StaticFramePublisher>(argv));rclcpp::shutdown();return0;}
+
+Language: unknown
+#include"geometry_msgs/msg/transform_stamped.hpp"
+
+Language: unknown
+#include"rclcpp/rclcpp.hpp"
+
+Language: unknown
+#include"tf2/LinearMath/Quaternion.h"#include"tf2_ros/static_transform_broadcaster.h"
+
+Language: unknown
+tf_static_broadcaster_=std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);this->make_transforms(transformation);
+
+Language: unknown
+geometry_msgs::msg::TransformStampedt;t.header.stamp=this->get_clock()->now();t.header.frame_id="world";t.child_frame_id=transformation[1];
+
+Language: unknown
+t.transform.translation.x=atof(transformation[2]);t.transform.translation.y=atof(transformation[3]);t.transform.translation.z=atof(transformation[4]);tf2::Quaternionq;q.setRPY(atof(transformation[5]),atof(transformation[6]),atof(transformation[7]));t.transform.rotation.x=q.x();t.transform.rotation.y=q.y();t.transform.rotation.z=q.z();t.transform.rotation.w=q.w();
+
+Language: unknown
+tf_static_broadcaster_->sendTransform(t);
+
+Language: unknown
+<description>Learningtf2withrclcpp</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>
+
+Language: unknown
+add_executable(static_turtle_tf2_broadcaster src/static_turtle_tf2_broadcaster.cpp)ament_target_dependencies(static_turtle_tf2_broadcastergeometry_msgsrclcpptf2tf2_ros)
+
+Language: unknown
+install(TARGETSstatic_turtle_tf2_broadcasterDESTINATION lib/${PROJECT_NAME})
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select learning_tf2_cpp
+
+Language: unknown
+colcon build --packages-select learning_tf2_cpp
+
+Language: unknown
+colcon build --merge-install --packages-select learning_tf2_cpp
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+#CMDcall install\setup.bat#Powershell.\install\setup.ps1
+
+Language: unknown
+ros2 run learning_tf2_cpp static_turtle_tf2_broadcaster mystaticturtle 0 0 1 0 0 0
+
+Language: unknown
+ros2 topic echo /tf_static
+
+Language: unknown
+transforms:- header:stamp:sec: 1622908754nanosec: 208515730frame_id: worldchild_frame_id: mystaticturtletransform:translation:x: 0.0y: 0.0z: 1.0rotation:x: 0.0y: 0.0z: 0.0w: 1.0
+
+Language: unknown
+ros2 run tf2_ros static_transform_publisher --x x --y y --z z --yaw yaw --pitch pitch --roll roll --frame-id frame_id --child-frame-id child_frame_id
+
+Language: unknown
+ros2 run tf2_ros static_transform_publisher --x x --y y --z z --qx qx --qy qy --qz qz --qw qw --frame-id frame_id --child-frame-id child_frame_id
+
+Language: unknown
+from launch import LaunchDescriptionfrom launch_ros.actions import Nodedef generate_launch_description():return LaunchDescription([Node(package='tf2_ros',executable='static_transform_publisher',arguments = ['--x', '0', '--y', '0', '--z', '1', '--yaw', '0', '--pitch', '0', '--roll', '0', '--frame-id', 'world', '--child-frame-id', 'mystaticturtle']),])

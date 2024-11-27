@@ -1,0 +1,64 @@
+Title: Deployment Guidelines
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/Security/Deployment-Guidelines.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Deployment GuidelinesGoal:Understand the best practices when deploying security artifacts into production systems.Tutorial level:AdvancedTime:20 minutesContentsBackgroundPrerequisitesGeneral GuidelinesBuilding a deployment scenarioGenerating the Docker ImageUnderstanding the compose fileRunning the exampleExamining the containersBackgroundTypical deployment scenarios often involve shipping containerized applications, or packages, into remote systems.
+Special attention should be payed when deploying security enabled applications, requiring users to reason about the sensitivity of packaged files.Complying with theDDS Security standard,
+thesros2package provides a collection of utilities for managing security under ROS 2 environments in a highly modular and flexible fashion.Basic core guidelines on how to organize the different certificates, keys and directories remains a critical factor to avoid compromising the security of the system.
+This includes protection-awareness and criteria for selecting the minimum set of necessary files to be deployed upon remote production systems for minimizing security exposure.PrerequisitesA docker installation with the compose plugin.
+Please refer to the installation steps detailed inDocker installationandCompose Plugin.(Recommended) A basic understanding onROS 2 Security design.(Recommended) Previous security tutorials completion. In particular:Setting up securityUnderstanding the security keystoreSetting access controlsGeneral GuidelinesROS 2 leverages DDS Security extensions to ensure security on message exchanges within the same enclave.
+The different signed files and certificates within an enclave are generated from the private keys and certificates of aCertificate Authority (CA)trusted entity.
+In fact, two different CA’s can be selected for identity and permissions, per enclave.
+Those CA artifacts are stored insideprivate/andpublic/sub-directories of aKeystorewith the following folder structure:keystore
+├── enclaves
+│   └── ...
+│       └── ...
+├── private
+│   └── ...
+└── public
+    └── ...A good practice for the creation and usage of a certain Certificate Authority on a typical deployment for a production system, is to:Create it within the organization system intended for internal use only.Generate/modify desired enclaves bearing in mind that:Not all the generated enclaves should be deployed to all target devices.A reasonable way to proceed would be having one enclave per application, allowing for a separation of concerns.Shippublic/alongside with correspondingenclaves/into the different remote production devices during setup.Keep and protectprivate/keys and/or certification requests in the organization.It is important to note that ifprivate/files are lost, it won’t be possible to change access permissions, add or modify security profiles anymore.In addition, further practices may be taken into consideration:Granting read-only permissions to theenclaves/directory contents.If a PKCS#11 compliant URI is given for generating enclave’s private keys, aHardware Security Module (HSM)could be used to store them.The following table depicts a summary of the previous statements relating the Keystore directory with the Recommended location:Directory / LocationOrganizationTarget DeviceMaterial Sensitivitypublic✓✓Lowprivate✓✕Highenclaves✓✓MediumBuilding a deployment scenarioTo illustrate a simple deployment scenario, a new docker image will be built on top of the one provided byros:<DISTRO>.
+Starting from the image, three containers will be created with the aim of:Initializing the keystore in a local host’s shared volume.Simulating two deployed remote devices that interact with each other in a secure way.In this example, the local host serves as the organization’s system.
+Let us start by creating a workspace folder:mkdir~/security_gd_tutorialcd~/security_gd_tutorialGenerating the Docker ImageIn order to build a new docker image, a Dockerfile is required.
+The one proposed for this tutorial can be retrieved with the following command:# Download the Dockerfilewgethttps://raw.githubusercontent.com/ros2/ros2_documentation/jazzy/source/Tutorials/Advanced/Security/resources/deployment_gd/DockerfileNow, build the docker image with the command:# Build the base imagedockerbuild-tros2_security/deployment_tutorial--build-argROS_DISTRO=jazzy.Understanding the compose fileA compose configration file takes an image to create containers as services.
+In this tutorial, three services are defined within the configuration:keystore-creator: That, similarly to previous tutorials, it internally initializes a new keystore tree directory.
+This will createenclaves/public/andprivate/, which are explained in more detail inROS 2 Security enclaves.
+Thekeystoredirectory is configured to be a shared volume across containers.listenerandtalker: Act as the remote device actors in this tutorial.
+RequiredSecurityenvironment variables are sourced as well as the necessary keystore files from the shared volume.The compose configuration yaml file can be downloaded with:# Download the compose filewgethttps://raw.githubusercontent.com/ros2/ros2_documentation/jazzy/source/Tutorials/Advanced/Security/resources/deployment_gd/compose.deployment.yamlRunning the exampleIn the same working directory~/security_gd_tutorial, run:# Start the exampledockercompose-fcompose.deployment.yamlupThis should result in the following output:tutorial-listener-1:Foundsecuritydirectory:/keystore/enclaves/talker_listener/listenertutorial-talker-1:Foundsecuritydirectory:/keystore/enclaves/talker_listener/talkertutorial-listener-1:Publishing:'HelloWorld:<number>'tutorial-talker-1:Iheard:[HelloWorld:<number>]Examining the containersWhile having the containers running that simulate the two remote devices for this tutorial, attach to each of them by opening two different terminals and enter:# Terminal 1dockerexec-ittutorial-listener-1bashcdkeystore
+tree# Terminal 2dockerexec-ittutorial-talker-1bashcdkeystore
+treeA similar output to the one depicted below should be obtained:# Terminal 1keystore├──enclaves│├──governance.p7s│├──governance.xml│└──talker_listener│└──listener│├──cert.pem│├──governance.p7s│├──identity_ca.cert.pem│├──key.pem│├──permissions_ca.cert.pem│├──permissions.p7s│└──permissions.xml└──public├──ca.cert.pem├──identity_ca.cert.pem└──permissions_ca.cert.pem# Terminal 2keystore├──enclaves│├──governance.p7s│├──governance.xml│└──talker_listener│└──talker│├──cert.pem│├──governance.p7s│├──identity_ca.cert.pem│├──key.pem│├──permissions_ca.cert.pem│├──permissions.p7s│└──permissions.xml└──public├──ca.cert.pem├──identity_ca.cert.pem└──permissions_ca.cert.pemNote that:private/folder is not moved but left in the local host (organization).Each one of the deployed devices contain its own minimum enclave required for its application.NoteFor the sake of simplicity, the same CA is used within this enclave for both identity and permissions.
+
+Code Examples:
+
+Language: unknown
+keystore
+├── enclaves
+│   └── ...
+│       └── ...
+├── private
+│   └── ...
+└── public
+    └── ...
+
+Language: unknown
+mkdir~/security_gd_tutorialcd~/security_gd_tutorial
+
+Language: unknown
+# Download the Dockerfilewgethttps://raw.githubusercontent.com/ros2/ros2_documentation/jazzy/source/Tutorials/Advanced/Security/resources/deployment_gd/Dockerfile
+
+Language: unknown
+# Build the base imagedockerbuild-tros2_security/deployment_tutorial--build-argROS_DISTRO=jazzy.
+
+Language: unknown
+# Download the compose filewgethttps://raw.githubusercontent.com/ros2/ros2_documentation/jazzy/source/Tutorials/Advanced/Security/resources/deployment_gd/compose.deployment.yaml
+
+Language: unknown
+# Start the exampledockercompose-fcompose.deployment.yamlup
+
+Language: unknown
+# Terminal 1dockerexec-ittutorial-listener-1bashcdkeystore
+tree# Terminal 2dockerexec-ittutorial-talker-1bashcdkeystore
+tree
+
+Language: unknown
+# Terminal 1keystore├──enclaves│├──governance.p7s│├──governance.xml│└──talker_listener│└──listener│├──cert.pem│├──governance.p7s│├──identity_ca.cert.pem│├──key.pem│├──permissions_ca.cert.pem│├──permissions.p7s│└──permissions.xml└──public├──ca.cert.pem├──identity_ca.cert.pem└──permissions_ca.cert.pem# Terminal 2keystore├──enclaves│├──governance.p7s│├──governance.xml│└──talker_listener│└──talker│├──cert.pem│├──governance.p7s│├──identity_ca.cert.pem│├──key.pem│├──permissions_ca.cert.pem│├──permissions.p7s│└──permissions.xml└──public├──ca.cert.pem├──identity_ca.cert.pem└──permissions_ca.cert.pem
