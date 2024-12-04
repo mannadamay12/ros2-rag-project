@@ -1,0 +1,5 @@
+Title: Binary Installation on Ubuntu#
+URL: https://gazebosim.org/docs/garden/install_ubuntu#binary-installation-on-ubuntu
+Section: 
+--------------------------------------------------------------------------------
+

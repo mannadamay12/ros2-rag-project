@@ -8,36 +8,36 @@ sources:
         - "How-To-Guides.html"
         - "Concepts.html"
       version: "jazzy"
-  #   nav2:
-  #     base_url: "https://docs.nav2.org/"
-  #     sections:
-  #       - "getting_started"
-  #       - "development_guides"
-  #       - "concepts"
-  #       - "setup_guides"
-  #       - "tutorials"
-  #       - "plugin_tutorials"
-  #       - "configuration"
-  #       - "tuning"
-  #       - "behavior_trees"
-  #       - "commander_api"
-  #     version: "latest"
-  #   moveit2:
-  #     base_url: "https://moveit.picknik.ai/main/"
-  #     sections:
-  #       - "tutorials"
-  #       - "examples"
-  #       - "concepts"
-  #       - "how_to_guides"
-  #     version: "main"
-  #   gazebo:
-  #     base_url: "https://gazebosim.org/docs/"
-  #     sections:
-  #       - "getstarted"
-  #       - "tutorials"
-  #       - "ros_installation"
-  #       - "architecture"
-  #     version: "latest"
+    nav2:
+      base_url: "https://docs.nav2.org/"
+      sections:
+        - "getting_started/index.html"
+        - "development_guides/index.html"
+        - "concepts/index.html"
+        - "setup_guides/index.html"
+        - "tutorials/index.html"
+        - "plugin_tutorials/index.html"
+        - "configuration/index.html"
+        - "tuning/index.html"
+        - "behavior_trees/index.html"
+        - "commander_api/index.html"
+      version: "latest"
+    moveit2:
+      base_url: "https://moveit.picknik.ai/main/doc"
+      sections:
+        - "tutorials/tutorials.html"
+        - "examples/examples.html"
+        - "concepts/concepts.html"
+        - "how_to_guides/how_to_guides.html"
+      version: "main"
+    gazebo:
+      base_url: "https://gazebosim.org/docs/latest"
+      sections:
+        - "getstarted"
+        - "tutorials"
+        - "ros_installation"
+        - "architecture"
+      version: "latest"
   # github_repos:
   #   ros2:
   #     - name: "ros2/ros2"

@@ -13,6 +13,7 @@ beautifulsoup4==4.12.3
 certifi==2024.8.30
 charset-normalizer==3.4.0
 clearml==1.16.5
+clearml-agent==1.16.5
 click==8.1.7
 colorama==0.4.6
 comm==0.2.2
@@ -112,7 +113,7 @@ python-multipart==0.0.17
 pytz==2024.2
 PyYAML==6.0.2
 pyzmq==26.2.0
-qdrant-client==1.12.1
+qdrant-client==1.1.1
 rank-bm25==0.2.2
 referencing==0.35.1
 regex==2024.11.6
@@ -124,7 +125,7 @@ safetensors==0.4.5
 scikit-learn==1.5.2
 scipy==1.13.1
 semantic-version==2.10.0
-sentence-transformers==3.3.1
+sentence-transformers==2.2.2
 shellingham==1.5.4
 six==1.16.0
 smmap==5.0.1
@@ -142,7 +143,7 @@ tomli==2.1.0
 tomlkit==0.12.0
 torch==2.5.1
 tornado==6.4.2
-tqdm==4.67.0
+tqdm==4.65.0
 traitlets==5.14.3
 transformers==4.46.3
 typer==0.13.1

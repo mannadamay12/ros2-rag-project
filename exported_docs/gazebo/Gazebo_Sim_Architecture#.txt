@@ -1,0 +1,5 @@
+Title: Gazebo Sim Architecture#
+URL: https://gazebosim.org/docs/latest/architecture
+Section: 
+--------------------------------------------------------------------------------
+

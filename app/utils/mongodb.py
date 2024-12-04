@@ -75,3 +75,16 @@ class MongoDBClient:
         ]
         return {doc["_id"]: doc["count"] 
                 for doc in self.docs_collection.aggregate(pipeline)}
+
+    def get_unprocessed_documents(self) -> List[Dict[str, Any]]:
+        """Get documents that haven't been processed for embeddings"""
+        return list(self.docs_collection.find(
+            {"processed_for_embeddings": {"$ne": True}}
+        ))
+
+    def mark_document_processed(self, doc_id: str):
+        """Mark a document as processed for embeddings"""
+        self.docs_collection.update_one(
+            {"id": doc_id},
+            {"$set": {"processed_for_embeddings": True}}
+        )

@@ -1,0 +1,5 @@
+Title: Binary Installation on MacOS#
+URL: https://gazebosim.org/docs/garden/install_osx
+Section: 
+--------------------------------------------------------------------------------
+
