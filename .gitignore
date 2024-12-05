@@ -12,7 +12,8 @@ myenv/
 models/
 *.pt
 *.pth
-
+*.bin
+*.pickle
 # Docker
 .docker/
 
