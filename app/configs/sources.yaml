@@ -38,23 +38,25 @@ sources:
         - "ros_installation"
         - "architecture"
       version: "latest"
-  # github_repos:
-  #   ros2:
-  #     - name: "ros2/ros2"
-  #       url: "https://github.com/ros2/ros2"
-  #       branch: "main"
-  #     - name: "ros2/examples"
-  #       url: "https://github.com/ros2/examples"
-  #       branch: "humble"
-  #   nav2:
-  #     - name: "ros-planning/navigation2"
-  #       url: "https://github.com/ros-planning/navigation2"
-  #       branch: "main"
-  # youtube_playlists:
-  #   ros2:
-  #     - channel: "ROS2 Official"
-  #       playlist_id: "playlist_id_here"
-  #       language: "en"
-  #     - channel: "The Construct"
-  #       playlist_id: "playlist_id_here"
-  #       language: "en"
+  
+  github_repos:
+    ros2:
+      - name: "ros2/ros2"
+        url: "https://github.com/ros2/ros2"
+        branches: ["humble", "foxy"]  # LTS releases
+      - name: "ros2/examples"
+        url: "https://github.com/ros2/examples"
+        branches: ["humble", "foxy"]
+      - name: "ros2/documentation"
+        url: "https://github.com/ros2/documentation"
+        branches: ["humble", "foxy"]
+  
+  youtube_playlists:
+    ros2:
+      - channel_id: "UCK8Y_nwY_L1DaHXrZUUozAg"  # ROS2 Official
+        playlists: 
+          - "PLNw1_R4SfJQf_i5un9AGGj1jmqWJ4yE4i"  # ROS2 Tutorials Playlist
+          - "PLNw1_R4SfJQfQUVT6TJAXcv2yIQjzNHXz"  # ROS2 Demos
+      - channel_id: "UCt6Lag-vv25fSpX_yf2Rs1Q"  # The Construct
+        playlists:
+          - "PLK0b4e05LnzZpAM3NxXXUUNfbqC2YLIGq"  # ROS2 Basics Course

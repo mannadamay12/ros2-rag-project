@@ -5,7 +5,7 @@ import yaml
 
 @PipelineDecorator.component(cache=True, execution_queue="default")
 def extract_documentation(config_path: str) -> List[Dict[str, Any]]:
-    from app.etl.extract.doc_extract import DocumentationExtractor
+    from etl.extract.doc_extract import DocumentationExtractor
     import asyncio
     
     with open(config_path, 'r') as f:
