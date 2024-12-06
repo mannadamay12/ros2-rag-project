@@ -1,0 +1,157 @@
+Title: Using VIO to Augment Robot Odometry
+URL: https://docs.nav2.org/tutorials/docs/integrating_vio.html#overview
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Overview
+This tutorial highlights how to setup Visual-Inerial Odometry (VIO) into a Nav2 and ROS 2 based robotics system to augment robot odometry.
+Many modern robotics platforms have unideal configurations for high quality wheel odometry. For example, skid-steer, tracked, omnidirectional robots using mecanum wheels, and legged robots are notorious for producing suboptimal odometry. These types of platforms are becoming increasingly common in the robotics landscape and require augmentations or replacement sources of odometry. Further, some applications of robotics technologies involve retrofitting existing equipment which may not have odometry altogether.
+A subfield of computer vision and robotics focuses on how to use Visual (e.g. camera) and Inertial (e.g. IMU) data in order to compute high-speed relative motion independent of robot mechanics. This is an especially useful technology for UAVs without accurate intrinsic odometric sensing capabilities – or mobile robots with poor interinsic odometry measurements.
+Thus, this tutorial walks through the integration of VIO into a robot system to replace or augment wheel odometry so that your robot can autonomously navigate with quality state estimation required for a well-engineered system that is able to accurately and predictably complete its tasks.
+Throughout this tutorial, we will be using theStereolabsSDK’sPosition Trackingcapability as our VIO solution of choice paired with the newZED Xcamera. This VIO solution is easy to use and provides production-quality performance forfreewhen using a ZED camera module.
+
+## Setting Up the ZED X Camera
+We’re using the ZED X for the purposes of this tutorial due to its:
+Though, any other ZED camera with an IMU in it will work as well (ZED2, ZED2i, ZED mini, etc).  If you are using the ZED X in particular, checkoutthis playlist on YouTube showing step by step how to setup the Nvidia Jetson and ZED X for ROS 2orZED X Getting Started pageto install the SDK, ZED X drivers, and ROS 2 drivers needed to proceed.
+At this point, you should be able to run one of the following commands to launch the driver and visualize the sensor data in Rviz. Note that these are ROS 2 component nodes that also may be loaded into your system’s component manager to minimize latency due to serialization.
+As of September 2023, the driver out of the box produces the fullmap->odom->base_link->cameratree on its own. This is since the Pose SDK can produce not only VIO, but loop-closure VSLAM representing the full state estimation TF tree.
+We want to be able to fuse in other information such as an external IMU, wheel odometry, GPS, or other sensors into our local or global state estimates, so we need to disable TF publication ofmap->odomandodom->base_linkto be provided by our fused outputs. Especially considering the ZED X camera knows nothing about the nature of thebase_linkframe. However, if you would like to use the ZED’s state estimate for your entire system without further sensor fusion, you certainly can!
+
+## Setting Up ZED ROS
+In order to run VIO alone, we need to do the following:
+Thus, make the following parameter updates to thezed_wrapper’s default parameters:
+Optionally, remap the zedodomtopic to a topic that isn’t reserved or commonly used by other systems. In your ZED launch file add to the node / launch file:
+
+## Fusing VIO Into Local State Estimate
+Now that we have the ZED ROS 2 drivers set up to publish our VIO to a topic and leave our TF tree to the fusion algorithm and Robot State Publisher (e.g. URDF), we’re finally ready to fuse in VIO into our broader state estimate using therobot_localizationpackage.
+This package is a generalized EKF and UKF solution to state estimation of potentially many different topics, publishing at different rates, of different types. If you’re unfamiliar withrobot_localizationcheckout ourFirst-Time Robot Setup Guide’s Odometry page for basic information and thepackage’s extensive documentation.
+Most users at this point already have arobot_localizationconfiguration file in their robot systems to fuse existing sensors together, such as wheel odometry (even poor) and robot IMUs. We’ll be adding a new odom field,odom1, to our configuration to fuse in VIO’s position and orientation into our filter. If this is your first odometry field, useodom0and you can base your file onekf.yaml.
+Make sure to evaluate your EKF’sfrequency,two_d_mode,publish_tf, and key frames to be appropriate for your application. We generally want to publish TF and have 2D mode on when navigating in flat indoor environments only.
+
+## Fusing VSLAM Into Global State Estimate
+While out of the scope of this tutorial, it is possible to continue to produce VSLAM results for global localization with loop closure (both in general and using the Stereolabs Position Tracking SDK). The steps for integration are similar to the last sections, except:
+
+## Testing it Out!
+In the below example, we’re fusing the Stereolabs SDK’s Pose Tracking VIO solution with a robot’s external IMU and odometry (e.g.robot_localizationhasodom0odom1andimu0) to improve performance while navigating on a legged robot platform in outdoor environments. The robot’s internal odometry based on leg motion is quite poor and causes the robot to have generally poor autonomous navigation performance.
+The Visual-Inertial Odometry’s error over these datasets is 4.1% over the 70m path. Typically for ‘good’ odometry from wheel encoders + IMU, I would like to see 2-3% fully tuned (or less than 1% for ‘great’ odometry), so this is a great source! Fused in with the legged robot odometry, it improves overall performance to an acceptable level!
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+$
+ros2
+launch
+zed_wrapper
+zedx.launch.py
+$
+ros2
+launch
+zed_wrapper
+zedxm.launch.py
+
+```
+
+Language: unknown
+File: zed_wrapper
+```
+pos_tracking
+:
+publish_tf
+:
+false
+# Disables odom -> base_link TF transformation
+publish_map_tf
+:
+true
+# Disables map -> odom TF transformation
+area_memory
+:
+false
+# Disables loop closure computation, but Pose topic for global VSLAM still published (but now pure VIO)
+# Optional optimizations
+two_d_mode
+:
+false
+# Or true, up to you!
+pos_tracking_enabled
+:
+true
+# of course!
+path_max_count
+:
+30
+qos_depth
+:
+5
+```
+
+Language: unknown
+File: odom
+```
+remappings
+=
+[(
+'odom'
+,
+'camera_odom'
+)]
+```
+
+Language: unknown
+File: odom0
+```
+odom1
+:
+camera_odom
+# Adjust if namespacing ZED camera (e.g. /zed/odom)
+odom1_config
+:
+[
+true
+,
+true
+,
+true
+,
+# X, Y, Z
+true
+,
+true
+,
+true
+,
+# Roll, Pitch, Yaw
+false
+,
+false
+,
+false
+,
+# Vx, Vy, Vz
+false
+,
+false
+,
+false
+,
+# Vroll, Vpitch, Vyaw
+false
+,
+false
+,
+false
+]
+# Ax, Ay, Az
+odom1_differential
+:
+false
+odom1_relative
+:
+true
+odom1_queue_size
+:
+2
+```

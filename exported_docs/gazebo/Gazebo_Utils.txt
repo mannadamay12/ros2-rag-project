@@ -1,5 +1,0 @@
-Title: Gazebo Utils
-URL: https://gazebosim.org/api/utils/2/tutorials.html
-Section: 
---------------------------------------------------------------------------------
-

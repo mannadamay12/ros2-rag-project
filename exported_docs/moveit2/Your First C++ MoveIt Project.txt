@@ -1,0 +1,631 @@
+Title: Your First C++ MoveIt Project
+URL: https://moveit.picknik.ai/main/doc/tutorials/your_first_project/your_first_project.html
+Section: index.html
+--------------------------------------------------------------------------------
+
+
+## Prerequisites
+If you haven’t already done so, make sure you’ve completed the steps inGetting Started.
+This tutorial assumes you understand the basics of ROS 2.
+To prepare yourself for this please complete theOfficial ROS 2 Tutorialsup until “Writing a simple publisher and Subscriber (C++)”.
+
+## Steps
+
+
+## 1 Create a package
+Open a terminal andsource your ROS 2 installationso thatros2commands will work.
+Navigate to yourws_moveitdirectory you created in theGetting Started Tutorial.
+Change directory into thesrcdirectory, as that is where we put our source code.
+Create a new package with the ROS 2 command line tools:
+The output of this will show that it created some files in a new directory.
+Note that we addedmoveit_ros_planning_interfaceandrclcppas dependencies.
+This will create the necessary changes in thepackage.xmlandCMakeLists.txtfiles so that we can depend on these two packages.
+Open the new source file created for you atws_moveit/src/hello_moveit/src/hello_moveit.cppin your favorite editor.
+
+## 2 Create a ROS Node and Executor
+This first block of code is a bit of boilerplate but you should be used to seeing this from the ROS 2 tutorials.
+
+## 2.1 Build and Run
+We will build and run the program to see that everything is right before we move on.
+Change the directory back to the workspace directoryws_moveitand run this command:
+After this succeeds,open a new terminal, then source the workspace environment script in that new terminal so that we can run our program.
+Run your program and see the output.
+The program should run and exit without error.
+
+## 2.2 Examine the code
+The headers included at the top are just some standard C++ headers and the headers for ROS and MoveIt that we will use later.
+After that, we have the normal call to initialize rclcpp, and then we create our Node.
+The first argument is a string that ROS will use to name a unique node.
+The second is needed for MoveIt because of how we use ROS Parameters.
+Next, wecreate a loggernamed “hello_moveit” to keep our log outputs organized and configurable.
+Lastly, we have the code to shutdown ROS.
+
+## 3 Plan and Execute using MoveGroupInterface
+In place of the comment that says “Next step goes here”, add this code:
+
+## 3.1 Build and Run
+Just like before, we need to build the code before we can run it.
+In the workspace directory,ws_moveit, run this command:
+After this succeeds, we need to reuse the demo launch file from the previous tutorial to start RViz and the MoveGroup node.
+In a separate terminal, source the workspace and then execute this:
+Then in theDisplayswindow underMotionPlanning/PlanningRequest, uncheck the boxQueryGoalState.
+In a third terminal, source the workspace and run your program.
+This should cause the robot in RViz to move and end up in this pose:
+Note that if you run the nodehello_moveitwithout launching the demo launch file first, it will wait for 10 seconds and then print this error and exit.
+This is because thedemo.launch.pylaunch is starting theMoveGroupnode that provides the robot description.
+WhenMoveGroupInterfaceis constructed, it looks for a node publishing a topic with the robot description.
+If it fails to find that within 10 seconds, it prints this error and terminates the program.
+
+## 3.2 Examine the code
+The first thing we do is create theMoveGroupInterface.
+This object will be used to interact withmove_group, which allows us to plan and execute trajectories.
+Note that this is the only mutable object that we create in this program.
+Another thing to take note of is the second argument to theMoveGroupInterfaceobject we are creating here:"manipulator".
+That is the group of joints as defined in the robot description that we are going to operate on with thisMoveGroupInterface.
+Then, we set our target pose and plan. Note that only the target pose is set (viasetPoseTarget).
+The starting pose is implicitly the position published by the joint state publisher, which could be changed using theMoveGroupInterface::setStartState*family of functions (but is not in this tutorial).
+One more thing to note about this next section is the use of lambdas for constructing the message typetarget_poseand planning.
+This is a pattern you’ll find in modern C++ codebases that enables writing in a more declarative style.
+For more information about this pattern, there are a couple of links at the end of this tutorial.
+Finally, we execute our plan if planning is successful, otherwise, we log an error:
+
+## Summary
+
+
+## Further Reading
+
+
+## Next Step
+In the next tutorialVisualizing in RViz, you will expand on the program you built here to create visual markers that make it easier to understand what MoveIt is doing.
+
+Code Examples:
+
+Language: unknown
+File: src
+```
+ros2
+pkg
+create
+\
+--build-type
+ament_cmake
+\
+--dependencies
+moveit_ros_planning_interface
+rclcpp
+\
+--node-name
+hello_moveit
+hello_moveit
+
+```
+
+Language: unknown
+File: ws_moveit/src/hello_moveit/src/hello_moveit.cpp
+```
+#include
+<memory>
+#include
+<rclcpp/rclcpp.hpp>
+#include
+<moveit/move_group_interface/move_group_interface.h>
+int
+main
+(
+int
+argc
+,
+char
+*
+argv
+[])
+{
+// Initialize ROS and create the Node
+rclcpp
+::
+init
+(
+argc
+,
+argv
+);
+auto
+const
+node
+=
+std
+::
+make_shared
+<
+rclcpp
+::
+Node
+>
+(
+"hello_moveit"
+,
+rclcpp
+::
+NodeOptions
+().
+automatically_declare_parameters_from_overrides
+(
+true
+)
+);
+// Create a ROS logger
+auto
+const
+logger
+=
+rclcpp
+::
+get_logger
+(
+"hello_moveit"
+);
+// Next step goes here
+// Shutdown ROS
+rclcpp
+::
+shutdown
+();
+return
+0
+;
+}
+```
+
+Language: unknown
+File: ws_moveit
+```
+colcon
+build
+--mixin
+debug
+
+```
+
+Language: unknown
+File: ws_moveit
+```
+cd
+~/ws_moveit
+
+source
+install/setup.bash
+
+```
+
+Language: unknown
+File: ws_moveit
+```
+ros2
+run
+hello_moveit
+hello_moveit
+
+```
+
+Language: unknown
+File: ws_moveit
+```
+auto
+const
+node
+=
+std
+::
+make_shared
+<
+rclcpp
+::
+Node
+>
+(
+"hello_moveit"
+,
+rclcpp
+::
+NodeOptions
+().
+automatically_declare_parameters_from_overrides
+(
+true
+)
+);
+```
+
+Language: unknown
+File: ws_moveit
+```
+// Create a ROS logger
+auto
+const
+logger
+=
+rclcpp
+::
+get_logger
+(
+"hello_moveit"
+);
+```
+
+Language: unknown
+File: ws_moveit
+```
+// Shutdown ROS
+rclcpp
+::
+shutdown
+();
+return
+0
+;
+```
+
+Language: unknown
+File: ws_moveit
+```
+// Create the MoveIt MoveGroup Interface
+using
+moveit
+::
+planning_interface
+::
+MoveGroupInterface
+;
+auto
+move_group_interface
+=
+MoveGroupInterface
+(
+node
+,
+"manipulator"
+);
+// Set a target Pose
+auto
+const
+target_pose
+=
+[]{
+geometry_msgs
+::
+msg
+::
+Pose
+msg
+;
+msg
+.
+orientation
+.
+w
+=
+1.0
+;
+msg
+.
+position
+.
+x
+=
+0.28
+;
+msg
+.
+position
+.
+y
+=
+-0.2
+;
+msg
+.
+position
+.
+z
+=
+0.5
+;
+return
+msg
+;
+}();
+move_group_interface
+.
+setPoseTarget
+(
+target_pose
+);
+// Create a plan to that target pose
+auto
+const
+[
+success
+,
+plan
+]
+=
+[
+&
+move_group_interface
+]{
+moveit
+::
+planning_interface
+::
+MoveGroupInterface
+::
+Plan
+msg
+;
+auto
+const
+ok
+=
+static_cast
+<
+bool
+>
+(
+move_group_interface
+.
+plan
+(
+msg
+));
+return
+std
+::
+make_pair
+(
+ok
+,
+msg
+);
+}();
+// Execute the plan
+if
+(
+success
+)
+{
+move_group_interface
+.
+execute
+(
+plan
+);
+}
+else
+{
+RCLCPP_ERROR
+(
+logger
+,
+"Planning failed!"
+);
+}
+```
+
+Language: unknown
+File: ws_moveit
+```
+colcon
+build
+--mixin
+debug
+
+```
+
+Language: unknown
+File: ws_moveit
+```
+ros2
+launch
+moveit2_tutorials
+demo.launch.py
+
+```
+
+Language: unknown
+File: QueryGoalState
+```
+ros2
+run
+hello_moveit
+hello_moveit
+
+```
+
+Language: unknown
+File: hello_moveit
+```
+[
+ERROR
+]
+[
+1644181704
+.350825487
+]
+[
+hello_moveit
+]
+:
+Could
+not
+find
+parameter
+robot_description
+and
+did
+not
+receive
+robot_description
+via
+std_msgs::msg::String
+subscription
+within
+10
+.000000
+seconds.
+
+```
+
+Language: unknown
+File: MoveGroupInterface
+```
+using
+moveit
+::
+planning_interface
+::
+MoveGroupInterface
+;
+auto
+move_group_interface
+=
+MoveGroupInterface
+(
+node
+,
+"manipulator"
+);
+```
+
+Language: unknown
+File: target_pose
+```
+// Set a target Pose
+auto
+const
+target_pose
+=
+[]{
+geometry_msgs
+::
+msg
+::
+Pose
+msg
+;
+msg
+.
+orientation
+.
+w
+=
+1.0
+;
+msg
+.
+position
+.
+x
+=
+0.28
+;
+msg
+.
+position
+.
+y
+=
+-0.2
+;
+msg
+.
+position
+.
+z
+=
+0.5
+;
+return
+msg
+;
+}();
+move_group_interface
+.
+setPoseTarget
+(
+target_pose
+);
+// Create a plan to that target pose
+auto
+const
+[
+success
+,
+plan
+]
+=
+[
+&
+move_group_interface
+]{
+moveit
+::
+planning_interface
+::
+MoveGroupInterface
+::
+Plan
+msg
+;
+auto
+const
+ok
+=
+static_cast
+<
+bool
+>
+(
+move_group_interface
+.
+plan
+(
+msg
+));
+return
+std
+::
+make_pair
+(
+ok
+,
+msg
+);
+}();
+```
+
+Language: unknown
+File: target_pose
+```
+// Execute the plan
+if
+(
+success
+)
+{
+move_group_interface
+.
+execute
+(
+plan
+);
+}
+else
+{
+RCLCPP_ERROR
+(
+logger
+,
+"Planning failed!"
+);
+}
+```

@@ -1,0 +1,54 @@
+Title: Speed Filter Parameters
+URL: https://docs.nav2.org/configuration/packages/costmap-plugins/speed_filter.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: <filtername>
+```
+global_costmap
+:
+global_costmap
+:
+ros__parameters
+:
+...
+plugins
+:
+[
+"static_layer"
+,
+"obstacle_layer"
+,
+"inflation_layer"
+]
+filters
+:
+[
+"speed_filter"
+]
+...
+speed_filter
+:
+plugin
+:
+"nav2_costmap_2d::SpeedFilter"
+enabled
+:
+True
+filter_info_topic
+:
+"/costmap_filter_info"
+speed_limit_topic
+:
+"/speed_limit"
+transform_tolerance
+:
+0.1
+```

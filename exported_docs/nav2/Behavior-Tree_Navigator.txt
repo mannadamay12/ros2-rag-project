@@ -1,5 +1,0 @@
-Title: Behavior-Tree Navigator
-URL: https://docs.nav2.org/configuration/packages/configuring-bt-navigator.html#example
-Section: 
---------------------------------------------------------------------------------
-

@@ -1,0 +1,29 @@
+Title: TruncatePath
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/TruncatePath.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<TruncatePath
+distance=
+"1.0"
+input_path=
+"{path}"
+output_path=
+"{truncated_path}"
+/>
+```

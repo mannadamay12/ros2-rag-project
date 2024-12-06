@@ -1,5 +1,0 @@
-Title: Kinematic Parameters
-URL: https://docs.nav2.org/configuration/packages/dwb-params/kinematic.html
-Section: 
---------------------------------------------------------------------------------
-

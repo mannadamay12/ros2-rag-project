@@ -1,5 +1,0 @@
-Title: Gazebo Harmonic#
-URL: https://gazebosim.org/docs/harmonic/install
-Section: 
---------------------------------------------------------------------------------
-

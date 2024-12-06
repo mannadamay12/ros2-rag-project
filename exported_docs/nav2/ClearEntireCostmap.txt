@@ -1,0 +1,24 @@
+Title: ClearEntireCostmap
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/ClearEntireCostmap.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<ClearEntireCostmap
+name=
+"ClearLocalCostmap-Subtree"
+service_name=
+"local_costmap/clear_entirely_local_costmap"
+/>
+```

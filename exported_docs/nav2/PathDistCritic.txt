@@ -1,0 +1,8 @@
+Title: PathDistCritic
+URL: https://docs.nav2.org/configuration/packages/trajectory_critics/path_dist.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<name>: PathDistCritic critic name defined in the<dwb plugin>.criticsparameter defined inDWB Controller.

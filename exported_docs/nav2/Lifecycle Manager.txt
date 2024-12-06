@@ -1,0 +1,47 @@
+Title: Lifecycle Manager
+URL: https://docs.nav2.org/configuration/packages/configuring-lifecycle.html#example
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: true
+```
+lifecycle_manager
+:
+ros__parameters
+:
+autostart
+:
+true
+node_names
+:
+[
+'controller_server'
+,
+'planner_server'
+,
+'behavior_server'
+,
+'bt_navigator'
+,
+'waypoint_follower'
+]
+bond_timeout
+:
+4.0
+attempt_respawn_reconnection
+:
+true
+bond_respawn_max_duration
+:
+10.0
+```

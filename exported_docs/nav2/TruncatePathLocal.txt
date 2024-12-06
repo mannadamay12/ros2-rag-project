@@ -1,0 +1,33 @@
+Title: TruncatePathLocal
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/TruncatePathLocal.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<TruncatePathLocal
+input_path=
+"{path}"
+output_path=
+"{path_local}"
+distance_forward=
+"3.5"
+distance_backward=
+"2.0"
+robot_frame=
+"base_link"
+/>
+```

@@ -1,5 +1,0 @@
-Title: Gazebo Ionic#
-URL: https://gazebosim.org/docs/ionic/install
-Section: 
---------------------------------------------------------------------------------
-

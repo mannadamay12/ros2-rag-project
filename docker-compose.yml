@@ -7,17 +7,16 @@ services:
       - ./app:/app
     ports:
       - "8000:8000"
-      - "8888:8888"
     depends_on:
-      - apiserver
       - mongodb
+      - qdrant
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/rag_ros2
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
-      - CLEARML_WEB_HOST=http://webserver:8080
-      - CLEARML_API_HOST=http://apiserver:8008
-      - CLEARML_FILES_HOST=http://fileserver:8081
+      - CLEARML_WEB_HOST=http://clearml:8080
+      - CLEARML_API_HOST=http://clearml:8008
+      - CLEARML_FILES_HOST=http://clearml:8081
 
   mongodb:
     image: mongo:latest
@@ -33,52 +32,14 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
-  # ClearML Services
-  apiserver:
+  clearml:
     image: allegroai/clearml:latest
     ports:
+      - "8080:8080"
       - "8008:8008"
-    environment:
-      CLEARML_MONGODB_SERVICE_HOST: mongodb
-      CLEARML_MONGODB_SERVICE_PORT: 27017
-      CLEARML_ELASTIC_SERVICE_HOST: elasticsearch
-      CLEARML_REDIS_SERVICE_HOST: redis
-    volumes:
-      - clearml_data:/opt/clearml
-    depends_on:
-      - redis
-      - mongodb
-      - elasticsearch
-      - fileserver
-
-  webserver:
-    image: allegroai/clearml:latest
-    command: ["webserver"]
-    ports:
-      - "8080:80"
-    depends_on:
-      - apiserver
-
-  fileserver:
-    image: allegroai/clearml:latest
-    command: ["fileserver"]
-    ports:
       - "8081:8081"
     volumes:
       - clearml_data:/opt/clearml
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    ports:
-      - "9200:9200"
-
-  redis:
-    image: redis:5.0
-    ports:
-      - "6379:6379"
 
 volumes:
   mongodb_data:

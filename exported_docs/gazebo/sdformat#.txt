@@ -1,5 +1,0 @@
-Title: sdformat#
-URL: https://gazebosim.org/libs/sdformat
-Section: 
---------------------------------------------------------------------------------
-

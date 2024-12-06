@@ -1,5 +1,0 @@
-Title: Regulated Pure Pursuit
-URL: https://docs.nav2.org/configuration/packages/configuring-regulated-pp.html#regulated-pure-pursuit-parameters
-Section: 
---------------------------------------------------------------------------------
-

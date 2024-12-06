@@ -1,5 +1,0 @@
-Title: Adding a Smoother to a BT
-URL: https://docs.nav2.org/tutorials/docs/adding_smoother.html
-Section: 
---------------------------------------------------------------------------------
-

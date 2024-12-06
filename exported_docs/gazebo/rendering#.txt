@@ -1,5 +1,0 @@
-Title: rendering#
-URL: https://gazebosim.org/libs/rendering
-Section: 
---------------------------------------------------------------------------------
-

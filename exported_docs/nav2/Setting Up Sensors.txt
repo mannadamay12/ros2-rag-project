@@ -1,0 +1,1100 @@
+Title: Setting Up Sensors
+URL: https://docs.nav2.org/setup_guides/sensors/setup_sensors.html#sensor-introduction
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Sensor Introduction
+Mobile robots are equipped with a multitude of sensors that allow them to see and perceive their environment. These sensors obtain information which can be used to build and maintain the map of the environment, to localize the robot on the map, and to see the obstacles in the environment. These tasks are essential to be able to safely and efficiently navigate a robot through a dynamic environment.
+Examples of commonly used sensors are lidar, radar, RGB camera, depth camera, IMU, and GPS. To standardize the message formats of these sensors and allow for easier interoperation between vendors, ROS provides thesensor_msgspackage that defines the common sensor interfaces. This also allows users to use any sensor vendor as long as it follows the standard format insensor_msgs. In the next subsection, we introduce some of commonly used messages in navigation, namely thesensor_msgs/LaserScan,sensor_msgs/PointCloud2,sensor_msgs/Range, andsensor_msgs/Image.
+Aside from thesensor_msgspackage, there are also theradar_msgsandvision_msgsstandard interfaces you should be aware of.  Theradar_msgsdefines the messages for radar-specific sensors while thevision_msgspackage defines the messages used in computer vision such as object detection, segmentation, and other machine learning models. Messages supported by this package arevision_msgs/Classification2D,vision_msgs/Classification3D,vision_msgs/Detection2D, andvision_msgs/Detection3D, to name a few.
+Your physical robot’s sensors probably have ROS drivers written for them (e.g. a ROS node that connects to the sensors, populates data into messages, and publishes them for your robot to use) that follow the standard interface in thesensor_msgspackage. Thesensor_msgspackage makes it easy for you to use many different sensors from different manufacturers. General software packages like Nav2 can then read these standardized messages and perform tasks independent of the sensor hardware. On simulated robots such assam_bot, Gazebo has sensor plugins which also publish their information following thesensor_msgspackage.
+
+## Common Sensor Messages
+In this subsection, we discuss some of the common types ofsensor_msgsyou might encounter when setting up Nav2. We will provide a brief description for each sensor, an image of it being simulated in Gazebo and the corresponding visualization of the sensor readings in RViz.
+
+## sensor_msgs/LaserScan
+This message represents a single scan from a planar laser range-finder. This message is used inslam_toolboxandnav2_amclfor localization and mapping, or innav2_costmap_2dfor perception.
+
+## sensor_msgs/PointCloud2
+This message holds a collection of 3D points, plus optional additional information about each point. This can be from a 3D lidar, a 2D lidar, a depth camera or more.
+
+## sensor_msgs/Range
+This is a single range reading from an active ranger that emits energy and reports one range reading that is valid along an arc at the distance measured. A sonar, IR sensor, or 1D range finder are examples of sensors that use this message.
+
+## sensor_msgs/Image
+This represents the sensor readings from RGB or depth camera, corresponding to RGB or range values.
+
+## Simulating Sensors using Gazebo
+To give you a better grasp of how to set up sensors on a simulated robot, we will build up on our previous tutorials and attach sensors to our simulated robotsam_bot. Similar to the previous tutorial where we used Gazebo plugins to add odometry sensors tosam_bot, we will be using the Gazebo plugins to simulate a lidar sensor and a depth camera onsam_bot. If you are working with a real robot, most of these steps are still required for setting up your URDF frames and it will not hurt to also add in the gazebo plugins for later use.
+To be able to follow the rest of this section, make sure that you have properly installed Gazebo. You can follow the instructions at theSetup and Prerequisitesof the previous tutorial to setup Gazebo.
+
+## Adding Gazebo Plugins to a URDF
+Let us first add a lidar sensor tosam_bot. Open the URDF file,src/description/sam_bot_description.urdfand paste the following lines before the</robot>tag.
+In the code snippet above, we create alidar_linkwhich will be referenced by thegazebo_ros_ray_sensorplugin as the location to attach our sensor. We also set values to the simulated lidar’s scan and range properties. Lastly, we set the/scanas the topic to which it will publish thesensor_msgs/LaserScanmessages.
+Next, let us add a depth camera tosam_bot. Paste the following lines after the</gazebo>tag of the lidar sensor.
+Similar to the lidar sensor, we createcamera_linkwhich will be referenced by thegazebo_ros_cameraplugin as the sensor attachment location. We also create acamera_depth_framethat is attached to thecamera_linkand will be set as the<frame_name>of the depth camera plugin.  We also configure the plugin such that it will publishsensor_msgs/Imageandsensor_msgs/PointCloud2messages to/depth_camera/image_rawand/depth_camera/pointstopics respectively. Lastly, we also set up other basic configuration properties for our depth camera.
+
+## Launch and Build Files
+To verify that the sensors are set up properly and that they can see objects in our environment, let us launchsam_botin a Gazebo world with objects.
+Let us create a Gazebo world with a single cube and a single sphere that are within the range ofsam_bot’s sensors so we can verify if it can see the objects correctly.
+To create the world, create a directory namedworldat the root of your project and create a file namedmy_world.sdfinside theworldfolder . Then copy the contents ofworld/my_world.sdfand paste them insidemy_world.sdf.
+Now, let us edit our launch file,launch/display.launch.py, to launch Gazebo with the world we just created. First, add the path ofmy_world.sdfby adding the following lines inside thegenerate_launch_description():
+Lastly, add the world path in thelaunch.actions.ExecuteProcess(cmd=['gazebo',...line, as shown below.
+We also have to add theworlddirectory to ourCMakeLists.txtfile. OpenCmakeLists.txtand append theworlddirectory inside the install(DIRECTORY…), as shown in the snippet below.
+
+## Build, Run and Verification
+We can now build and run our project. Navigate to the root of the project and execute the following lines:
+RViz and the Gazebo will then be launched withsam_botpresent in both. In the Gazebo window, the world that we created should be launched andsam_botshould be spawned in that world. You should now be able to observesam_botwith the 360 lidar sensor and the depth camera, as shown in the image below.
+In the RViz window, we can verify if we have properly modeled our sensors and if the transforms of our newly added sensors are correct:
+Lastly, we can also visualize the sensor readings in RViz.  To visualize thesensor_msgs/LaserScanmessage published on/scantopic, click the add button at the bottom part of the RViz window. Then go to theBytopictab and select theLaserScanoption under/scan, as shown below.
+Next, set theReliabilityPolicyin RViz toBestEffortand set thesizeto 0.1 to see the points clearer. You should see the visualizedLaserScandetection as shown below. This corresponds to the detected cube and sphere that we added to the Gazebo world.
+To visualizesensor_msgs/Imageandsensor_msgs/PointCloud2, do the same for topics/depth_camera/image_rawand/depth_camera/pointsrespectively:
+After adding the/depth_camera/image_rawtopic in RViz, set theReliabilityPolicyin RViz toBestEffort. Then you should see the cube in the image window at the lower-left side of the RViz window, as shown below.
+You should also see thesensor_msgs/PointCloud2, as shown below.
+
+## Mapping and Localization
+Now that we have a robot with its sensors set up, we can use the obtained sensor information to build a map of the environment and to localize the robot on the map. Theslam_toolboxpackage is a set of tools and capabilities for 2D Simultaneous Localization and Mapping (SLAM) in potentially massive maps with ROS2. It is also one of the officially supported SLAM libraries in Nav2, and we recommend to use this package in situations you need to use SLAM on your robot setup. Aside from theslam_toolbox, localization can also be implemented through thenav2_amclpackage. This package implements Adaptive Monte Carlo Localization (AMCL) which estimates the position and orientation of the robot in a map. Other techniques may also be available, please check Nav2 documentation for more information.
+Both theslam_toolboxandnav2_amcluse information from the laser scan sensor to be able to perceive the robot’s environment. Hence, to verify that they can access the laser scan sensor readings, we must make sure that they are subscribed to the correct topic that publishes thesensor_msgs/LaserScanmessage. This can be configured by setting theirscan_topicparameters to the topic that publishes that message. It is a convention to publish thesensor_msgs/LaserScanmessages to/scantopic. Thus, by default, thescan_topicparameter is set to/scan. Recall that when we added the lidar sensor tosam_botin the previous section, we set the topic to which the lidar sensor will publish thesensor_msgs/LaserScanmessages as/scan.
+In-depth discussions on the complete configuration parameters will not be a scope of our tutorials since they can be pretty complex. Instead, we recommend you to have a look at their official documentation in the links below.
+You can also refer to the(SLAM) Navigating While Mapping guidefor the tutorial on how to use Nav2 with SLAM. You can verify thatslam_toolboxandnav2_amclhave been correctly setup by visualizing the map and the robot’s pose in RViz, similar to what was shown in the previous section.
+
+## Costmap 2D
+The costmap 2D package makes use of the sensor information to provide a representation of the robot’s environment in the form of an occupancy grid. The cells in the occupancy grid store cost values between 0-254 which denote a cost to travel through these zones. A cost of 0 means the cell is free while a cost of 254 means that the cell is lethally occupied. Values in between these extremes are used by navigation algorithms to steer your robot away from obstacles as a potential field. Costmaps in Nav2 are implemented through thenav2_costmap_2dpackage.
+The costmap implementation consists of multiple layers, each of which has a certain function that contributes to a cell’s overall cost. The package consists of the following layers, but are plugin-based to allow customization and new layers to be used as well: static layer, inflation layer, range layer, obstacle layer, and voxel layer. The static layer represents the map section of the costmap, obtained from the messages published to the/maptopic like those produced by SLAM.  The obstacle layer includes the objects detected by sensors that publish either or both theLaserScanandPointCloud2messages. The voxel layer is similar to the obstacle layer such that it can use either or both theLaserScanandPointCloud2sensor information but handles 3D data instead. The range layer allows for the inclusion of information provided by sonar and infrared sensors. Lastly, the inflation layer represents the added cost values around lethal obstacles such that our robot avoids navigating into obstacles due to the robot’s geometry. In the next subsection of this tutorial, we will have some discussion about the basic configuration of the different layers innav2_costmap_2d.
+The layers are integrated into the costmap through a plugin interface and then inflated using a user-specifiedinflation radius, if the inflation layer is enabled. For a deeper discussion on costmap concepts, you can have a look at theROS1 costmap_2D documentation. Note that thenav2_costmap_2dpackage is mostly a straightforward ROS2 port of the ROS1 navigation stack version with minor changes required for ROS2 support and some new layer plugins.
+
+## Configuring nav2_costmap_2d
+In this subsection, we will show an example configuration ofnav2_costmap_2dsuch that it uses the information provided by the lidar sensor ofsam_bot. We will show an example configuration that uses static layer, obstacle layer, voxel layer, and inflation layer. We set both the obstacle and voxel layer to use theLaserScanmessages published  to the/scantopic by the lidar sensor. We also set some of the basic parameters to define how the detected obstacles are reflected in the costmap. Note that this configuration is to be included in the configuration file of Nav2.
+In the configuration above, notice that we set the parameters for two different costmaps:global_costmapandlocal_costmap. We set up two costmaps since theglobal_costmapis mainly used for long-term planning over the whole map whilelocal_costmapis for short-term planning and collision avoidance.
+The layers that we use for our configuration are defined in thepluginsparameter, as shown in line 13 for theglobal_costmapand line 50 for thelocal_costmap. These values are set as a list of mapped layer names that also serve as namespaces for the layer parameters we set up starting at lines 14 and line 51. Note that each layer/namespace in this list must have apluginparameter (as indicated in lines 15, 18, 32, 52, and 68) defining the type of plugin to be loaded for that specific layer.
+For the static layer (lines 14-16), we set themap_subscribe_transient_localparameter toTrue. This sets the QoS settings for the map topic. Another important parameter for the static layer is themap_topicwhich defines the map topic to subscribe to. This defaults to/maptopic when not defined.
+For the obstacle layer (lines 17-30), we define its sensor source under theobservation_sourcesparameter (line 20) asscanwhose parameters are set up in lines 22-30. We set itstopicparameter as the topic that publishes the defined sensor source and we set thedata_typeaccording to the sensor source it will use. In our configuration, the obstacle layer will use theLaserScanpublished by the lidar sensor to/scan.
+Note that the obstacle layer and voxel layer can use either or bothLaserScanandPointCloud2as theirdata_typebut it is set toLaserScanby default. The code snippet below shows an example of using both theLaserScanandPointCloud2as the sensor sources. This may be particularly useful when setting up your own physical robot.
+For the other parameters of the obstacle layer, themax_obstacle_heightparameter sets the maximum height of the sensor reading to return to the occupancy grid. The minimum height of the sensor reading can also be set using themin_obstacle_heightparameter, which defaults to 0 since we did not set it in the configuration. Theclearingparameter is used to set whether the obstacle is to be removed from the costmap or not. The clearing operation is done by raytracing through the grid. The maximum and minimum range to raytrace clear objects from the costmap is set using theraytrace_max_rangeandraytrace_min_rangerespectively. Themarkingparameter is used to set whether the inserted obstacle is marked into the costmap or not. We also set the maximum and minimum range to mark obstacles in the costmap through theobstacle_max_rangeandobstacle_min_rangerespectively.
+For the inflation layer (lines 31-34 and 67-70), we set the exponential decay factor across the inflation radius using thecost_scaling_factorparameter. The value of the radius to inflate around lethal obstacles is defined using theinflation_radius.
+For the voxel layer (lines 51-66), we set thepublish_voxel_mapparameter toTrueto enable the publishing of the 3D voxel grid. The resolution of the voxels in height is defined using thez_resolutionparameter, while the number of voxels in each column is defined using thez_voxelsparameter. Themark_thresholdparameter sets the minimum number of voxels in a column to mark as occupied in the occupancy grid. We set theobservation_sourcesparameter of the voxel layer toscan, and we set the scan parameters (in lines 61-66) similar to the parameters that we have discussed for the obstacle layer. As defined in itstopicanddata_typeparameters, the voxel layer will use theLaserScanpublished on the/scantopic by the lidar scanner.
+Note that the we are not using a range layer for our configuration but it may be useful for your own robot setup. For the range layer, its basic parameters are thetopics,input_sensor_type, andclear_on_max_readingparameters. The range topics to subscribe to are defined in thetopicsparameter. Theinput_sensor_typeis set to eitherALL,VARIABLE, orFIXED. Theclear_on_max_readingis a boolean parameter that sets whether to clear the sensor readings on max range.  Have a look at the configuration guide in the link below in case you need to set it up.
+
+## Build, Run and Verification
+We will first launchdisplay.launch.pywhich launches the robot state publisher that provides thebase_link=>sensorstransformations in our URDF. It also launches Gazebo that acts as our physics simulator and also provides theodom=>base_linkfrom the differential drive plugin, which we added tosam_botin the previous guide,Simulating an Odometry System Using Gazebo. It also launches RViz which we can use to visualize the robot and sensor information.
+Then we will launchslam_toolboxto publish to/maptopic and provide themap=>odomtransform. Recall that themap=>odomtransform is one of the primary requirements of the Nav2 system. The messages published on the/maptopic will then be used by the static layer of theglobal_costmap.
+After we have properly setup our robot description, odometry sensors, and necessary transforms, we will finally launch the Nav2 system itself. For now, we will only be exploring the costmap generation system of Nav2. After launching Nav2, we will visualize the costmaps in RViz to confirm our output.
+
+## Launching Description Nodes, RViz and Gazebo
+Let us now launch our Robot Description Nodes, RViz and Gazebo through the launch filedisplay.launch.py. Open a new terminal and execute the lines below.
+RViz and the Gazebo should now be launched withsam_botpresent in both. Recall that thebase_link=>sensorstransform is now being published byrobot_state_publisherand theodom=>base_linktransform by our Gazebo plugins. Both transforms should now be displayed show without errors in RViz.
+
+## Launching slam_toolbox
+To be able to launchslam_toolbox, make sure that you have installed theslam_toolboxpackage by executing the following command:
+We will launch theasync_slam_toolbox_nodeofslam_toolboxusing the package’s built-in launch files. Open a new terminal and then execute the following lines:
+Theslam_toolboxshould now be publishing to the/maptopic and providing themap=>odomtransform.
+We can verify in RViz that the/maptopic is being published. In the RViz window, click the add button at the bottom-left part then go toBytopictab then select theMapunder the/maptopic. You should be able to visualize the message received in the/mapas shown in the image below.
+We can also check that the transforms are correct by executing the following lines in a new terminal:
+Note: For Galactic and newer, it should beview_framesand notview_frames.pyThe line above will create aframes.pdffile that shows the current transform tree. Your transform tree should be similar to the one shown below:
+
+## Launching Nav2
+First, Make sure you have installed the Nav2 packages by executing the following:
+We will now launch Nav2 using thenav2_bringup’s built-in launch file,navigation_launch.py. Open a new terminal and execute the following:
+Note that the parameters of thenav2_costmap_2dthat we discussed in the previous subsection are included in the default parameters ofnavigation_launch.py. Aside from thenav2_costmap_2dparameters, it also contains parameters for the other nodes that are included in Nav2 implementation.
+After we have properly set up and launched Nav2, the/global_costmapand/local_costmaptopics should now be active.
+
+## Visualizing Costmaps in RViz
+Theglobal_costmap,local_costmapand the voxel representation of the detected obstacles can be visualized in RViz.
+To visualize theglobal_costmapin RViz, click the add button at the bottom-left part of the RViz window. Go toBytopictab then select theMapunder the/global_costmap/costmaptopic. Theglobal_costmapshould show in the RViz window, as shown below. Theglobal_costmapshows areas which should be avoided (black) by our robot when it navigates our simulated world in Gazebo.
+To visualize thelocal_costmapin RViz, select theMapunder the/local_costmap/costmaptopic. Set thecolorschemein RViz tocostmapto make it appear similar to the image below.
+To visualize the voxel representation of the detected object, open a new terminal and execute the following lines:
+The line above sets the topic where the the markers will be published to/my_marker. To see the markers in RViz, selectMarkerunder the/my_markertopic, as shown below.
+Then set thefixedframein RViz toodomand you should now see the voxels in RViz, which represent the cube and the sphere that we have in the Gazebo world:
+
+## Conclusion
+In this section of our robot setup guide, we have discussed the importance of sensor information for different tasks associated with Nav2. More specifically, tasks such as mapping (SLAM), localization (AMCL), and perception (costmap) tasks.
+We also had a discussion on the common types of sensor messages in Nav2 which standardize the message formats for different sensor vendors. We also discussed how to add sensors to a simulated robot using Gazebo and how to verify that the sensors are working correctly through RViz.
+Lastly, we set up a basic configuration for thenav2_costmap_2dpackage using different layers to produce a global and local costmap. We then verify our work by visualizing these costmaps in RViz.
+
+Code Examples:
+
+Language: unknown
+File: </robot>
+```
+251
+<link
+name=
+"lidar_link"
+>
+252
+<inertial>
+253
+<origin
+xyz=
+"0 0 0"
+rpy=
+"0 0 0"
+/>
+254
+<mass
+value=
+"0.125"
+/>
+255
+<inertia
+ixx=
+"0.001"
+ixy=
+"0"
+ixz=
+"0"
+iyy=
+"0.001"
+iyz=
+"0"
+izz=
+"0.001"
+/>
+256
+</inertial>
+257
+258
+<collision>
+259
+<origin
+xyz=
+"0 0 0"
+rpy=
+"0 0 0"
+/>
+260
+<geometry>
+261
+<cylinder
+radius=
+"0.0508"
+length=
+"0.055"
+/>
+262
+</geometry>
+263
+</collision>
+264
+265
+<visual>
+266
+<origin
+xyz=
+"0 0 0"
+rpy=
+"0 0 0"
+/>
+267
+<geometry>
+268
+<cylinder
+radius=
+"0.0508"
+length=
+"0.055"
+/>
+269
+</geometry>
+270
+</visual>
+271
+</link>
+272
+273
+<joint
+name=
+"lidar_joint"
+type=
+"fixed"
+>
+274
+<parent
+link=
+"base_link"
+/>
+275
+<child
+link=
+"lidar_link"
+/>
+276
+<origin
+xyz=
+"0 0 0.12"
+rpy=
+"0 0 0"
+/>
+277
+</joint>
+278
+279
+<gazebo
+reference=
+"lidar_link"
+>
+280
+<sensor
+name=
+"lidar"
+type=
+"ray"
+>
+281
+<always_on>
+true
+</always_on>
+282
+<visualize>
+true
+</visualize>
+283
+<update_rate>
+5
+</update_rate>
+284
+<ray>
+285
+<scan>
+286
+<horizontal>
+287
+<samples>
+360
+</samples>
+288
+<resolution>
+1.000000
+</resolution>
+289
+<min_angle>
+0.000000
+</min_angle>
+290
+<max_angle>
+6.280000
+</max_angle>
+291
+</horizontal>
+292
+</scan>
+293
+<range>
+294
+<min>
+0.120000
+</min>
+295
+<max>
+3.5
+</max>
+296
+<resolution>
+0.015000
+</resolution>
+297
+</range>
+298
+<noise>
+299
+<type>
+gaussian
+</type>
+300
+<mean>
+0.0
+</mean>
+301
+<stddev>
+0.01
+</stddev>
+302
+</noise>
+303
+</ray>
+304
+<plugin
+name=
+"scan"
+filename=
+"libgazebo_ros_ray_sensor.so"
+>
+305
+<ros>
+306
+<remapping>
+~/out:=scan
+</remapping>
+307
+</ros>
+308
+<output_type>
+sensor_msgs/LaserScan
+</output_type>
+309
+<frame_name>
+lidar_link
+</frame_name>
+310
+</plugin>
+311
+</sensor>
+312
+</gazebo>
+```
+
+Language: unknown
+File: </gazebo>
+```
+314
+<link
+name=
+"camera_link"
+>
+315
+<visual>
+316
+<origin
+xyz=
+"0 0 0"
+rpy=
+"0 0 0"
+/>
+317
+<geometry>
+318
+<box
+size=
+"0.015 0.130 0.022"
+/>
+319
+</geometry>
+320
+</visual>
+321
+322
+<collision>
+323
+<origin
+xyz=
+"0 0 0"
+rpy=
+"0 0 0"
+/>
+324
+<geometry>
+325
+<box
+size=
+"0.015 0.130 0.022"
+/>
+326
+</geometry>
+327
+</collision>
+328
+329
+<inertial>
+330
+<origin
+xyz=
+"0 0 0"
+rpy=
+"0 0 0"
+/>
+331
+<mass
+value=
+"0.035"
+/>
+332
+<inertia
+ixx=
+"0.001"
+ixy=
+"0"
+ixz=
+"0"
+iyy=
+"0.001"
+iyz=
+"0"
+izz=
+"0.001"
+/>
+333
+</inertial>
+334
+</link>
+335
+336
+<joint
+name=
+"camera_joint"
+type=
+"fixed"
+>
+337
+<parent
+link=
+"base_link"
+/>
+338
+<child
+link=
+"camera_link"
+/>
+339
+<origin
+xyz=
+"0.215 0 0.05"
+rpy=
+"0 0 0"
+/>
+340
+</joint>
+341
+342
+<link
+name=
+"camera_depth_frame"
+/>
+343
+344
+<joint
+name=
+"camera_depth_joint"
+type=
+"fixed"
+>
+345
+<origin
+xyz=
+"0 0 0"
+rpy=
+"${-pi/2} 0 ${-pi/2}"
+/>
+346
+<parent
+link=
+"camera_link"
+/>
+347
+<child
+link=
+"camera_depth_frame"
+/>
+348
+</joint>
+349
+350
+<gazebo
+reference=
+"camera_link"
+>
+351
+<sensor
+name=
+"depth_camera"
+type=
+"depth"
+>
+352
+<visualize>
+true
+</visualize>
+353
+<update_rate>
+30.0
+</update_rate>
+354
+<camera
+name=
+"camera"
+>
+355
+<horizontal_fov>
+1.047198
+</horizontal_fov>
+356
+<image>
+357
+<width>
+640
+</width>
+358
+<height>
+480
+</height>
+359
+<format>
+R8G8B8
+</format>
+360
+</image>
+361
+<clip>
+362
+<near>
+0.05
+</near>
+363
+<far>
+3
+</far>
+364
+</clip>
+365
+</camera>
+366
+<plugin
+name=
+"depth_camera_controller"
+filename=
+"libgazebo_ros_camera.so"
+>
+367
+<baseline>
+0.2
+</baseline>
+368
+<alwaysOn>
+true
+</alwaysOn>
+369
+<updateRate>
+0.0
+</updateRate>
+370
+<frame_name>
+camera_depth_frame
+</frame_name>
+371
+<pointCloudCutoff>
+0.5
+</pointCloudCutoff>
+372
+<pointCloudCutoffMax>
+3.0
+</pointCloudCutoffMax>
+373
+<distortionK1>
+0
+</distortionK1>
+374
+<distortionK2>
+0
+</distortionK2>
+375
+<distortionK3>
+0
+</distortionK3>
+376
+<distortionT1>
+0
+</distortionT1>
+377
+<distortionT2>
+0
+</distortionT2>
+378
+<CxPrime>
+0
+</CxPrime>
+379
+<Cx>
+0
+</Cx>
+380
+<Cy>
+0
+</Cy>
+381
+<focalLength>
+0
+</focalLength>
+382
+<hackBaseline>
+0
+</hackBaseline>
+383
+</plugin>
+384
+</sensor>
+385
+</gazebo>
+```
+
+Language: unknown
+File: generate_launch_description()
+```
+world_path
+=
+os.path.join
+(
+pkg_share,
+'world/my_world.sdf'
+)
+```
+
+Language: unknown
+File: launch.actions.ExecuteProcess(cmd=['gazebo',...
+```
+launch.actions.ExecuteProcess
+(
+cmd
+=[
+'gazebo'
+,
+'--verbose'
+,
+'-s'
+,
+'libgazebo_ros_init.so'
+,
+'-s'
+,
+'libgazebo_ros_factory.so'
+,
+world_path
+]
+,
+output
+=
+'screen'
+)
+,
+
+```
+
+Language: unknown
+File: world
+```
+install
+(
+DIRECTORY
+src
+launch
+rviz
+config
+world
+
+DESTINATION
+share/
+${
+PROJECT_NAME
+}
+)
+```
+
+Language: unknown
+File: world
+```
+colcon
+build
+.
+install/setup.bash
+ros2
+launch
+sam_bot_description
+display.launch.py
+
+```
+
+Language: unknown
+File: /scan
+```
+ 1
+global_costmap
+:
+ 2
+global_costmap
+:
+ 3
+ros__parameters
+:
+ 4
+update_frequency
+:
+1.0
+ 5
+publish_frequency
+:
+1.0
+ 6
+global_frame
+:
+map
+ 7
+robot_base_frame
+:
+base_link
+ 8
+use_sim_time
+:
+True
+ 9
+robot_radius
+:
+0.22
+10
+resolution
+:
+0.05
+11
+track_unknown_space
+:
+false
+12
+rolling_window
+:
+false
+13
+plugins
+:
+[
+"static_layer"
+,
+"obstacle_layer"
+,
+"inflation_layer"
+]
+14
+static_layer
+:
+15
+plugin
+:
+"nav2_costmap_2d::StaticLayer"
+16
+map_subscribe_transient_local
+:
+True
+17
+obstacle_layer
+:
+18
+plugin
+:
+"nav2_costmap_2d::ObstacleLayer"
+19
+enabled
+:
+True
+20
+observation_sources
+:
+scan
+21
+scan
+:
+22
+topic
+:
+/scan
+23
+max_obstacle_height
+:
+2.0
+24
+clearing
+:
+True
+25
+marking
+:
+True
+26
+data_type
+:
+"LaserScan"
+27
+raytrace_max_range
+:
+3.0
+28
+raytrace_min_range
+:
+0.0
+29
+obstacle_max_range
+:
+2.5
+30
+obstacle_min_range
+:
+0.0
+31
+inflation_layer
+:
+32
+plugin
+:
+"nav2_costmap_2d::InflationLayer"
+33
+cost_scaling_factor
+:
+3.0
+34
+inflation_radius
+:
+0.55
+35
+always_send_full_costmap
+:
+True
+36
+37
+local_costmap
+:
+38
+local_costmap
+:
+39
+ros__parameters
+:
+40
+update_frequency
+:
+5.0
+41
+publish_frequency
+:
+2.0
+42
+global_frame
+:
+odom
+43
+robot_base_frame
+:
+base_link
+44
+use_sim_time
+:
+True
+45
+rolling_window
+:
+true
+46
+width
+:
+3
+47
+height
+:
+3
+48
+resolution
+:
+0.05
+49
+robot_radius
+:
+0.22
+50
+plugins
+:
+[
+"voxel_layer"
+,
+"inflation_layer"
+]
+51
+voxel_layer
+:
+52
+plugin
+:
+"nav2_costmap_2d::VoxelLayer"
+53
+enabled
+:
+True
+54
+publish_voxel_map
+:
+True
+55
+origin_z
+:
+0.0
+56
+z_resolution
+:
+0.05
+57
+z_voxels
+:
+16
+58
+max_obstacle_height
+:
+2.0
+59
+mark_threshold
+:
+0
+60
+observation_sources
+:
+scan
+61
+scan
+:
+62
+topic
+:
+/scan
+63
+max_obstacle_height
+:
+2.0
+64
+clearing
+:
+True
+65
+marking
+:
+True
+66
+data_type
+:
+"LaserScan"
+67
+inflation_layer
+:
+68
+plugin
+:
+"nav2_costmap_2d::InflationLayer"
+69
+cost_scaling_factor
+:
+3.0
+70
+inflation_radius
+:
+0.55
+71
+always_send_full_costmap
+:
+True
+```
+
+Language: unknown
+File: PointCloud2
+```
+obstacle_layer:
+
+plugin:
+"nav2_costmap_2d::ObstacleLayer"
+enabled:
+True
+
+observation_sources:
+scan
+pointcloud
+
+scan:
+
+topic:
+/scan
+
+data_type:
+"LaserScan"
+pointcloud:
+
+topic:
+/depth_camera/points
+
+data_type:
+"PointCloud2"
+```
+
+Language: unknown
+File: display.launch.py
+```
+colcon
+build
+.
+install/setup.bash
+ros2
+launch
+sam_bot_description
+display.launch.py
+
+```
+
+Language: unknown
+File: slam_toolbox
+```
+sudo
+apt
+install
+ros-<ros2-distro>-slam-toolbox
+
+```
+
+Language: unknown
+File: slam_toolbox
+```
+ros2
+launch
+slam_toolbox
+online_async_launch.py
+
+```
+
+Language: unknown
+File: /map
+```
+ros2
+run
+tf2_tools
+view_frames.py
+
+```
+
+Language: unknown
+File: frames.pdf
+```
+sudo
+apt
+install
+ros-<ros2-distro>-navigation2
+sudo
+apt
+install
+ros-<ros2-distro>-nav2-bringup
+
+```
+
+Language: unknown
+File: navigation_launch.py
+```
+ros2
+launch
+nav2_bringup
+navigation_launch.py
+
+```
+
+Language: unknown
+File: costmap
+```
+ros2
+run
+nav2_costmap_2d
+nav2_costmap_2d_markers
+voxel_grid:
+=
+/local_costmap/voxel_grid
+visualization_marker:
+=
+/my_marker
+
+```

@@ -1,0 +1,29 @@
+Title: How to Cross-Reference Content
+URL: https://moveit.picknik.ai/main/doc/how_to_contribute/how_to_cross_reference.html
+Section: index.html
+--------------------------------------------------------------------------------
+
+
+## Learning Objectives
+
+
+## Linking to other Documents and Sections
+Sphinx provides the:doc:and:ref:roles forcross-referencing contentand it’s best to stick to them to ensure compatibility with other Sphinx extensions and multi-distro support.
+For linking to other documents, you can use the:doc:role like this:Getting Started(:doc:`/doc/tutorials/getting_started/getting_started`). The:ref:role accepts ids that link to explicit targets on a page.
+For convenience, we have enabled the Sphinx extensionautosectionlabelwhich creates unique and human-readable reference targets for all sections.
+Sections in all documents can be linked by providing the document path and the section titlelike this(:ref:`likethis<doc/tutorials/getting_started/getting_started:InstallROS2andColcon>`).
+Note that the:doc:role requires absolute paths to start with a/while theautosectionlabelextension builds:refpath labels without it.
+
+## Referencing the API Documentation
+The API pages are generated using Doxygen and not Sphinx which means that:doc:and:ref:roles are not able to find any API pages.
+We are usingdoxylinkand the custom:cpp_api:role for generating links to the API pages from symbols.
+Here are some examples, take note that some links use titles and some not:
+If you are unsure about how to link certain symbols, you can find all Doxygen references inside theMoveIt.tagfile.
+The file is located insidebuild/html/api/orbuild/html/<branch>/api/depending on the build type.
+
+## Do’s and Don’ts
+Pleasedo:
+Pleasedon’t:
+
+## Further Reading
+

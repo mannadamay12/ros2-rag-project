@@ -1,0 +1,22 @@
+Title: ReinitializeGlobalLocalization
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/ReinitializeGlobalLocalization.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<ReinitializeGlobalLocalization
+service_name=
+"reinitialize_global_localization"
+/>
+```

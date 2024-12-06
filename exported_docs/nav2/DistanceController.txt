@@ -1,0 +1,28 @@
+Title: DistanceController
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/decorators/DistanceController.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: GoalReached
+```
+<DistanceController
+distance=
+"0.5"
+global_frame=
+"map"
+robot_base_frame=
+"base_link"
+>
+<!--Add tree components here--->
+</DistanceController>
+```

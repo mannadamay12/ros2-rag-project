@@ -1,0 +1,18 @@
+Title: SingleTrigger
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/decorators/SingleTrigger.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<SingleTrigger>
+<!--Add tree components here--->
+</SingleTrigger>
+```

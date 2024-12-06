@@ -1,5 +1,0 @@
-Title: Gazebo Sim
-URL: https://gazebosim.org/api/sim/8/tutorials.html
-Section: 
---------------------------------------------------------------------------------
-

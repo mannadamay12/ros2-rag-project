@@ -1,0 +1,8 @@
+Title: WaitAtWaypoint
+URL: https://docs.nav2.org/configuration/packages/nav2_waypoint_follower-plugins/wait_at_waypoint.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<nav2_waypoint_followerplugin>: nav2_waypoint_follower plugin name defined in thewaypoint_task_executor_plugin_idparameter inWaypoint Follower.

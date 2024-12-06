@@ -1,5 +1,0 @@
-Title: Gazebo Common
-URL: https://gazebosim.org/api/common/5/tutorials.html
-Section: 
---------------------------------------------------------------------------------
-

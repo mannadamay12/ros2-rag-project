@@ -1,5 +1,0 @@
-Title: Model Predictive Path Integral Controller
-URL: https://docs.nav2.org/configuration/packages/configuring-mppic.html#obstacles-critic
-Section: 
---------------------------------------------------------------------------------
-

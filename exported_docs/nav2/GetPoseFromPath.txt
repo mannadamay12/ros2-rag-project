@@ -1,0 +1,29 @@
+Title: GetPoseFromPath
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/GetPoseFromPath.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: -2
+```
+<GetPoseFromPath
+path=
+"{path}"
+index=
+"-1"
+pose=
+"{goal}"
+/>
+```

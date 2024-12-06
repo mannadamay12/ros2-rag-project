@@ -1,5 +1,0 @@
-Title: Setting Up Sensors
-URL: https://docs.nav2.org/setup_guides/sensors/setup_sensors.html#configuring-nav2-costmap-2d
-Section: 
---------------------------------------------------------------------------------
-

@@ -1,0 +1,15 @@
+Title: Manipulating Models#
+URL: https://gazebosim.org/docs/latest/manipulating_models
+Section: manipulating_models
+--------------------------------------------------------------------------------
+
+
+Code Examples:
+
+Language: unknown
+```
+gz
+sim
+shapes.sdf
+
+```

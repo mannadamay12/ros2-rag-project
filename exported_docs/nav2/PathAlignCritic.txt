@@ -1,0 +1,8 @@
+Title: PathAlignCritic
+URL: https://docs.nav2.org/configuration/packages/trajectory_critics/path_align.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<name>: PathAlignCritic critic name defined in the<dwb plugin>.criticsparameter defined inDWB Controller.

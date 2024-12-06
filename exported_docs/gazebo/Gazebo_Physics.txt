@@ -1,5 +1,0 @@
-Title: Gazebo Physics
-URL: https://gazebosim.org/api/physics/7/tutorials.html
-Section: 
---------------------------------------------------------------------------------
-

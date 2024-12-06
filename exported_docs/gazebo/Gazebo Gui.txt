@@ -1,0 +1,5 @@
+Title: Gazebo Gui
+URL: https://gazebosim.org/api/gui/8/tutorials.html
+Section: tutorials
+--------------------------------------------------------------------------------
+

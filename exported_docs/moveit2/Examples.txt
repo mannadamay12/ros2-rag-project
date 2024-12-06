@@ -1,5 +1,5 @@
 Title: Examples
 URL: https://moveit.picknik.ai/main/doc/examples/examples.html
-Section: 
+Section: doc/examples/examples.html
 --------------------------------------------------------------------------------
 

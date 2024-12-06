@@ -1,5 +1,0 @@
-Title: Gazebo Msgs
-URL: https://gazebosim.org/api/msgs/10/tutorials.html
-Section: 
---------------------------------------------------------------------------------
-

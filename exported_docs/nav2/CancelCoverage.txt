@@ -1,0 +1,24 @@
+Title: CancelCoverage
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/CancelCoverage.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: server_name
+```
+<CancelCoverage
+server_name=
+"compute_complete_coverage"
+server_timeout=
+"10"
+/>
+```

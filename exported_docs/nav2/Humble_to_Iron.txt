@@ -1,5 +1,0 @@
-Title: Humble to Iron
-URL: https://docs.nav2.org/migration/Humble.html#publish-collision-monitor-state
-Section: 
---------------------------------------------------------------------------------
-

@@ -60,4 +60,4 @@ def etl_pipeline_logic(config_path: str = "./app/configs/sources.yaml"):
 
 if __name__ == '__main__':
     PipelineDecorator.run_locally()
-    etl_pipeline_logic() 
+    etl_pipeline_logic()

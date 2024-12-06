@@ -1,0 +1,33 @@
+Title: NavigateToPose
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/NavigateToPose.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<NavigateToPose
+goal=
+"{goal}"
+server_name=
+"NavigateToPose"
+server_timeout=
+"10"
+error_code_id=
+"{navigate_to_pose_error_code}"
+behavior_tree=
+"<some-path>/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml"
+/>
+```

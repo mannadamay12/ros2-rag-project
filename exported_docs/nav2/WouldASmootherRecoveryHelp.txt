@@ -1,0 +1,22 @@
+Title: WouldASmootherRecoveryHelp
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/WouldASmootherRecoveryHelp.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Port
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: FAILURE
+```
+<WouldASmootherRecoveryHelp
+error_code=
+"{smoother_error_code}"
+/>
+```

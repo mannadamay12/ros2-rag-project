@@ -1,5 +1,0 @@
-Title: Installing Gazebo with ROS#
-URL: https://gazebosim.org/docs/latest/ros_installation
-Section: 
---------------------------------------------------------------------------------
-

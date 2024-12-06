@@ -1,0 +1,46 @@
+Title: Denoise Layer Parameters
+URL: https://docs.nav2.org/configuration/packages/costmap-plugins/denoise.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: <denoiselayer>
+```
+local_costmap
+:
+local_costmap
+:
+ros__parameters
+:
+...
+plugins
+:
+[
+"voxel_layer"
+,
+"denoise_layer"
+,
+"inflation_layer"
+]
+...
+denoise_layer
+:
+plugin
+:
+"nav2_costmap_2d::DenoiseLayer"
+enabled
+:
+true
+minimal_group_size
+:
+2
+group_connectivity_type
+:
+8
+```

@@ -1,5 +1,0 @@
-Title: Writing a New Planner Plugin
-URL: https://docs.nav2.org/plugin_tutorials/docs/writing_new_nav2planner_plugin.html#exporting-the-planner-plugin
-Section: 
---------------------------------------------------------------------------------
-

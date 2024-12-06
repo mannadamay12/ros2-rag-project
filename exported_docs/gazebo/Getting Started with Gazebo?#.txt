@@ -1,0 +1,74 @@
+Title: Getting Started with Gazebo?#
+URL: https://gazebosim.org/docs/latest/getstarted
+Section: getstarted
+--------------------------------------------------------------------------------
+
+
+Code Examples:
+
+Language: unknown
+```
+gz
+sim
+shapes
+.
+sdf
+# Fortress and Citadel use "ign gazebo" instead of "gz sim"
+```
+
+Language: unknown
+File: -v4
+```
+gz
+sim
+shapes
+.
+sdf
+-
+v
+4
+# Fortress and Citadel use "ign gazebo" instead of "gz sim"
+```
+
+Language: unknown
+File: -s
+```
+gz
+sim
+-
+s
+shapes
+.
+sdf
+-
+v
+4
+# Fortress and Citadel use "ign gazebo" instead of "gz sim"
+```
+
+Language: unknown
+File: <>
+```
+# launch server in one terminal
+
+gz
+sim
+-v
+4
+shapes.sdf
+-s
+# Fortress and Citadel use "ign gazebo" instead of "gz sim"
+```
+
+Language: unknown
+File: <>
+```
+# launch gui in a separate terminal
+
+gz
+sim
+-v
+4
+-g
+# Fortress and Citadel use "ign gazebo" instead of "gz sim"
+```

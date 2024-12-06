@@ -1,0 +1,42 @@
+Title: NavFn Planner
+URL: https://docs.nav2.org/configuration/packages/configuring-navfn.html#parameters
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: <name>
+```
+planner_server
+:
+ros__parameters
+:
+planner_plugins
+:
+[
+'GridBased'
+]
+GridBased
+:
+plugin
+:
+'nav2_navfn_planner::NavfnPlanner'
+# In Iron and older versions, "/" was used instead of "::"
+use_astar
+:
+True
+allow_unknown
+:
+True
+tolerance
+:
+1.0
+```

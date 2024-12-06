@@ -1,0 +1,35 @@
+Title: ComputePathToPose
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/ComputePathToPose.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: ComputePathToPose
+```
+<ComputePathToPose
+goal=
+"{goal}"
+path=
+"{path}"
+planner_id=
+"GridBased"
+server_name=
+"ComputePathToPose"
+server_timeout=
+"10"
+error_code_id=
+"{compute_path_error_code}"
+/>
+```

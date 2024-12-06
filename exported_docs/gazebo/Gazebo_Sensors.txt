@@ -1,5 +1,0 @@
-Title: Gazebo Sensors
-URL: https://gazebosim.org/api/sensors/8/tutorials.html
-Section: 
---------------------------------------------------------------------------------
-

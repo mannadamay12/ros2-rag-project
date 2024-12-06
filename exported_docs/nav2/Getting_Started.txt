@@ -1,5 +1,0 @@
-Title: Getting Started
-URL: https://docs.nav2.org/getting_started/index.html
-Section: 
---------------------------------------------------------------------------------
-

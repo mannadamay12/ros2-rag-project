@@ -1,5 +1,0 @@
-Title: Getting Involved
-URL: https://docs.nav2.org/development_guides/involvement_docs/index.html
-Section: 
---------------------------------------------------------------------------------
-

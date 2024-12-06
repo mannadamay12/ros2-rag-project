@@ -1,5 +1,0 @@
-Title: Robots Using
-URL: https://docs.nav2.org/about/robots.html
-Section: 
---------------------------------------------------------------------------------
-

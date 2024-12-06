@@ -1,5 +1,0 @@
-Title: Binary Installation on MacOS Mojave (10.14)#
-URL: https://gazebosim.org/docs/citadel/install_osx
-Section: 
---------------------------------------------------------------------------------
-

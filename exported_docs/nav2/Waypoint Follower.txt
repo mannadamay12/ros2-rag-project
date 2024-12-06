@@ -1,0 +1,71 @@
+Title: Waypoint Follower
+URL: https://docs.nav2.org/configuration/packages/configuring-waypoint-follower.html#parameters
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+
+
+## Provided Plugins
+
+
+## Default Plugin
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: plugin
+```
+waypoint_follower
+:
+ros__parameters
+:
+waypoint_task_executor_plugin
+:
+"wait_at_waypoint"
+wait_at_waypoint
+:
+plugin
+:
+"nav2_waypoint_follower::WaitAtWaypoint"
+enabled
+:
+True
+waypoint_pause_duration
+:
+0
+```
+
+Language: unknown
+File: nav2_waypoint_follower
+```
+waypoint_follower
+:
+ros__parameters
+:
+loop_rate
+:
+20
+stop_on_failure
+:
+false
+waypoint_task_executor_plugin
+:
+"wait_at_waypoint"
+wait_at_waypoint
+:
+plugin
+:
+"nav2_waypoint_follower::WaitAtWaypoint"
+enabled
+:
+True
+waypoint_pause_duration
+:
+0
+```

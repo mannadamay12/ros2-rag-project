@@ -1,0 +1,27 @@
+Title: DockRobot
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/DockRobot.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: DockRobot
+```
+<DockRobot
+dock_id=
+"{dock_id}"
+error_code_id=
+"{dock_error_code}"
+/>
+```

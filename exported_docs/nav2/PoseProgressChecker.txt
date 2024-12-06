@@ -1,0 +1,8 @@
+Title: PoseProgressChecker
+URL: https://docs.nav2.org/configuration/packages/nav2_controller-plugins/pose_progress_checker.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<nav2_controllerplugin>: nav2_controller plugin name defined in theprogress_checker_plugin_idparameter inController Server.

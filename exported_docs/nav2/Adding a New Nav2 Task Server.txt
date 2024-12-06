@@ -1,0 +1,232 @@
+Title: Adding a New Nav2 Task Server
+URL: https://docs.nav2.org/tutorials/docs/adding_a_nav2_task_server.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Lifecycle Nodes
+The Lifecycle node is the first key component of a nav2 task server. Lifecycle nodes were introduced in ROS 2 to systematically manage the bringup and shutdown of the different nodes involved in the robot’s operation. The use of Lifecycle nodes ensures that all nodes are successfully instantiated before they begin their execution and Nav2 shuts down all nodes if there is any unresponsive node.
+Lifecycle nodes contain state machine transitions that enable deterministic behavior in ROS 2 servers. The Lifecycle node transitions in Nav2 are handled by theLifecycleManager. The Lifecycle Manager transitions the states of the Lifecycle nodes and provides greater control over the state of a system.
+The primary states of a Lifecycle node areUnconfigured,Inactive,Active, andFinalized. A Lifecycle node starts in anUnconfiguredstate after being instantiated. The Lifecycle Manager transitions a node fromUnconfiguredtoInactiveby implementing theConfiguratingtransition. TheConfiguratingtransition sets up all configuration parameters and prepares any required setup such as memory allocation and the set up of the static publication and subscription topics. A node in theInactivestate is allowed to reconfigure its parameters and but cannot perform any processing. From theInactivestate, the Lifecycle Manager implements theActivatingtransition state to transition the node fromInactivetoActive, which is the main state. A node in theActivestate is allowed to perform any processing operation. In case a node crashes, the Lifecycle Manager shuts down the system to prevent any critical failures. On shutdown, the necessary cleanup operations are performed and the nodes are transitioned to theFinalizedstate viaDeactivating,CleaningUp, andShuttingDowntransition states.
+You may wish to integrate your own nodes into the Nav2 framework or add new lifecycle nodes to your system. As an example, we will add a new notional lifecycle nodesensor_driver, and have it be controlled via the Nav2 Lifecycle Manager to ensure sensor feeds are available before activating navigation. You can do so by adding asensor_drivernode in your launch file and adding it to the list of nodes to be activated by thelifecycle_managerbefore navigation, as shown in the example below.
+In the snippet above, the nodes to be handled by the Lifecycle Manager are set using thenode_namesparameter. Thenode_namesparameter takes in an ordered list of nodes to bringup through the Lifecycle transition. As shown in the snippet, thenode_namesparameter takes inlifecycle_nodeswhich contains the list of nodes to be added to the Lifecycle Manager. The Lifecycle Manager implements bringup transitions (ConfiguringandActivating) to the nodes one-by-one and in order, while the nodes are processed in reverse order for shutdown transitions. Hence, thesensor_driveris listed first before the other navigation servers so that the sensor data is available before the navigation servers are activated.
+Two other parameters of the Lifecycle Manager areautostartandbond_timeout. Setautostarttotrueif you want to set the transition nodes to theActivestate on startup. Otherwise, you will need to manually trigger Lifecycle Manager to transition up the system. Thebond_timeoutsets the waiting time to decide when to transition down all of the nodes if a node is not responding.
+
+## Composition
+Composition is the second key component nav2 task servers that was introduced to reduce the memory and CPU resources by putting multiple nodes in a single process. In Nav2, Composition can be used to compose all Nav2 nodes in a single process instead of launching them separately. This is useful for deployment on embedded systems where developers need to optimize resource usage.
+In the following section, we give an example on how to add a new Nav2 server, which we notionally call theroute_server, to our system.
+We make use of the launch files to compose different servers into a single process. The process is established by theComposableNodeContainercontainer that is populated with composition nodes viaComposableNode. This container can then be launched and used the same as any other Nav2 node.
+
+## Error codes
+Your nav2 task server may also wish to return a ‘error_code’ in its action response (though not required). If there are semantically meaningful and actionable types of failures for your system, this is a systemic way to communicate those failures which may be automatically aggregated into the responses of the navigation system to your application.
+It is important to note that error codes from 0-9999 are reserved for internal nav2 servers with each server offset by 100 while external servers start at 10000 and end at 65535.
+The table below shows the current servers along with the expected error code structure.
+Error codes are attached to the response of the action message. An example can be seen below for the route server. Note that by convention we set the error code field within the message definition toerror_code.
+As stated in the message, the priority order of the errors should match the message order, 0 is reserved for NONE and the first error code in the sequence is reserved for UNKNOWN.
+Since the the route server is a external server, the errors codes start at 10000 and go up to 10099.
+In order to propagate your server’s error code to the rest of the system it must be added to the nav2_params.yaml file.
+Theerror_code_id_namesinside of the BT Navigator define what error codes to look for on the blackboard by the server. The lowest error code of the sequence is then returned - whereas the code enums increase the higher up in the software stack - giving higher priority to lower-level failures.
+
+## Conclusion
+In this section of the guide, we have discussed Lifecycle Nodes, Composition and Error Codes which are new and important concepts in ROS 2. We also showed how to implement Lifecycle Nodes, Composition and Error Codes to your newly created nodes/servers with Nav2. These three concepts are helpful to efficiently run your system and therefore are encouraged to be used throughout Nav2.
+
+Code Examples:
+
+Language: unknown
+File: lifecycle_manager
+```
+lifecycle_nodes
+=
+[
+'sensor_driver'
+,
+'controller_server'
+,
+'smoother_server'
+,
+'planner_server'
+,
+'behavior_server'
+,
+'bt_navigator'
+,
+'waypoint_follower'
+]
+...
+Node
+(
+package
+=
+'nav2_sensor_driver'
+,
+executable
+=
+'sensor_driver'
+,
+name
+=
+'sensor_driver'
+,
+output
+=
+'screen'
+,
+parameters
+=
+[
+configured_params
+],
+remappings
+=
+remappings
+),
+Node
+(
+package
+=
+'nav2_lifecycle_manager'
+,
+executable
+=
+'lifecycle_manager'
+,
+name
+=
+'lifecycle_manager_navigation'
+,
+output
+=
+'screen'
+,
+parameters
+=
+[{
+'autostart'
+:
+autostart
+},
+{
+'node_names'
+:
+lifecycle_nodes
+}]),
+```
+
+Language: unknown
+File: ComposableNode()
+```
+container
+=
+ComposableNodeContainer
+(
+name
+=
+'my_container'
+,
+namespace
+=
+''
+,
+package
+=
+'rclcpp_components'
+,
+executable
+=
+'component_container'
+,
+composable_node_descriptions
+=
+[
+ComposableNode
+(
+package
+=
+'nav2_route_server'
+,
+plugin
+=
+'nav2_route_server::RouteServer'
+,
+name
+=
+'nav2_route_server'
+),
+],
+output
+=
+'screen'
+,
+)
+```
+
+Language: unknown
+File: package.xml
+```
+<exec_depend>
+nav2_route_server
+</exec_depend>
+```
+
+Language: unknown
+File: error_code
+```
+# Error codes
+# Note: The expected priority order of the errors should match the message order
+
+uint16
+NONE
+=
+0
+# 0 is reserved for NONE
+
+uint16
+UNKNOWN
+=
+10000
+# first error code in the sequence is reserved for UNKNOWN
+# User Error codes below
+
+int16
+INVALID_START
+=
+10001
+
+int16
+NO_VALID_ROUTE
+=
+10002
+#goal definition
+
+route_msgs/PoseStamped
+goal
+route_msgs/PoseStamped
+start
+string
+route_id
+---
+
+#result definition
+
+nav_msgs/Route
+route
+builtin_interfaces/Duration
+route_time
+uint16
+error_code
+---
+
+```
+
+Language: unknown
+File: error_code
+```
+error_code_id_names
+:
+-
+compute_path_error_code_id
+-
+follow_path_error_code_id
+-
+route_error_code_id
+```

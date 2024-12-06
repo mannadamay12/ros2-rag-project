@@ -1,5 +1,0 @@
-Title: Writing a New Navigator Plugin
-URL: https://docs.nav2.org/plugin_tutorials/docs/writing_new_navigator_plugin.html#exporting-the-navigator-plugin
-Section: 
---------------------------------------------------------------------------------
-

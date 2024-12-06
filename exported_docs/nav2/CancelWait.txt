@@ -1,0 +1,24 @@
+Title: CancelWait
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/CancelWait.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: wait
+```
+<CancelWait
+server_name=
+"Wait"
+server_timeout=
+"10"
+/>
+```

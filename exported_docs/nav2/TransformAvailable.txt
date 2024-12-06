@@ -1,0 +1,24 @@
+Title: TransformAvailable
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/TransformAvailable.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<TransformAvailable
+parent=
+"odom"
+child=
+"base_link"
+/>
+```

@@ -1,0 +1,5 @@
+Title: Inflation Layer Parameters
+URL: https://docs.nav2.org/configuration/packages/costmap-plugins/inflation.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+

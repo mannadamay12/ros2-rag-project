@@ -1,0 +1,621 @@
+Title: Visualizing In RViz
+URL: https://moveit.picknik.ai/main/doc/tutorials/visualizing_in_rviz/visualizing_in_rviz.html
+Section: index.html
+--------------------------------------------------------------------------------
+
+
+## Prerequisites
+If you haven’t already done so, make sure you’ve completed the steps inYour First Project.
+This project assumes you are starting with thehello_moveitproject, where the previous tutorial left off.
+
+## Steps
+
+
+## 1 Add the dependency moveit_visual_tools
+Add this line to yourpackage.xmlin thehello_moveitproject after the other<depend>statements:
+Then in yourCMakeLists.txtadd this line to the section offind_packagestatements:
+Further down in the file extend theament_target_dependenciesmacro call to include the new dependency like this:
+To verify that you added the dependency correctly, add the required include to your source filehello_moveit.cpp:
+To test that this all worked, open a terminal in the workspace directory (remembering to source your ROS install in opt) and then build with colcon:
+
+## 2 Create a ROS executor and spin the node on a thread
+Before we can initialize MoveItVisualTools, we need to have a executor spinning on our ROS node.
+This is necessary because of how MoveItVisualTools interacts with ROS services and topics. First, add the threading library to your includes at the top.
+By creating and naming loggers, we are able to keep our program logs organized.
+Next, add your executor before creating the MoveIt MoveGroup Interface.
+Finally, make sure to join the thread before exiting.
+After making these changes, rebuild your workspace to make sure you don’t have any syntax errors.
+
+## 3 Create and Initialize MoveItVisualTools
+Next, we will construct and initialize MoveItVisualTools after the construction of MoveGroupInterface.
+We pass the following into the constructor: the ROS node, the base link of the robot, the marker topic to use (more on this later), and the robot model (which we get from the move_group_interface).
+Next, we make a call to delete all the markers. This clears any rendered state out of RViz that we have left over from previous runs.
+Lastly, we load remote control.
+Remote control is a really simple plugin that lets us have a button in RViz to interact with our program.
+
+## 4 Write closures for visualizations
+After we’ve constructed and initialized, we now create some closures (function objects that have access to variables in our current scope) that we can use later in our program to help render visualizations in RViz.
+Each of the three closures capturemoveit_visual_toolsby reference and the last one captures a pointer to the joint model group object we are planning with.
+Each of these call a function onmoveit_visual_toolsthat changes something in RViz.
+You might be asking yourself why we would create lambdas like this, and the reason is simply to make the code that comes later easier to read and understand.
+As your write software, it is often helpful to break up your functionality into named functions which can be easily reused and tested on their own.
+You will see in the next section how we use these functions we created.
+
+## 5 Visualize the steps of your program
+Now we’ll augment the code in the middle of your program.
+Update your code for planning and executing to include these new features:
+One thing you’ll quickly notice is that we have to call a method calledtriggeronmoveit_visual_toolsafter each call to change something rendered in RViz.
+The reason for this is that messages sent to RViz are batched up and sent when you calltriggerto reduce bandwidth of the marker topics.
+Lastly, build your project again to make sure all the code additions are correct.
+
+## 6 Enable visualizations in RViz
+Open a new terminal, source the workspace, and then start the demo launch file that opens RViz.
+Uncheck “MotionPlanning” in the “Displays” tab to hide it.
+We aren’t going to be using the “MotionPlanning” plugin for this next part.
+To add the buttons to interact with the prompts we added to our program open the dialog with the “Panels/Add New Panel” menu:
+Then selectRvizVisualToolsGuiand click OK.
+This will create a new panel on the bottom left with aNextbutton we’ll use later.
+Finally, we need to add aMarkerArrayto render the visualizations we’ve added.
+Click on the “Add” Button in the “Displays” panel.
+SelectMarkerArrayand clickOK.
+Scroll to the bottom of the items in the Displays panel and edit the topic that the new Marker Array is using to/rviz_visual_tools.
+You are now ready to run your new program with visualizations.
+
+## 7 Run the Program
+In a new terminal, go to the workspace, source the workspace, and runhello_moveit:
+You’ll notice that your program has stopped with a log that looks like this:
+Click theNextbutton in RViz and see your application advance.
+You’ll see after you clicked the next button, your application planned, added a title above the robot, and drew a line representing the tool path.
+To continue, pressNextagain to see your robot execute the plan.
+
+## Summary
+You extended the program you wrote with MoveIt to interact with the Gui in RViz, allowing you to step through your program with a button, render some text above the robot, and display the tool path that you planned.
+
+## Further Reading
+
+
+## Next Step
+In the next tutorialPlanning Around Objects, you will expand on the program you built here to add to the collision environment and see the robot plan with these changes.
+
+Code Examples:
+
+Language: unknown
+File: <depend>
+```
+<depend>
+moveit_visual_tools
+</depend>
+```
+
+Language: unknown
+File: find_package
+```
+find_package
+(
+moveit_visual_tools
+REQUIRED
+)
+```
+
+Language: unknown
+File: ament_target_dependencies
+```
+ament_target_dependencies
+(
+hello_moveit
+"moveit_ros_planning_interface"
+"moveit_visual_tools"
+"rclcpp"
+)
+```
+
+Language: unknown
+File: hello_moveit.cpp
+```
+#include
+<moveit_visual_tools/moveit_visual_tools.h>
+```
+
+Language: unknown
+File: hello_moveit.cpp
+```
+cd
+~/ws_moveit
+colcon
+build
+--mixin
+debug
+
+```
+
+Language: unknown
+File: hello_moveit.cpp
+```
+#include
+<thread>
+  // <---- add this to the set of includes at the top
+```
+
+Language: unknown
+File: hello_moveit.cpp
+```
+// Create a ROS logger
+auto
+const
+logger
+=
+rclcpp
+::
+get_logger
+(
+"hello_moveit"
+);
+```
+
+Language: unknown
+File: hello_moveit.cpp
+```
+// Spin up a SingleThreadedExecutor for MoveItVisualTools to interact with ROS
+rclcpp
+::
+executors
+::
+SingleThreadedExecutor
+executor
+;
+executor
+.
+add_node
+(
+node
+);
+auto
+spinner
+=
+std
+::
+thread
+([
+&
+executor
+]()
+{
+executor
+.
+spin
+();
+});
+// Create the MoveIt MoveGroup Interface
+...
+```
+
+Language: unknown
+File: hello_moveit.cpp
+```
+// Shutdown ROS
+rclcpp
+::
+shutdown
+();
+// <--- This will cause the spin function in the thread to return
+spinner
+.
+join
+();
+// <--- Join the thread before exiting
+return
+0
+;
+```
+
+Language: unknown
+File: hello_moveit.cpp
+```
+// Create the MoveIt MoveGroup Interface
+using
+moveit
+::
+planning_interface
+::
+MoveGroupInterface
+;
+auto
+move_group_interface
+=
+MoveGroupInterface
+(
+node
+,
+"manipulator"
+);
+// Construct and initialize MoveItVisualTools
+auto
+moveit_visual_tools
+=
+moveit_visual_tools
+::
+MoveItVisualTools
+{
+node
+,
+"base_link"
+,
+rviz_visual_tools
+::
+RVIZ_MARKER_TOPIC
+,
+move_group_interface
+.
+getRobotModel
+()};
+moveit_visual_tools
+.
+deleteAllMarkers
+();
+moveit_visual_tools
+.
+loadRemoteControl
+();
+```
+
+Language: unknown
+File: hello_moveit.cpp
+```
+// Create closures for visualization
+auto
+const
+draw_title
+=
+[
+&
+moveit_visual_tools
+](
+auto
+text
+)
+{
+auto
+const
+text_pose
+=
+[]
+{
+auto
+msg
+=
+Eigen
+::
+Isometry3d
+::
+Identity
+();
+msg
+.
+translation
+().
+z
+()
+=
+1.0
+;
+// Place text 1m above the base link
+return
+msg
+;
+}();
+moveit_visual_tools
+.
+publishText
+(
+text_pose
+,
+text
+,
+rviz_visual_tools
+::
+WHITE
+,
+rviz_visual_tools
+::
+XLARGE
+);
+};
+auto
+const
+prompt
+=
+[
+&
+moveit_visual_tools
+](
+auto
+text
+)
+{
+moveit_visual_tools
+.
+prompt
+(
+text
+);
+};
+auto
+const
+draw_trajectory_tool_path
+=
+[
+&
+moveit_visual_tools
+,
+jmg
+=
+move_group_interface
+.
+getRobotModel
+()
+->
+getJointModelGroup
+(
+"manipulator"
+)](
+auto
+const
+trajectory
+)
+{
+moveit_visual_tools
+.
+publishTrajectoryLine
+(
+trajectory
+,
+jmg
+);
+};
+```
+
+Language: unknown
+File: next
+```
+// Set a target Pose
+auto
+const
+target_pose
+=
+[]
+{
+geometry_msgs
+::
+msg
+::
+Pose
+msg
+;
+msg
+.
+orientation
+.
+w
+=
+1.0
+;
+msg
+.
+position
+.
+x
+=
+0.28
+;
+msg
+.
+position
+.
+y
+=
+-0.2
+;
+msg
+.
+position
+.
+z
+=
+0.5
+;
+return
+msg
+;
+}();
+move_group_interface
+.
+setPoseTarget
+(
+target_pose
+);
+// Create a plan to that target pose
+prompt
+(
+"Press 'Next' in the RvizVisualToolsGui window to plan"
+);
+draw_title
+(
+"Planning"
+);
+moveit_visual_tools
+.
+trigger
+();
+auto
+const
+[
+success
+,
+plan
+]
+=
+[
+&
+move_group_interface
+]
+{
+moveit
+::
+planning_interface
+::
+MoveGroupInterface
+::
+Plan
+msg
+;
+auto
+const
+ok
+=
+static_cast
+<
+bool
+>
+(
+move_group_interface
+.
+plan
+(
+msg
+));
+return
+std
+::
+make_pair
+(
+ok
+,
+msg
+);
+}();
+// Execute the plan
+if
+(
+success
+)
+{
+draw_trajectory_tool_path
+(
+plan
+.
+trajectory
+);
+moveit_visual_tools
+.
+trigger
+();
+prompt
+(
+"Press 'Next' in the RvizVisualToolsGui window to execute"
+);
+draw_title
+(
+"Executing"
+);
+moveit_visual_tools
+.
+trigger
+();
+move_group_interface
+.
+execute
+(
+plan
+);
+}
+else
+{
+draw_title
+(
+"Planning Failed!"
+);
+moveit_visual_tools
+.
+trigger
+();
+RCLCPP_ERROR
+(
+logger
+,
+"Planning failed!"
+);
+}
+```
+
+Language: unknown
+File: trigger
+```
+cd
+~/ws_moveit
+
+source
+/opt/ros/rolling/setup.bash
+colcon
+build
+--mixin
+debug
+
+```
+
+Language: unknown
+File: trigger
+```
+cd
+~/ws_moveit
+
+source
+install/setup.bash
+ros2
+launch
+moveit2_tutorials
+demo.launch.py
+
+```
+
+Language: unknown
+File: hello_moveit
+```
+cd
+~/ws_moveit
+
+source
+install/setup.bash
+ros2
+run
+hello_moveit
+hello_moveit
+
+```
+
+Language: unknown
+File: hello_moveit
+```
+[
+INFO
+]
+[
+1652822889.492940200
+]
+[
+hello_moveit
+.
+remote_control
+]:
+Waiting
+to
+continue
+:
+Press
+'Next'
+in
+the
+RvizVisualToolsGui
+window
+to
+plan
+```

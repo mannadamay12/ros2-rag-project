@@ -1,5 +1,0 @@
-Title: Navigating with Speed Limits
-URL: https://docs.nav2.org/tutorials/docs/navigation2_with_speed_filter.html#enable-speed-filter
-Section: 
---------------------------------------------------------------------------------
-

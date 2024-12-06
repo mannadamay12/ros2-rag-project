@@ -1,0 +1,213 @@
+Title: Foxy to Galactic
+URL: https://docs.nav2.org/migration/Foxy.html#removed-bt-xml-launch-configurations
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## NavigateToPose Action Feedback updates
+The NavigateToPose action feedback has two improvements:
+
+## NavigateToPose BT-node Interface Changes
+The NavigateToPose input port has been changed to PoseStamped instead of Point and Quaternion.
+SeeNavigateToPosefor more information.
+
+## NavigateThroughPoses and ComputePathThroughPoses Actions Added
+TheNavigateThroughPosesaction has been added analog to theNavigateToPose. Rather than going to a single position, this Action will allow a user to specify a number of hard intermediary pose constraints between the start and final pose to plan through. The newComputePathThroughPosesaction has been added to theplanner_serverto process these requests throughNgoal_poses.
+TheComputePathThroughPosesaction server will take in a set ofNgoals to achieve, plan through each pose and concatenate the output path for use in navigation. The controller and navigator know nothing about the semantics of the generated path, so the robot will not stop or slow on approach to these goals. It will rather continue through each pose as it were any other point on the path continuously. When paired with theSmacPlanner, this feature can be used to generatecompletely kinematically feasible trajectories through pose constraints.
+If you wish to stop at each goal pose, consider using the waypoint follower instead, which will stop and allow a user to optionally execute a task plugin at each pose.
+
+## ComputePathToPose BT-node Interface Changes
+Thestartinput port has been added to optionally allow the request of a path fromstarttogoalinstead of from the current position of the robot togoal.
+SeeComputePathToPosefor more information.
+
+## ComputePathToPose Action Interface Changes
+These two additional fields have been added to optionally allow, whenuse_startis true, the request of a path fromstarttogoalinstead of from the current position of the robot togoal. Corresponding changes have been done of the Planner Server.
+
+## BackUp BT-node Interface Changes
+Thebackup_distandbackup_speedinput ports should both be positive values indicating the distance to go backward respectively the speed with which the robot drives backward.
+
+## BackUp Recovery Interface Changes
+speedin a backup recovery goal should be positive indicating the speed with which to drive backward.target.xin a backup recovery goal should be positive indicating the distance to drive backward.
+In both cases negative values are silently inverted.
+
+## Nav2 Controllers and Goal Checker Plugin Interface Changes
+As ofthis PR 2247, thecontrollerplugins will now be given a pointer to the current goal checker in use of the navigation task incomputeAndPublishVelocity(). This is geared to enabling controllers to have access to predictive checks for goal completion as well as access to the state information of the goal checker plugin.
+Thegoal_checkerplugins also have the change of including agetTolerances()method. This method allows a goal checker holder to access the tolerance information of the goal checker to consider at the goal. Each field of theposeandvelocityrepresents the maximum allowable error in each dimension for a goal to be considered completed. In the case of a translational tolerance (combined X and Y components), each the X and Y will be populated with the tolerance value because it is themaximumtolerance in the dimension (assuming the other has no error). If the goal checker does not contain any tolerances for a dimension, thenumeric_limits<double>lowest()value is utilized in its place.
+
+## FollowPath goal_checker_id attribute
+For example: you could use for some specific navigation motion a more precise goal checker than the default one that it is used in usual motions.
+Below it is shown an example of goal_checker configuration of the controller_server node.
+
+## Groot Support
+Live Monitoring and Editing of behavior trees with Groot is now possible.
+Switching bt-xmls on the fly through a new goal request is also included.
+This is all done without breaking any APIs.
+Enabled by default.
+
+## New Plugins
+nav2_waypoint_followerhas an action server that takes in a list of waypoints to follow and follow them in order. In some cases we might want robot to
+perform some tasks/behaviours at arrivals of these waypoints. In order to perform such tasks, a generic plugin interfaceWaypointTaskExecutorhas been added tonav2_core.
+Users can inherit from this interface to implement their own plugin to perform more specific tasks at waypoint arrivals for their needs.
+Several example implementations are included innav2_waypoint_follower.WaitAtWaypointandPhotoAtWaypointplusings are included innav2_waypoint_followeras run-time loadable plugins.WaitAtWaypointsimply lets robot to pause for a specified amount of time in milliseconds, at waypoint arrivals.
+WhilePhotoAtWaypointtakes photos at waypoint arrivals and saves the taken photos to specified directory, the format for taken photos also can be configured through parameters.
+All major image formats such aspng,jpeg,jpgetc. are supported, the default format ispng.
+Loading a plugin of this type is done throughnav2_bringup/params/nav2_param.yaml, by specifying plugin’s name, type and it’s used parameters.
+Original GitHub tickets:
+
+## Costmap Filters
+A new concept interacting with spatial-dependent objects called “Costmap Filters” appeared in Galactic (more information about this concept could be found atNavigation Conceptspage). Costmap filters are acting as a costmap plugins, applied to a separate costmap above common plugins. In order to make a filtered costmap and change robot’s behavior in annotated areas, filter plugin reads the data came from filter mask. Then this data is being linearly transformed into feature map in a filter space. It could be passability of an area, maximum speed limit in m/s, robot desired direction in degrees or anything else. Transformed feature map along with the map/costmap, sensors data and current robot position is used in plugin’s algorithms to make required updates in the resulting costmap and robot’s behavior.
+Architecturally, costmap filters consists fromCostmapFilterclass which is a basic class incorporating much common of its inherited filter plugins:
+Each costmap filter subscribes to filter info topic (publishing byCostmap Filter Info Publisher Server) having all necessary information for loaded costmap filter and filter mask topic.SpeedFilteradditionally publishes maximum speed restrictingmessagestargeted for a Controller to enforce robot won’t exceed given limit.
+High-level design of this concept could be foundhere. The functionality of costmap filters is being discussed inthe ticket #1263and carried out byPR #1882. The following tutorials:Navigating with Keepout ZonesandNavigating with Speed Limitswill help to easily get involved withKeepoutFilterandSpeedFilterfunctionalities.
+
+## SmacPlanner
+A new package,nav2_smac_plannerwas added containing 4 or 8 connected 2D A*, and Dubin and Reed-shepp model hybrid-A* with smoothing, multi-resolution query, and more.
+Thenav2_smac_plannerpackage contains an optimized templated A* search algorithm used to create multiple A*-based planners for multiple types of robot platforms. We support differential-drive and omni-directional drive robots using theSmacPlanner2Dplanner which implements a cost-aware A* planner. We support cars, car-like, and ackermann vehicles using theSmacPlannerplugin which implements a Hybrid-A* planner. This plugin is also useful for curvature constrained planning, like when planning robot at high speeds to make sure they don’t flip over or otherwise skid out of control.
+TheSmacPlannerfully-implements the Hybrid-A* planner as proposed inPractical Search Techniques in Path Planning for Autonomous Driving, including hybrid searching, CG smoothing, analytic expansions and heuristic functions.
+
+## ThetaStarPlanner
+A new package,nav2_theta_star_plannerwas added containing 4 or 8 connected Theta* implementation for 2D maps.
+This package implements an optimized version of the Theta* Path Planner (specifically theLazy Theta* Pvariant) to plan any-angled paths for differential-drive and omni-directional robots, while also taking into account the costmap costs. This plugin is useful for the cases where you might want to plan a path at a higher rate but without requiring extremely smooth paths around the corners which, for example, could be handled by a local planner/controller.
+
+## RegulatedPurePursuitController
+A new package,nav2_regulated_pure_pursuit_controllerwas added containing a novel variant of the Pure Pursuit algorithm.
+It also includes configurations to enable Pure Pursuit and Adaptive Pure Pursuit variations as well.
+This variation is specifically targeting service / industrial robot needs.
+It regulates the linear velocities by curvature of the path to help reduce overshoot at high speeds around blind corners allowing operations to be much more safe.
+It also better follows paths than any other variation currently available of Pure Pursuit.
+It also has heuristics to slow in proximity to other obstacles so that you can slow the robot automatically when nearby potential collisions.
+It also implements the Adaptive lookahead point features to be scaled by velocities to enable more stable behavior in a larger range of translational speeds.
+There’s more this does, that that’s the general information. See the package’sREADMEfor more.
+
+## Costmap2Dcurrent_Usage
+In costmap2D,current_was used in ROS1 to represent whether a costmap layer was still enabled and actively processing data. It would be turned tofalseonly under the situation that the expected update rate of a sensor was not met, so it was getting stale or no messages. It acts as a fail-safe for if a navigation sensor stops publishing.
+In galactic, that will remain turn, however it will also add additional capabilities. It is also now set tofalsewhen a costmap is reset due to clearing or other navigation recoveries. That stops the robot from creating a plan or control effort until after the costmap has been updated at least once after a reset. This enables us to make sure we cannot ever create a path or control with a completely empty costmap, potentially leading to collisions, due to clearing the costmap and then immediately requesting an algorithm to run.
+
+## Standard time units in parameters
+To follow the SI units outlined in REP-103 to the “T” nodes below were modified to use seconds consistently in every parameter. Under each node name you can see which parameters changed to seconds instead of using milliseconds.
+
+## Ray Tracing Parameters
+Raytracing functionality was modified to include a minimum range parameter from which ray tracing starts to clear obstacles to avoid incorrectly clearing obstacles too close to the robot. This issue was mentioned inROS Answers. An existing parameterraytrace_rangewas renamed toraytrace_max_rangeto reflect the functionality it affects. The renamed parameters and the plugins that they belong to are mentioned below. The changes were introduced in thispull request.
+
+## Obstacle Marking Parameters
+Obstacle marking was modified to include a minimum range parameter from which obstacles are marked on the costmap to prevent addition of obstacles in the costmap due to noisy and incorrect measurements. This modification is related to the change with the raytracing parameters. The renamed parameters, newly added parameters and the plugins they belong to are given below.
+
+## Recovery Action Changes
+The recovery actions,SpinandBackUpwere modified to correctly returnFAILUREif the recovery action is aborted due to a potential collision. Previously, these actions incorrectly always returnedSUCCESS. Changes to this resulted in downstream action clients, such as the default behavior tree. The changes were introduced in thispull request 1855.
+
+## Default Behavior Tree Changes
+The default behavior tree (BT)navigate_w_replanning_and_recovery.xmlhas been updated to allow for replanning in between recoveries. The changes were introduced in thisPR 1855. Additionally, an alternative BTnavigate_w_replanning_and_round_robin_recovery.xmlwas removed due to similarity with the updated default BT.
+
+## NavFn Planner Parameters
+The NavFn Planner has now its 3 parameters reconfigurable at runtime (tolerance,use_astarandallow_unknown). The changes were introduced in thispull request 2181.
+
+## New ClearCostmapExceptRegion and ClearCostmapAroundRobot BT-nodes
+The ClearEntireCostmap action node was already implemented but the ClearCostmapExceptRegion and ClearCostmapAroundRobot BT nodes calling the sister services(local_or_global)_costmap/clear_except_(local_or_global)_costmapandclear_around_(local_or_global)_costmapof Costmap 2D were missing, they are now implemented in a similar way. They both expose areset_distanceinput port. SeeClearCostmapExceptRegionandClearCostmapAroundRobotfor more.  The changes were introduced in thispull request 2204.
+
+## New Behavior Tree Nodes
+A new behavior tree node was added and dynamically loadable at run-time using behavior tree cpp v3.
+Seenav2_behavior_treefor a full listing, orNavigation Pluginsfor the current list of behavior tree plugins and their descriptions.
+These plugins are set as default in thenav2_bt_navigatorbut may be overridden by thebt_pluginsparameter to include your specific plugins.
+Original GitHub tickets:
+Additionally, behavior tree nodes were modified to contain their own local executors to spin for actions, topics, services, etc to ensure that each behavior tree node is independent of each other (e.g. spinning in one BT node doesn’t trigger a callback in another).
+
+## sensor_msgs/PointCloud to sensor_msgs/PointCloud2 Change
+Due to deprecation ofsensor_msgs/PointCloudthe topics which were publishing sensor_msgs/PointCloud are converted to sensor_msgs/PointCloud2. The details on these topics and their respective information are listed below.
+These changes were introduced inpull request 2263.
+
+## ControllerServer New Parameter failure_tolerance
+A new parameterfailure_tolerancewas added to the Controller Server for tolerating controller plugin exceptions without failing immediately. It is analogous tocontroller_patiencein ROS(1) Nav. SeeController Serverfor description.
+This change was introduced in thispull request 2264.
+
+## Removed BT XML Launch Configurations
+The launch python configurations for CLI setting of the behavior tree XML file has been removed. Instead, you should use the yaml files to set this value. If you, however, have apathto the yaml file that is inconsistent in a larger deployment, you can use theRewrittenYamltool in your parent launch file to remap the default XML paths utilizing theget_shared_package_path()directory finder (or as you were before in python3).
+The use of map subscription QoS launch configuration was also removed, use parameter file.
+This change was introduced in thispull request 2295.
+
+## Nav2 RViz Panel Action Feedback Information
+The Nav2 RViz Panel now displays the action feedback published bynav2_msgs/NavigateToPoseandnav2_msgs/NavigateThroughPosesactions.
+Users can find information like the estimated time of arrival, distance remaining to goal, time elapsed since navigation started, and number of recoveries performed during a navigation action directly through the RViz panel.
+This feature was introduced in thispull request 2338.
+
+Code Examples:
+
+Language: unknown
+File: numeric_limits<double>lowest()
+```
+<FollowPath
+path=
+"{path}"
+controller_id=
+"FollowPath"
+goal_checker_id=
+"precise_goal_checker"
+server_name=
+"FollowPath"
+server_timeout=
+"10"
+/>
+```
+
+Language: unknown
+File: GridBased
+```
+controller_server
+:
+ros__parameters
+:
+goal_checker_plugins
+:
+[
+"general_goal_checker"
+,
+"precise_goal_checker"
+]
+precise_goal_checker
+:
+plugin
+:
+"nav2_controller::SimpleGoalChecker"
+xy_goal_tolerance
+:
+0.25
+yaw_goal_tolerance
+:
+0.25
+general_goal_checker
+:
+plugin
+:
+"nav2_controller::SimpleGoalChecker"
+xy_goal_tolerance
+:
+0.25
+```
+
+Language: unknown
+File: nav2_bringup/params/nav2_param.yaml
+```
+waypoint_follower
+:
+ros__parameters
+:
+loop_rate
+:
+20
+stop_on_failure
+:
+false
+waypoint_task_executor_plugin
+:
+"wait_at_waypoint"
+wait_at_waypoint
+:
+plugin
+:
+"nav2_waypoint_follower::WaitAtWaypoint"
+enabled
+:
+True
+waypoint_pause_duration
+:
+0
+```

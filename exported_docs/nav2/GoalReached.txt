@@ -1,0 +1,46 @@
+Title: GoalReached
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/GoalReached.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameter
+
+
+## Example
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+bt_navigator
+:
+ros__parameters
+:
+# other bt_navigator parameters
+transform_tolerance
+:
+0.1
+goal_reached_tol
+:
+0.25
+```
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<GoalReached
+goal=
+"{goal}"
+robot_base_frame=
+"base_link"
+/>
+```

@@ -1,4 +1,3 @@
-# pipelines/etl_pipeline.py
 from clearml import Task, Logger
 from typing import Dict, Any, List
 from loguru import logger

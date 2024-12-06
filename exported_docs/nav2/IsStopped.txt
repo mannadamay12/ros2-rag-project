@@ -1,0 +1,24 @@
+Title: IsStopped
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/IsStopped.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Port
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<IsStopped
+velocity_threshold=
+"0.01"
+duration_stopped=
+"1000"
+/>
+```

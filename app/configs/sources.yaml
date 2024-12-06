@@ -39,17 +39,17 @@ sources:
         - "architecture"
       version: "latest"
   
-  github_repos:
-    ros2:
-      - name: "ros2/ros2"
-        url: "https://github.com/ros2/ros2"
-        branches: ["humble", "foxy"]  # LTS releases
-      - name: "ros2/examples"
-        url: "https://github.com/ros2/examples"
-        branches: ["humble", "foxy"]
-      - name: "ros2/documentation"
-        url: "https://github.com/ros2/documentation"
-        branches: ["humble", "foxy"]
+  # github_repos:
+  #   ros2:
+  #     - name: "ros2/ros2"
+  #       url: "https://github.com/ros2/ros2"
+  #       branches: ["humble", "foxy"]  # LTS releases
+  #     - name: "ros2/examples"
+  #       url: "https://github.com/ros2/examples"
+  #       branches: ["humble", "foxy"]
+  #     - name: "ros2/documentation"
+  #       url: "https://github.com/ros2/documentation"
+  #       branches: ["humble", "foxy"]
   
   youtube_playlists:
     ros2:

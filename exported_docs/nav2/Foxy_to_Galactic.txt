@@ -1,5 +1,0 @@
-Title: Foxy to Galactic
-URL: https://docs.nav2.org/migration/Foxy.html#sensor-msgs-pointcloud-to-sensor-msgs-pointcloud2-change
-Section: 
---------------------------------------------------------------------------------
-

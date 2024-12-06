@@ -1,0 +1,28 @@
+Title: PathLongerOnApproach
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/decorators/PathLongerOnApproach.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<PathLongerOnApproach
+path=
+"{path}"
+prox_len=
+"3.0"
+length_factor=
+"2.0"
+>
+<!--Add tree components here--->
+</PathLongerOnApproach>
+```

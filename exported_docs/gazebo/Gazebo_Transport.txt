@@ -1,5 +1,0 @@
-Title: Gazebo Transport
-URL: https://gazebosim.org/api/transport/13/tutorials.html
-Section: 
---------------------------------------------------------------------------------
-

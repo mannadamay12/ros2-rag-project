@@ -1,0 +1,44 @@
+Title: Understanding the GUI#
+URL: https://gazebosim.org/docs/latest/gui
+Section: gui
+--------------------------------------------------------------------------------
+
+
+Code Examples:
+
+Language: unknown
+```
+gz
+sim
+shapes.sdf
+
+```
+
+Language: unknown
+File: --versions
+```
+9
+.0.0
+
+8
+.0.0
+
+7
+.0.0
+
+6
+.0.0
+
+```
+
+Language: unknown
+File: --force-version
+```
+gz
+sim
+--force-version
+9
+.0.0
+shapes.sdf
+
+```

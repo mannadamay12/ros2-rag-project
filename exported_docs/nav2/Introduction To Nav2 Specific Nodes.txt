@@ -1,0 +1,111 @@
+Title: Introduction To Nav2 Specific Nodes
+URL: https://docs.nav2.org/behavior_trees/overview/nav2_specific_nodes.html#control-roundrobin
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Action Nodes
+Upon completion, these action nodes will returnSUCCESSif the action server believes the action has been completed correctly,RUNNINGwhen still running, and will returnFAILUREotherwise. Note that in the above list,
+theClearCostmapServiceaction node isnotan action server client, but a service client.
+
+## Condition Nodes
+The above list of condition nodes can be used to probe particular aspects of the system. Typically they will returnSUCCESSif the condition is true andFAILUREotherwise.
+The key condition that is used in the default Nav2 BT isGoalUpdatedwhich is checked asynchronously within particular subtrees. This condition node allows for the behavior described as “If the goal has been updated, then we must replan”.
+Condition nodes are typically paired with ReactiveFallback nodes.
+
+## Decorator Nodes
+
+
+## Control: PipelineSequence
+ThePipelineSequencecontrol node re-ticks previous children when a child returnsRUNNING.
+This node is similar to theSequencenode, with the additional property that the children prior to the “current” are re-ticked, (resembling the flow of water in a pipe).
+If at any point a child returnsFAILURE, all children will be halted and the parent node will also returnFAILURE. UponSUCCESSof thelast nodein the sequence, this node will halt and returnSUCCESS.
+To explain this further, here is an example BT that uses PipelineSequence.
+Recall that ifAction_A,Action_B, orAction_CreturnedFAILUREat any point of time, the parent would have returnedFAILUREand halted any children as well.
+For additional details regarding thePipelineSequenceplease see thePipelineSequence configuration guide.
+
+## Control: Recovery
+The Recovery control node has only two children and returnsSUCCESSif and only if the first child returnsSUCCESS.
+If the first child returnsFAILURE, the second child will be ticked. This loop will continue until either:
+This node is usually used to link together an action, and a recovery action as the name suggests. The first action will typically be the “main” behavior,
+and the second action will be something to be done in case ofFAILUREof the main behavior. Often, the ticking of the second child action will promote the chance the first action will succeed.
+In the above example, let’s assumeComputePathToPosefails.ClearLocalCostmapwill be ticked in response, and returnSUCCESS.
+Now that we have cleared the costmap, let’s say the robot is correctly able to compute the path andComputePathToPosenow returnsSUCCESS. Then, the parent RecoveryNode will also returnSUCCESSand the BT will be complete.
+For additional details regarding theRecoveryNodeplease see theRecoveryNode configuration guide.
+
+## Control: RoundRobin
+The RoundRobin control node ticks its children in a round robin fashion until a child returnsSUCCESS, in which the parent node will also returnSUCCESS.
+If all children returnFAILUREso will the parent RoundRobin.
+Here is an example BT we will use to walk through the concept.
+2. Upon tick of the parent node, the first child (Action_A) is ticked. Let’s assume on tick the child returnsRUNNING.
+In this case, no other children are ticked and the parent node returnsRUNNINGas well.
+3. Upon the next tick, let’s assume thatAction_AreturnsFAILURE.
+This means thatAction_Bwill get ticked next, andAction_Cremains unticked.
+Let’s assumeAction_BreturnsRUNNINGthis time. That means the parent RoundRobin node will also returnRUNNING.
+4. Upon this next tick,  let’s assume thatAction_BreturnsSUCCESS. The parent RoundRobin will now halt all children and returnSUCCESS.
+The parent node retains this state information, and will tickAction_Cupon the next tick rather than start fromAction_Alike Step 2 did.
+For additional details regarding theRecoveryNodeplease see theRoundRobin configuration guide.
+
+Code Examples:
+
+Language: unknown
+File: SUCCESS
+```
+<root
+main_tree_to_execute=
+"MainTree"
+>
+<BehaviorTree
+ID=
+"MainTree"
+>
+<PipelineSequence>
+<Action_A/>
+<Action_B/>
+<Action_C/>
+</PipelineSequence>
+</BehaviorTree>
+</root>
+```
+
+Language: unknown
+File: FAILURE
+```
+<root
+main_tree_to_execute=
+"MainTree"
+>
+<BehaviorTree
+ID=
+"MainTree"
+>
+<RecoveryNode
+number_of_retries=
+"1"
+>
+<ComputePathToPose/>
+<ClearLocalCostmap/>
+</RecoveryNode>
+</BehaviorTree>
+</root>
+```
+
+Language: unknown
+File: FAILURE
+```
+<root
+main_tree_to_execute=
+"MainTree"
+>
+<BehaviorTree
+ID=
+"MainTree"
+>
+<RoundRobin>
+<Action_A/>
+<Action_B/>
+<Action_C/>
+</RoundRobin>
+</BehaviorTree>
+</root>
+```

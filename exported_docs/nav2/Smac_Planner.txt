@@ -1,5 +1,0 @@
-Title: Smac Planner
-URL: https://docs.nav2.org/configuration/packages/configuring-smac-planner.html#provided-plugins
-Section: 
---------------------------------------------------------------------------------
-

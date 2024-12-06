@@ -1,0 +1,29 @@
+Title: PlannerSelector
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/PlannerSelector.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: transientlocal
+```
+<PlannerSelector
+selected_planner=
+"{selected_planner}"
+default_planner=
+"GridBased"
+topic_name=
+"planner_selector"
+/>
+```

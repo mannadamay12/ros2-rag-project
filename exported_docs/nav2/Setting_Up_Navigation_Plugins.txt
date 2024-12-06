@@ -1,5 +1,0 @@
-Title: Setting Up Navigation Plugins
-URL: https://docs.nav2.org/setup_guides/algorithm/select_algorithm.html#planner-server
-Section: 
---------------------------------------------------------------------------------
-

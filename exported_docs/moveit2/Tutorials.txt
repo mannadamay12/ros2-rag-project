@@ -1,5 +1,5 @@
 Title: Tutorials
 URL: https://moveit.picknik.ai/main/doc/tutorials/tutorials.html
-Section: 
+Section: doc/tutorials/tutorials.html
 --------------------------------------------------------------------------------
 

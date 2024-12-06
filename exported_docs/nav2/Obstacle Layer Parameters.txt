@@ -1,0 +1,5 @@
+Title: Obstacle Layer Parameters
+URL: https://docs.nav2.org/configuration/packages/costmap-plugins/obstacle.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
