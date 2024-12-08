@@ -1,0 +1,5 @@
+Title: Libraries#
+URL: https://gazebosim.org/libs
+Section: getstarted
+--------------------------------------------------------------------------------
+

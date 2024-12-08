@@ -1,0 +1,150 @@
+Title: Simple Commander API
+URL: https://docs.nav2.org/commander_api/index.html
+Section: commander_api/index.html
+--------------------------------------------------------------------------------
+
+
+## Overview
+The goal of the Nav2 Simple (Python3) Commander is to provide a “navigation as a library” capability to Python3 users. We provide an API that handles all the ROS 2 and Action Server tasks for you such that you can focus on building an application leveraging the capabilities of Nav2 (after you’ve configured it to your liking with your plugins of choice).We also provide you with demos and examples of API usageto build common basic capabilities in autonomous mobile robotics in thenav2_simple_commanderpackage.
+A simple demonstration is shown below. Note:goToPose(),goThroughPoses(),followWaypoints()and similar arenon-blockingsuch that you can receive and process feedback in a single-threaded application. As such while waiting for a task to be completed, thewhilenotnav.isTaskComplete()design is necessary to poll for changes in the navigation completion, and if not complete some tasks of interest to your application (like processing feedback, doing something with the data the robot is collecting, or checking for faults).
+You may use this simple commander preempt commands of the same type (e.g. you can preempt agoToPose()with anothergoToPose()) but you must explicitly cancel a current command and issue a new one if switching betweengoToPose(),goThroughPoses(), orfollowWaypoints().
+
+## Commander API
+The methods provided by the basic navigator are shown below, with inputs and expected returns.
+If a server fails, it may throw an exception or return aNoneobject, so please be sure to properly wrap your navigation calls in try/catch and check returns forNonetype.
+New as of September 2023: the simple navigator constructor will accept anamespacefield to support multi-robot applications or namespaced Nav2 launches.
+
+## Costmap API
+This is a Python3 API for costmap 2d messages from the stack. It provides the basic conversion, get/set, and handling semantics found in the costmap 2d C++ API.
+
+## Footprint Collision Checker API
+This is a Python3 API for a Footprint Collision Checker.
+It provides the needed methods to manipulate the coordinates
+and calculate the cost of a Footprint in a given map.
+
+## Examples and Demos
+All of these can be found in thepackage.
+Thenav2_simple_commanderhas a few examples to highlight the API functions available to you as a user:
+Thenav2_simple_commanderhas a few demonstrations to highlight a couple of simple autonomy applications you can build using the API:
+
+Code Examples:
+
+Language: unknown
+File: followWaypoints()
+```
+from
+nav2_simple_commander.robot_navigator
+import
+BasicNavigator
+import
+rclpy
+rclpy
+.
+init
+()
+nav
+=
+BasicNavigator
+()
+# ...
+nav
+.
+setInitialPose
+(
+init_pose
+)
+nav
+.
+waitUntilNav2Active
+()
+# if autostarted, else use lifecycleStartup()
+# ...
+path
+=
+nav
+.
+getPath
+(
+init_pose
+,
+goal_pose
+)
+smoothed_path
+=
+nav
+.
+smoothPath
+(
+path
+)
+# ...
+nav
+.
+goToPose
+(
+goal_pose
+)
+while
+not
+nav
+.
+isTaskComplete
+():
+feedback
+=
+nav
+.
+getFeedback
+()
+if
+feedback
+.
+navigation_duration
+>
+600
+:
+nav
+.
+cancelTask
+()
+# ...
+result
+=
+nav
+.
+getResult
+()
+if
+result
+==
+TaskResult
+.
+SUCCEEDED
+:
+print
+(
+'Goal succeeded!'
+)
+elif
+result
+==
+TaskResult
+.
+CANCELED
+:
+print
+(
+'Goal was canceled!'
+)
+elif
+result
+==
+TaskResult
+.
+FAILED
+:
+print
+(
+'Goal failed!'
+)
+```

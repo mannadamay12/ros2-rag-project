@@ -1,0 +1,6 @@
+Title: Beginner: Client libraries
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Beginner: Client librariesUsingcolconto build packagesCreating a workspaceCreating a packageWriting a simple publisher and subscriber (C++)Writing a simple publisher and subscriber (Python)Writing a simple service and client (C++)Writing a simple service and client (Python)Creating custom msg and srv filesImplementing custom interfacesUsing parameters in a class (C++)Using parameters in a class (Python)Usingros2doctorto identify issuesCreating and using plugins (C++)

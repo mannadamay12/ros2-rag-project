@@ -1,0 +1,8 @@
+Title: Collision Monitor
+URL: https://docs.nav2.org/configuration/packages/configuring-collision-monitor.html#provided-nodes
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Provided Nodes
+The nodes listed below are inside thenav2_collision_monitorpackage. See the pages for individual configuration information.

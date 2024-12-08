@@ -1,0 +1,22 @@
+Title: WouldAPlannerRecoveryHelp
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/WouldAPlannerRecoveryHelp.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Port
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: FAILURE
+```
+<WouldAPlannerRecoveryHelp
+error_code=
+"{compute_path_to_pose_error_code}"
+/>
+```

@@ -1,0 +1,588 @@
+Title: Navigating with Speed Limits
+URL: https://docs.nav2.org/tutorials/docs/navigation2_with_speed_filter.html#enable-speed-filter
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Overview
+This tutorial shows how to simply utilize Speed Filter which is designed to limit the maximum speed of robots in speed restriction areas marked on a map. This functionality is being covered bySpeedFiltercostmap filter plugin which will be enabled and used in this document.
+
+## Requirements
+It is assumed that ROS 2, Gazebo and TurtleBot3 packages are installed or built locally. Please make sure that the Nav2 project is also built locally as it was made inBuild and Install.
+
+## Tutorial Steps
+
+
+## 1. Prepare filter mask
+As was written inNavigation Concepts, any Costmap Filter (including Speed Filter) is reading the data marked in a filter mask file. All information about filter masks, their types, detailed structure and how to make a new one is written in aNavigating with Keepout Zonestutorial at1.Preparefiltermaskschapter. The principal of drawing the filter mask for Speed Filter is the same as for Keepout Filter (to annotate a map with the requested zones), except thatOccupancyGridmask values have another meaning: these values are encoded speed limits for the areas corresponding to the cell on map.
+Let’s look, how it is being decoded. As we know,OccupancyGridvalues are belonging to the[0..100]range. For Speed Filter0value means no speed limit in the area corresponding zero-cell on mask. Values from[1..100]range are being linearly converted into a speed limit value by the following formula:
+where:
+The decodedspeed_limitvalue may have one of two meanings:
+The meaning used by Speed Filter is being read fromnav2_msgs/CostmapFilterInfomessages.
+In this tutorial we will use the first type of speed restriction expressed in a percent from maximum robot speed.
+Create a new image with a PGM/PNG/BMP format: copyturtlebot3_world.pgmmain map which will be used in a world simulation from a Nav2 repository to a newspeed_mask.pgmfile. Openspeed_mask.pgmin your favourite raster graphics editor and fill speed restricted areas with grey colors. In our example darker colors will indicate areas with higher speed restriction:
+Area “A” is filled with40%gray color, area “B” - with70%gray, that means that speed restriction will take100%-40%=60%in area “A” and100%-70%=30%in area “B” from maximum speed value allowed for this robot.
+We will usescalemap mode with no thresholds. In this mode darker colors will have higherOccupancyGridvalues. E.g. for area “B” with70%of grayOccupancyGriddata will be equal to70. So in order to hit the target, we need to choosebase=100.0andmultiplier=-1.0. This will reverse the scaleOccupancyGridvalues to a desired one. No thresholds (free_threshoccupied_thresh) were chosen for the convenience in theyamlfile: to have 1:1 full range conversion of lightness value from filter mask -> to speed restriction percent.
+After all speed restriction areas will be filled, save thespeed_mask.pgmimage.
+Like all other maps, the filter mask should have its own YAML metadata file. Copyturtlebot3_world.yamltospeed_mask.yaml. Openspeed_mask.yamland update the fields as shown below (as mentioned before for thescalemode to use whole color lightness range there should be no thresholds:free_thresh=0.0andoccupied_thresh=1.0):
+Since Costmap2D does not support orientation, the last third “yaw” component of theoriginvector should be equal to zero (for example:origin:[1.25,-5.18,0.0]). Savespeed_mask.yamland the new filter mask is ready to use.
+
+## 2. Configure Costmap Filter Info Publisher Server
+Each costmap filter reads incoming meta-information (such as filter type or data conversion coefficients) in messages ofnav2_msgs/CostmapFilterInfotype. These messages are being published byCostmap Filter Info Publisher Server. The server is running as a lifecycle node. According to thedesign document,nav2_msgs/CostmapFilterInfomessages are going in a pair withOccupancyGridfilter mask topic. Therefore, along with Costmap Filter Info Publisher Server there should be enabled a new instance of Map Server configured to publish filter masks.
+In order to enable Speed Filter in your configuration, both servers should be enabled as lifecycle nodes in Python launch-file. For example, this might look as follows, though adding them as Composition Nodes to your Navigation Component Container is also possible:
+where theparams_filevariable should be set to a YAML-file having ROS parameters for Costmap Filter Info Publisher Server and Map Server nodes. These parameters and their meaning are listed atMap Server / Saverpage. Please, refer to it for more information. The example ofparams_filecould be found below:
+Note, that:
+Ready-to-go standalone Python launch-script, YAML-file with ROS parameters and filter mask example for Speed Filter could be found in anav2_costmap_filters_demodirectory ofnavigation2_tutorialsrepository. To simply run Filter Info Publisher Server and Map Server tuned on Turtlebot3 standard simulation written atGetting Started, build the demo and launchcostmap_filter_info.launch.pyas follows:
+
+## 3. Enable Speed Filter
+Costmap Filters are Costmap2D plugins. You can enable theSpeedFilterplugin in Costmap2D by addingspeed_filterto thepluginsparameter innav2_params.yaml. The Speed Filter plugin should have the following parameters defined:
+Full list of parameters supported bySpeedFilterare listed at theSpeed Filter Parameterspage.
+You can place the plugin either in theglobal_costmapsection innav2_params.yamlto have speed restriction mask applied to global costmap or in thelocal_costmapto apply speed mask to the local costmap. However,SpeedFilterplugin should never be enabled simultaneously for global and local costmaps. Otherwise, it can lead to unwanted multiple “speed restriction” - “no restriction” message chains on speed restriction boundaries, that will cause jerking of the robot or another unpredictable behaviour.
+In this tutorial, we will enable Speed Filter for the global costmap. For this use the following configuration:
+As stated in thedesign, Speed Filter publishes speed restrictingmessagestargeted for a Controller Server so that it could restrict maximum speed of the robot when it needed. Controller Server has aspeed_limit_topicROS parameter for that, which should be set to the same as inspeed_filterplugin value. This topic in the map server could also be used to any number of other speed-restricted applications beyond the speed limiting zones, such as dynamically adjusting maximum speed by payload mass.
+Setspeed_limit_topicparameter of a Controller Server to the same value as it set forspeed_filterplugin:
+
+## 4. Run Nav2 stack
+After Costmap Filter Info Publisher Server and Map Server were launched and Speed Filter was enabled for global/local costmap, run Nav2 stack as written inGetting Started:
+For better visualization of speed filter mask, in RViz in the leftDisplayspane unfoldMapand changeTopicfrom/map-> to/speed_filter_mask.
+Set the goal behind the speed restriction areas and check that the filter is working properly: robot should slow down when going through a speed restricting areas. Below is how it might look (first picture shows speed filter enabled for the global costmap, second -speed_mask.pgmfilter mask):
+
+Code Examples:
+
+Language: unknown
+File: [1..100]
+```
+speed_limit
+=
+filter_mask_data
+*
+multiplier
++
+base
+;
+```
+
+Language: unknown
+File: occupied_thresh=1.0
+```
+image
+:
+turtlebot3_world.pgm
+->
+image
+:
+speed_mask.pgm
+mode
+:
+trinary
+->
+mode
+:
+scale
+occupied_thresh
+:
+0.65
+free_thresh
+:
+0.196
+->
+occupied_thresh
+:
+1.0
+free_thresh
+:
+0.0
+```
+
+Language: unknown
+File: OccupancyGrid
+```
+import
+os
+from
+ament_index_python.packages
+import
+get_package_share_directory
+from
+launch
+import
+LaunchDescription
+from
+launch.actions
+import
+DeclareLaunchArgument
+from
+launch.substitutions
+import
+LaunchConfiguration
+from
+launch_ros.actions
+import
+Node
+from
+nav2_common.launch
+import
+RewrittenYaml
+def
+generate_launch_description
+():
+# Get the launch directory
+costmap_filters_demo_dir
+=
+get_package_share_directory
+(
+'nav2_costmap_filters_demo'
+)
+# Create our own temporary YAML files that include substitutions
+lifecycle_nodes
+=
+[
+'filter_mask_server'
+,
+'costmap_filter_info_server'
+]
+# Parameters
+namespace
+=
+LaunchConfiguration
+(
+'namespace'
+)
+use_sim_time
+=
+LaunchConfiguration
+(
+'use_sim_time'
+)
+autostart
+=
+LaunchConfiguration
+(
+'autostart'
+)
+params_file
+=
+LaunchConfiguration
+(
+'params_file'
+)
+mask_yaml_file
+=
+LaunchConfiguration
+(
+'mask'
+)
+# Declare the launch arguments
+declare_namespace_cmd
+=
+DeclareLaunchArgument
+(
+'namespace'
+,
+default_value
+=
+''
+,
+description
+=
+'Top-level namespace'
+)
+declare_use_sim_time_cmd
+=
+DeclareLaunchArgument
+(
+'use_sim_time'
+,
+default_value
+=
+'true'
+,
+description
+=
+'Use simulation (Gazebo) clock if true'
+)
+declare_autostart_cmd
+=
+DeclareLaunchArgument
+(
+'autostart'
+,
+default_value
+=
+'true'
+,
+description
+=
+'Automatically startup the nav2 stack'
+)
+declare_params_file_cmd
+=
+DeclareLaunchArgument
+(
+'params_file'
+,
+default_value
+=
+os
+.
+path
+.
+join
+(
+costmap_filters_demo_dir
+,
+'params'
+,
+'speed_params.yaml'
+),
+description
+=
+'Full path to the ROS 2 parameters file to use'
+)
+declare_mask_yaml_file_cmd
+=
+DeclareLaunchArgument
+(
+'mask'
+,
+default_value
+=
+os
+.
+path
+.
+join
+(
+costmap_filters_demo_dir
+,
+'maps'
+,
+'speed_mask.yaml'
+),
+description
+=
+'Full path to filter mask yaml file to load'
+)
+# Make re-written yaml
+param_substitutions
+=
+{
+'use_sim_time'
+:
+use_sim_time
+,
+'yaml_filename'
+:
+mask_yaml_file
+}
+configured_params
+=
+RewrittenYaml
+(
+source_file
+=
+params_file
+,
+root_key
+=
+namespace
+,
+param_rewrites
+=
+param_substitutions
+,
+convert_types
+=
+True
+)
+# Nodes launching commands
+start_lifecycle_manager_cmd
+=
+Node
+(
+package
+=
+'nav2_lifecycle_manager'
+,
+executable
+=
+'lifecycle_manager'
+,
+name
+=
+'lifecycle_manager_costmap_filters'
+,
+namespace
+=
+namespace
+,
+output
+=
+'screen'
+,
+emulate_tty
+=
+True
+,
+# https://github.com/ros2/launch/issues/188
+parameters
+=
+[{
+'use_sim_time'
+:
+use_sim_time
+},
+{
+'autostart'
+:
+autostart
+},
+{
+'node_names'
+:
+lifecycle_nodes
+}])
+start_map_server_cmd
+=
+Node
+(
+package
+=
+'nav2_map_server'
+,
+executable
+=
+'map_server'
+,
+name
+=
+'filter_mask_server'
+,
+namespace
+=
+namespace
+,
+output
+=
+'screen'
+,
+emulate_tty
+=
+True
+,
+# https://github.com/ros2/launch/issues/188
+parameters
+=
+[
+configured_params
+])
+start_costmap_filter_info_server_cmd
+=
+Node
+(
+package
+=
+'nav2_map_server'
+,
+executable
+=
+'costmap_filter_info_server'
+,
+name
+=
+'costmap_filter_info_server'
+,
+namespace
+=
+namespace
+,
+output
+=
+'screen'
+,
+emulate_tty
+=
+True
+,
+# https://github.com/ros2/launch/issues/188
+parameters
+=
+[
+configured_params
+])
+ld
+=
+LaunchDescription
+()
+ld
+.
+add_action
+(
+declare_namespace_cmd
+)
+ld
+.
+add_action
+(
+declare_use_sim_time_cmd
+)
+ld
+.
+add_action
+(
+declare_autostart_cmd
+)
+ld
+.
+add_action
+(
+declare_params_file_cmd
+)
+ld
+.
+add_action
+(
+declare_mask_yaml_file_cmd
+)
+ld
+.
+add_action
+(
+start_lifecycle_manager_cmd
+)
+ld
+.
+add_action
+(
+start_map_server_cmd
+)
+ld
+.
+add_action
+(
+start_costmap_filter_info_server_cmd
+)
+return
+ld
+```
+
+Language: unknown
+File: params_file
+```
+costmap_filter_info_server
+:
+ros__parameters
+:
+use_sim_time
+:
+true
+type
+:
+1
+filter_info_topic
+:
+"/costmap_filter_info"
+mask_topic
+:
+"/speed_filter_mask"
+base
+:
+100.0
+multiplier
+:
+-1.0
+filter_mask_server
+:
+ros__parameters
+:
+use_sim_time
+:
+true
+frame_id
+:
+"map"
+topic_name
+:
+"/speed_filter_mask"
+yaml_filename
+:
+"speed_mask.yaml"
+```
+
+Language: unknown
+File: costmap_filter_info.launch.py
+```
+$
+mkdir
+-p
+~/tutorials_ws/src
+$
+cd
+~/tutorials_ws/src
+$
+git
+clone
+https://github.com/ros-navigation/navigation2_tutorials.git
+$
+cd
+~/tutorials_ws
+$
+colcon
+build
+--symlink-install
+--packages-select
+nav2_costmap_filters_demo
+$
+source
+~/tutorials_ws/install/setup.bash
+$
+ros2
+launch
+nav2_costmap_filters_demo
+costmap_filter_info.launch.py
+params_file:
+=
+src/navigation2_tutorials/nav2_costmap_filters_demo/params/speed_params.yaml
+mask:
+=
+src/navigation2_tutorials/nav2_costmap_filters_demo/maps/speed_mask.yaml
+
+```
+
+Language: unknown
+File: SpeedFilter
+```
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      ...
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      filters: ["speed_filter"]
+      ...
+      speed_filter:
+        plugin: "nav2_costmap_2d::SpeedFilter"
+        enabled: True
+        filter_info_topic: "/costmap_filter_info"
+        speed_limit_topic: "/speed_limit"
+
+```
+
+Language: unknown
+File: speed_filter
+```
+controller_server:
+  ros__parameters:
+    ...
+    speed_limit_topic: "/speed_limit"
+
+```
+
+Language: unknown
+File: speed_filter
+```
+ros2
+launch
+nav2_bringup
+tb3_simulation_launch.py
+
+```

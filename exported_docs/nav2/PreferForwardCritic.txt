@@ -1,0 +1,9 @@
+Title: PreferForwardCritic
+URL: https://docs.nav2.org/configuration/packages/trajectory_critics/prefer_forward.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<dwbplugin>: DWB plugin name defined in thecontroller_plugin_idsparameter inController Server.
+<name>: PreferForwardCritic critic name defined in the<dwb plugin>.criticsparameter defined inDWB Controller.

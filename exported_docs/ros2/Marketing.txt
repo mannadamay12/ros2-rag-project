@@ -1,0 +1,9 @@
+Title: Marketing
+URL: https://docs.ros.org/en/jazzy/The-ROS2-Project/Marketing.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+MarketingGeneral Use ROS ArtworkThe ROS 2 media kit, which includes branding language, high resolution ROS logo
+graphics, and release images, can be found in theROS art
+repository.Please refer to
+this repository for ROS art work and our branding guidelines.Stickers, Posters, and Canvas PrintsOpen Robotics hosts an online storefront onZazzle.comwith artwork available in various formats.PostersPrinted on paper with selectable sizes.Canvas PrintsPrinted on wrapped canvas with selectable sizes.Sticker SheetsPrinted on a sheet, 20 per sheet for the small, 6 per sheet in the large size.Brochure: Why ROS 2?Use this brochure to promote the goals and features of ROS 2 and encourage adoption.License:CC BY-ND 4.0Available formats:A4(forweb/email)A4(forprint)USLetter(forweb/email)USLetter(forprint)

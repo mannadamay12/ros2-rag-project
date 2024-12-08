@@ -1,0 +1,69 @@
+Title: Windows (binary)
+URL: https://docs.ros.org/en/jazzy/Installation/Windows-Install-Binary.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Windows (binary)Table of ContentsSystem requirementsSystem setupInstall ChocolateyInstall PythonInstall Visual C++ RedistributablesInstall OpenSSLInstall Visual StudioInstall OpenCVInstall dependenciesInstall miscellaneous prerequisitesInstall Qt5RQt dependenciesInstall ROS 2Install additional RMW implementations (optional)Setup environmentTry some examplesNext stepsTroubleshootUninstallExtra Stuff for DebugThis page explains how to install ROS 2 on Windows from a pre-built binary package.NoteThe pre-built binary does not include all ROS 2 packages.
+All packages in theROS base variantare included, and only a subset of packages in theROS desktop variantare included.
+The exact list of packages are described by the repositories listed inthis ros2.repos file.System requirementsOnly Windows 10 is supported.System setupInstall ChocolateyChocolatey is a package manager for Windows, install it by following their installation instructions:https://chocolatey.org/installYou’ll use Chocolatey to install some other developer tools.Install PythonOpen a Command Prompt and type the following to install Python via Chocolatey:chocoinstall-ypython--version3.8.3NoteChocolatey will install Python inC:\Python38, and the rest of the installation expects it to be there.
+If you’ve installed Python somewhere else, you must copy or link it to that location.Install Visual C++ RedistributablesOpen a Command Prompt and type the following to install them via Chocolatey:chocoinstall-yvcredist2013vcredist140Install OpenSSLOpen a Command Prompt and type the following to install OpenSSL via Chocolatey:chocoinstall-yopenssl--version1.1.1.2100This command sets an environment variable that persists over sessions:setx/mOPENSSL_CONF"C:\Program Files\OpenSSL-Win64\bin\openssl.cfg"You will need to append the OpenSSL-Win64 bin folder to your PATH.
+You can do this by clicking the Windows icon, typing “Environment Variables”, then clicking on “Edit the system environment variables”.
+In the resulting dialog, click “Environment Variables”, then click “Path” on the bottom pane, finally click “Edit” and add the path below.C:\ProgramFiles\OpenSSL-Win64\bin\Install Visual StudioInstall Visual Studio 2019.If you already have a paid version of Visual Studio 2019 (Professional, Enterprise), skip this step.Microsoft provides a free of charge version of Visual Studio 2019, named Community, which can be used to build applications that use ROS 2.You can download the installer directly through this link.Make sure that the Visual C++ features are installed.An easy way to make sure they’re installed is to select theDesktopdevelopmentwithC++workflow during the install.Make sure that no C++ CMake tools are installed by unselecting them in the list of components to be installed.Install OpenCVSome of the examples require OpenCV to be installed.You can download a precompiled version of OpenCV 3.4.6 fromhttps://github.com/ros2/ros2/releases/download/opencv-archives/opencv-3.4.6-vc16.VS2019.zip.Assuming you unpacked it toC:\opencv, type the following on a Command Prompt (requires Admin privileges):setx/mOpenCV_DIRC:\opencvSince you are using a precompiled ROS version, we have to tell it where to find the OpenCV libraries.
+You have to extend thePATHvariable toC:\opencv\x64\vc16\bin.Install dependenciesThere are a few dependencies not available in the Chocolatey package database.
+In order to ease the manual installation process, we provide the necessary Chocolatey packages.As some chocolatey packages rely on it, we start by installing CMakechocoinstall-ycmakeYou will need to append the CMake bin folderC:\ProgramFiles\CMake\binto your PATH.Please download these packages fromthisGitHub repository.asio.1.12.1.nupkgbullet.3.17.nupkgcunit.2.1.3.nupkgeigen.3.3.4.nupkgtinyxml2.6.0.0.nupkgOnce these packages are downloaded, open an administrative shell and execute the following command:chocoinstall-y-s<PATH\TO\DOWNLOADS\>asiocuniteigentinyxml2bulletPlease replace<PATH\TO\DOWNLOADS>with the folder you downloaded the packages to.First upgrade pip and setuptools:python-mpipinstall-Upipsetuptools==59.6.0Now install some additional python dependencies:python-mpipinstall-Ucatkin_pkgcryptographyempyimportlib-metadatajsonschemalark==1.1.1lxmlmatplotlibnetifacesnumpyopencv-pythonPyQt5pillowpsutilpycairopydotpyparsing==2.4.7pytestpyyamlrosdistroInstall miscellaneous prerequisitesNext install xmllint:Download the64 bit binary archivesoflibxml2(and its dependenciesiconvandzlib) fromhttps://www.zlatkovic.com/projects/libxml/Unpack all archives into e.g.C:\xmllintAddC:\xmllint\binto thePATH.Install Qt5Download the5.12.X offline installerfrom Qt’s website.
+Run the installer.
+Make sure to select theMSVC201764-bitcomponent under theQt->Qt5.12.12tree.Finally, in an administratorcmd.exewindow set these environment variables.
+The commands below assume you installed it to the default location ofC:\Qt.setx/mQt5_DIRC:\Qt\Qt5.12.12\5.12.12\msvc2017_64
+setx/mQT_QPA_PLATFORM_PLUGIN_PATHC:\Qt\Qt5.12.12\5.12.12\msvc2017_64\plugins\platformsNoteThis path might change based on the installed MSVC version, the directory Qt was installed to, and the version of Qt installed.RQt dependenciesTo run rqt_graph you need todownloadand installGraphviz.
+The installer will ask if to add graphviz to PATH, choose to either add it to the current user or all users.Install ROS 2Go to the releases page:https://github.com/ros2/ros2/releasesDownload the latest package for Windows, e.g.,ros2-jazzy-*-windows-release-amd64.zip.NoteThere may be more than one binary download option which might cause the file name to differ.NoteTo install debug libraries for ROS 2, seeExtra Stuff for Debug.
+Then continue on with downloadingros2-jazzy-*-windows-debug-amd64.zip.Unpack the zip file somewhere (we’ll assumeC:\dev\ros2_jazzy).Install additional RMW implementations (optional)The default middleware that ROS 2 uses isFastDDS, but the middleware (RMW) can be replaced at runtime.
+See theguideon how to work with multiple RMWs.Setup environmentStart a command shell and source the ROS 2 setup file to set up the workspace:callC:\dev\ros2_jazzy\local_setup.batIt is normal that the previous command, if nothing else went wrong, outputs “The system cannot find the path specified.” exactly once.Try some examplesIn a command shell, set up the ROS 2 environment as described above and then run a C++talker:ros2rundemo_nodes_cpptalkerStart another command shell and run a Pythonlistener:ros2rundemo_nodes_pylistenerYou should see thetalkersaying that it’sPublishingmessages and thelistenersayingIheardthose messages.
+This verifies both the C++ and Python APIs are working properly.
+Hooray!Next stepsContinue with thetutorials and demosto configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.TroubleshootTroubleshooting techniques can be foundhere.UninstallIf you installed your workspace with colcon as instructed above, “uninstalling” could be just a matter of opening a new terminal and not sourcing the workspace’ssetupfile.
+This way, your environment will behave as though there is no Jazzy install on your system.If you’re also trying to free up space, you can delete the entire workspace directory with:rmdir/s/q\ros2_jazzyExtra Stuff for DebugTo download the ROS 2 debug libraries you’ll need to downloadros2-jazzy-*-windows-debug-AMD64.zip.
+Please note that debug libraries require some more additional configuration/setup to work as given below.Python installation may require modification to enable debugging symbols and debug binaries:Search in windowsSearch Barand openApps and Features.Search for the installed Python version.Click Modify.Click Next to go toAdvanced Options.Make sureDownload debugging symbolsandDownload debug binariesare checked.Click Install.
+
+Code Examples:
+
+Language: unknown
+chocoinstall-ypython--version3.8.3
+
+Language: unknown
+chocoinstall-yvcredist2013vcredist140
+
+Language: unknown
+chocoinstall-yopenssl--version1.1.1.2100
+
+Language: unknown
+setx/mOPENSSL_CONF"C:\Program Files\OpenSSL-Win64\bin\openssl.cfg"
+
+Language: unknown
+setx/mOpenCV_DIRC:\opencv
+
+Language: unknown
+chocoinstall-ycmake
+
+Language: unknown
+chocoinstall-y-s<PATH\TO\DOWNLOADS\>asiocuniteigentinyxml2bullet
+
+Language: unknown
+python-mpipinstall-Upipsetuptools==59.6.0
+
+Language: unknown
+python-mpipinstall-Ucatkin_pkgcryptographyempyimportlib-metadatajsonschemalark==1.1.1lxmlmatplotlibnetifacesnumpyopencv-pythonPyQt5pillowpsutilpycairopydotpyparsing==2.4.7pytestpyyamlrosdistro
+
+Language: unknown
+setx/mQt5_DIRC:\Qt\Qt5.12.12\5.12.12\msvc2017_64
+setx/mQT_QPA_PLATFORM_PLUGIN_PATHC:\Qt\Qt5.12.12\5.12.12\msvc2017_64\plugins\platforms
+
+Language: unknown
+callC:\dev\ros2_jazzy\local_setup.bat
+
+Language: unknown
+ros2rundemo_nodes_cpptalker
+
+Language: unknown
+ros2rundemo_nodes_pylistener
+
+Language: unknown
+rmdir/s/q\ros2_jazzy

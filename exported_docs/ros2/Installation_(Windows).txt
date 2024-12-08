@@ -1,0 +1,66 @@
+Title: Installation (Windows)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Windows.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Installation (Windows)Goal:Install thewebots_ros2package and run simulation examples on Windows.Tutorial level:AdvancedTime:10 minutesContentsBackgroundPrerequisitesMultiple Installations of WebotsTasks1 Install WSL22 Install ROS 2 in WSL3 Installwebots_ros24 Launch thewebots_ros2_universal_robotexample5 RViz troubleshootingBackgroundThewebots_ros2package provides an interface between ROS 2 and Webots.
+It includes several sub-packages, includingwebots_ros2_driver, which allows ROS nodes to communicate with Webots.
+Other sub-packages are mainly examples that show multiple possible implementations using the interface.
+In this tutorial, you are going to install the package and learn how to run one of these examples.PrerequisitesIt is recommended to understand basic ROS principles covered in the beginnerTutorials.
+In particular,Creating a workspaceandCreating a packageare useful prerequisites.Webots is a prerequisite to use thewebots_ros2package.
+You can follow theinstallation procedureorbuild it from sources.Alternatively, you can also letwebots_ros2download Webots automatically.
+This option appears when you launch an example of the package and no Webots installation is found.Multiple Installations of WebotsIf you have more than one installation of Webots, ROS 2 will look for Webots at the following locations (in this order):If theROS2_WEBOTS_HOMEenvironment variable is set, ROS 2 will use the Webots in this folder, regardless of its version.If theWEBOTS_HOMEenvironment variable is set, ROS 2 will use the Webots in this folder, regardless of its version.If none of the previous points is set/installed ROS 2 will look for Webots in the default installation paths for a compatible version:C:\ProgramFiles\Webots.If Webots couldn’t be found,webots_ros2will show a window and offer automatic Webots installation of the last compatible version.Tasks1 Install WSL2On Windows, WSL (Windows Subsystem for Linux) improves the user experience with ROS 2 compared to native Windows installation, as it runs on a Linux platform.
+Install WSL with an Ubuntu version which is compatible with your ROS distribution and upgrade to WSL2 following theofficial Microsoft tutorial.2 Install ROS 2 in WSLInstall ROS 2 inside Ubuntu WSL, followingUbuntu (deb packages).3 Installwebots_ros2You can then either installwebots_ros2from the official released package, or install it from the latest up-to-date sources fromGithub.The following commands must be run inside the WSL environment.Installwebots_ros2distributed packageInstallwebots_ros2from sourcesRun the following command in a terminal.sudo apt-get install ros-jazzy-webots-ros2Create a ROS 2 workspace with itssrcdirectory.mkdir -p ~/ros2_ws/srcSource the ROS 2 environment.source /opt/ros/jazzy/setup.bashRetrieve the sources from Github.cd ~/ros2_wsgit clone --recurse-submodules https://github.com/cyberbotics/webots_ros2.git src/webots_ros2Install the package dependencies.sudo apt install python3-pip python3-rosdep python3-colcon-common-extensionssudo rosdep init && rosdep updaterosdep install --from-paths src --ignore-src --rosdistro jazzyBuild the package usingcolcon.colcon buildSource this workspace.source install/local_setup.bash4 Launch thewebots_ros2_universal_robotexampleWSL doesn’t support hardware acceleration (yet).
+Therefore, Webots should be started on Windows, while the ROS part is running inside WSL.
+To do so, the following commands must be run inside the WSL environment.First source the ROS 2 environment, if not done already.source /opt/ros/jazzy/setup.bashSetting theWEBOTS_HOMEenvironment variable allows you to start a specific Webots installation (e.g.C:\ProgramFiles\Webots).
+Use the mount point “/mnt” to refer to a path on native Windows.export WEBOTS_HOME=/mnt/c/Program\ Files/WebotsIf installed from sources, source your ROS 2 workspace, if not done already.cd ~/ros2_wssource install/local_setup.bashUse the ROS 2 launch command to start demo packages (e.g.webots_ros2_universal_robot).ros2 launch webots_ros2_universal_robot multirobot_launch.py5 RViz troubleshootingWith recent versions of WSL2, RViz should work out of the box.You can check if it works correctly by running any example that uses RViz, for example:sudo apt install ros-jazzy-slam-toolboxros2 launch webots_ros2_tiago robot_launch.py rviz:=true slam:=trueThe Tiago robot can be controlled using:ros2 run teleop_twist_keyboard teleop_twist_keyboardWith older WSL versions, RViz2 may not work directly, as no display is available. To use RViz, you can either upgrade WSL or enable X11 forwarding.Upgrade WSLEnable X11 forwardingIn a Windows shell:wsl --updateFor older versions of WSL, the following steps can be followed:InstallVcXsrv.Launch VcXsrv. You can leave most of the parameters default, except theExtrasettingspage, where you must setClipboard,PrimarySelectionandDisableaccesscontroland unsetNativeopengl.You can save the configuration for future launches.Click onFinish, you will see that the X11 server is running in the icon tray.In your WSL environment, export theDISPLAYvariable.export DISPLAY=$(ip route list default | awk '{print }'):0You can add this to your.bashrc, so that it is set for every future WSL environment.echo "export DISPLAY=$(ip route list default | awk '{print }'):0" >> ~/.bashrc
+
+Code Examples:
+
+Language: unknown
+sudo apt-get install ros-jazzy-webots-ros2
+
+Language: unknown
+mkdir -p ~/ros2_ws/src
+
+Language: unknown
+source /opt/ros/jazzy/setup.bash
+
+Language: unknown
+cd ~/ros2_wsgit clone --recurse-submodules https://github.com/cyberbotics/webots_ros2.git src/webots_ros2
+
+Language: unknown
+sudo apt install python3-pip python3-rosdep python3-colcon-common-extensionssudo rosdep init && rosdep updaterosdep install --from-paths src --ignore-src --rosdistro jazzy
+
+Language: unknown
+colcon build
+
+Language: unknown
+source install/local_setup.bash
+
+Language: unknown
+source /opt/ros/jazzy/setup.bash
+
+Language: unknown
+export WEBOTS_HOME=/mnt/c/Program\ Files/Webots
+
+Language: unknown
+cd ~/ros2_wssource install/local_setup.bash
+
+Language: unknown
+ros2 launch webots_ros2_universal_robot multirobot_launch.py
+
+Language: unknown
+sudo apt install ros-jazzy-slam-toolboxros2 launch webots_ros2_tiago robot_launch.py rviz:=true slam:=true
+
+Language: unknown
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+
+Language: unknown
+wsl --update
+
+Language: unknown
+export DISPLAY=$(ip route list default | awk '{print }'):0
+
+Language: unknown
+echo "export DISPLAY=$(ip route list default | awk '{print }'):0" >> ~/.bashrc

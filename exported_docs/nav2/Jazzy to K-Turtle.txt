@@ -1,0 +1,185 @@
+Title: Jazzy to K-Turtle
+URL: https://docs.nav2.org/migration/Jazzy.html#docking-with-static-infrastructure-or-dynamic-docking
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## TwistStamped Default CmdVel Change
+In Kilted and newer, the defaultcmd_veltopic for allTwistpublishers and subscriptions is changed toTwistStampedin order to enable a broader range of applications.
+it also allows for rejection of stale velocity messages, which can be useful in some applications.
+Your robot should now subscribe to aTwistStampedmessage instead of aTwistmessage & update your simulation appropriately.
+The topic names are the same.
+However, this can be disabled by settingenable_twist_stampedtofalsein thenav2_params.yamlfile for all nodes that involve Twist subscriptions or publications.
+See the configuration guide for more information on how to configure this parameter for each node.
+An example simulation migration using Gazebo can be seen in thefollowing pull request for the Turtlebot 3 and 4.
+
+## New Nav2 Loopback Simulator
+Thenav2_loopback_simis a stand-alone simulator to create a “loopback” for non-physical simulation to replace robot hardware, physics simulators (Gazebo, Bullet, Isaac Sim, etc).
+It computes the robot’s odometry based on the command velocity’s output request to create a perfect ‘frictionless plane’-style simulation for unit testing, system testing, R&D on higher level systems, testing behaviors without concerning yourself with localization accuracy or system dynamics, and multirobot simulations.
+
+## Docking with Static Infrastructure or Dynamic Docking
+InPR #4627a docking plugin type and logic was added to support non-charging dock types in the nav2 docking server.
+This allows users to specify docking locations to static infrastructure, such as conveyers, or dynamic docking locations, such as a pallet.
+It also includes a new docking plugin to demonstrate the new docking server capabilitiessimple_non_charging_dock.
+
+## New RViz panel for Docking
+InPR #4458a new RViz panel was added to interact with the Docking Server.
+This panel allows the user to:
+The panel displays the action goal status and feedback published bynav2_msgs/DockRobotandnav2_msgs/UndockRobotactions. Users can find information such as elapsed time, number of retries and the current state of the action (staging, controlling, etc.), as well as the error codes of the action.
+Here we can see the working demo of the plugin:
+
+## New BT Nodes
+Below is a list of new BT Nodes added:
+
+## New RViz Tool for Costmap Cost Cell Inspection
+InPR #4546a new RViz tool was added to get the costmap costcell’s cost and a service to get the costcell’s cost at the footprint pose.
+Usage:
+Working demo of the tool:
+
+## Fix flickering visualization
+InPR #4561amap_vis_zparameter has been introduced to Costmap2DROS to help modify the map slightly below the default plane, aiming to eliminate rviz visualization flickering issues.
+Default Value:
+Minimum Value Without Flickering:
+Before:
+After:
+
+## Option to limit velocity through DWB trajectory
+InPR #4663alimit_vel_cmd_in_trajparameter was introduced to DWB local planner to allow the user to limit the velocity used in the trajectory generation based on the robot’s current velocity.
+Default value:
+
+## Option to disable zero velocity publishing on goal exit
+InPR #4675apublish_zero_velocityparameter was introduced for theController serverin order to disable zero velocity publishing on goal exit.
+Default value:
+
+## Added optional collision checking for the Docking Server
+InPR #4752an optional collision checking feature was added to theDocking serverto check for collisions between the robot and the dock.
+Default value:
+
+## Revamped multirobot bringup and config files to use namespaces
+InPR #4715multirobot bringup and the use of namespaces were overhauled to be compatible out of the box with ROS namespaces and remove custom logic, specifically:
+Note that some plugins / nodes might have their own local namespace. This is the case forCostmapLayerwhich will be in a/ns/[layer_name]namespace. For these, a new functionjoinWithParentNamespacehas been added to make sure joining relative paths results in/ns/topic_namerather than/ns/[layer_name]/topic_name.
+If your use case doesn’t require multiple robots, keeping absolute paths in yournav2_params.yamlconfig file and rviz config file will preserve existing behavior.
+For example, if you specifytopic:scanin thevoxel_layerof alocal_costmapand you launch your bringup with atb4namespace:
+
+## Removed global map_topic from Costmap node
+InPR #4715the globalmap_topicparameter has been removed from theCostmap2DROSnode. This parameterwas only used in theStaticLayerand should be defined as a parameter local to theStaticLayerinstead, for example:
+
+## Simplified Costmap2DROS constructors
+The following constructors forCostmap2DROShave been removed:
+They have been consolidated into a single one:
+Thelocal_namespaceparameter has been removed and is now automatically set to the node’s name (which is what the second removed constructor did).
+Parametersparent_namespace/use_sim_timeboth provide default values to maintain the ability of creating aCostmap2DROSobject by just specifying a name.
+
+Code Examples:
+
+Language: unknown
+File: StaticLayer
+```
+global_costmap
+:
+global_costmap
+:
+ros__parameters
+:
+[
+...
+]
+# Not supported anymore
+map_topic
+:
+my_map
+static_layer
+:
+plugin
+:
+"nav2_costmap_2d::StaticLayer"
+map_subscribe_transient_local
+:
+True
+# Do this instead
+map_topic
+:
+my_map
+```
+
+Language: unknown
+File: Costmap2DROS
+```
+explicit
+Costmap2DROS
+(
+const
+std
+::
+string
+&
+name
+,
+const
+std
+::
+string
+&
+parent_namespace
+,
+const
+std
+::
+string
+&
+local_namespace
+,
+const
+bool
+&
+use_sim_time
+);
+explicit
+Costmap2DROS
+(
+const
+std
+::
+string
+&
+name
+,
+const
+bool
+&
+use_sim_time
+=
+false
+);
+```
+
+Language: unknown
+File: Costmap2DROS
+```
+explicit
+Costmap2DROS
+(
+const
+std
+::
+string
+&
+name
+,
+const
+std
+::
+string
+&
+parent_namespace
+=
+"/"
+,
+const
+bool
+&
+use_sim_time
+=
+false
+);
+```

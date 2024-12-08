@@ -1,0 +1,1207 @@
+Title: Setting Up Odometry
+URL: https://docs.nav2.org/setup_guides/odom/setup_odom.html#setup-and-prerequisites
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Odometry Introduction
+The odometry system provides a locally accurate estimate of a robot’s pose and velocity based on its motion. The odometry information can be obtained from various sources such as IMU, LIDAR, RADAR, VIO, and wheel encoders. One thing to note is that IMUs drift over time while wheel encoders drift over distance traveled, thus they are often used together to counter each other’s negative characteristics.
+Theodomframe and the transformation associated with it use a robot’s odometry system to publish localization information that is continuous but becomes less accurate over time or distance (depending on the sensor modalities and drift). In spite of this, the information can still be used by the robot to navigate its immediate vicinity (e.g collision avoidance). To obtain consistently accurate odometry information over time, themapframe provides globally accurate information that is used to correct theodomframe.
+As discussed in the previous guides and inREP 105, theodomframe is connected to the rest of the system and Nav2 through theodom=>base_linktransform. This transform is published by a tf2 broadcaster or by frameworks such asrobot_localization, which also provide additional functionalities. We will be talking more aboutrobot_localizationin a following section.
+In addition to the requiredodom=>base_linktransform, Nav2 also requires the publishing ofnav_msgs/Odometrymessage because this message provides the velocity information of the robot. In detail, thenav_msgs/Odometrymessage contains the following information:
+This message tells us the estimates for the pose and velocity of the robot. Theheadermessage provides the timestamped data in a given coordinate frame. Theposemessage provides the position and orientation of the robot relative to the frame specified inheader.frame_id. Thetwistmessage gives the linear and angular velocity relative to the frame defined inchild_frame_id.
+
+## Setting Up Odometry on your Robot
+Setting up the odometry system for Nav2 for your physical robot depends a lot on which odometry sensors are available with your robot. Due to the large number of configurations your robot may have, specific setup instructions will not be within the scope of this tutorial. Instead, we will provide some basic examples and useful resources to help you configure your robot for Nav2.
+To start, we will use an example of a robot with wheel encoders as its odometry source. Note that wheel encoders are not required for Nav2 but it is common in most setups. The goal in setting up the odometry is to compute the odometry information and publish thenav_msgs/Odometrymessage andodom=>base_linktransform over ROS 2. To calculate this information, you will need to setup some code that will translate wheel encoder information into odometry information, similar to the snippet below:
+Theright_wheel_est_velandleft_wheel_est_velare the estimated velocities of the right and left wheels respectively, and thewheelseparationis the distance between the wheels. The values ofright_wheel_est_velandleft_wheel_est_velcan be obtained by simply getting the changes in the positions of the wheel joints over time. This information can then be used to publish the Nav2 requirements. A basic example on how to do this can be found in the Navigation documentation on odometrylocated here
+An alternative to manually publishing this information that we recommend is through theros2_controlframework. Theros2_controlframework contains various packages for real-time control of robots in ROS 2. For wheel encoders,ros2_controlhas adiff_drive_controller(differential drive controller) under theros2_controllerpackage. Thediff_drive_controllertakes in thegeometry_msgs/Twistmessages published oncmd_veltopic, computes odometry information, and publishesnav_msgs/Odometrymessages onodomtopic. Other packages that deal with different kind of sensors are also available inros2_control.
+For other types of sensors such as IMU, VIO, etc, their respective ROS drivers should have documentation on how publish the odometry information. Keep in mind that Nav2 requires thenav_msgs/Odometrymessage andodom=>base_linktransforms to be published and this should be your goal when setting up your odometry system.
+
+## Simulating an Odometry System using Gazebo
+In this section, we will be using Gazebo to simulate the odometry system ofsam_bot, the robot that we built in the previous section of this tutorial series. You may go through that guide first or grab thecomplete source here.
+As an overview for this section, we will first setup Gazebo and the necessary packages required to make it work with ROS 2. Next, we will be adding Gazebo plugins, which simulate an IMU sensor and a differential drive odometry system, in order to publishsensor_msgs/Imuandnav_msgs/Odometrymessages respectively. Lastly, we will spawnsam_botin a Gazebo environment and verify the publishedsensor_msgs/Imuandnav_msgs/Odometrymessages over ROS 2.
+
+## Setup and Prerequisites
+Gazebois a 3D simulator that allows us to observe how our virtual robot will function in a simulated environment. To start using Gazebo with ROS 2, follow the installation instructions in theGazebo Installation Documentation.
+We also need to install thegazebo_ros_pkgspackage to simulate odometry and control the robot with ROS 2 in Gazebo:
+You can test if you have successfully set up your ROS 2 and Gazebo environments by following the instructionsgiven here.
+Note that we describedsam_botusing URDF. However, Gazebo usesSimulation Description Format (SDF)to describe a robot in its simulated environment. Fortunately, Gazebo automatically translates compatible URDF files into SDF. The main requirement for the URDF to be compatible with Gazebo is to have an<inertia>element within each<link>element. This requirement is already satisfied in the URDF file ofsam_bot, so it can already be used in Gazebo.
+
+## Adding Gazebo Plugins to a URDF
+We will now add the IMU sensor and the differential drive plugins of Gazebo to our URDF. For an overview of the different plugins available in Gazebo, have a look atTutorial: Using Gazebo plugins with ROS.
+For our robot, we will be using theGazeboRosImuSensorwhich is a SensorPlugin. A SensorPlugin must be attached to a link, thus we will create animu_linkto which the IMU sensor will be attached. This link will be referenced under the<gazebo>element. Next, we will set/demo/imuas the topic to which the IMU will be publishing its information, and we will comply withREP145by settinginitalOrientationAsReferencetofalse. We will also add some noise to the sensor configuration using Gazebo’ssensor noise model.
+Now, we will set up our IMU sensor plugin according to the description above by adding the following lines before the</robot>line in our URDF:
+Now, let us add the differential drive ModelPlugin. We will configure the plugin such thatnav_msgs/Odometrymessages are published on the/demo/odomtopic. The joints of the left and right wheels will be set to the wheel joints ofsam_bot. The wheel separation and wheel diameter are set according to the values of the defined values ofwheel_ygapandwheel_radiusrespectively.
+To include this plugin in our URDF, add the following lines after the</gazebo>tag of the IMU plugin:
+
+## Launch and Build Files
+We will now edit our launch file,launch/display.launch.py, to spawnsam_botin Gazebo. Since we will be simulating our robot, we can remove the GUI for the joint state publisher by deleting the following lines inside thegenerate_launch_description():
+Remove the followingguiparam:
+Remove the condition and parameters. Add arguments to thejoint_state_publisher_node:
+Next, openpackage.xmland delete the line:
+To launch Gazebo, add the following before thejoint_state_publisher_node,line indisplay.launch.py
+We will now add a node that spawnssam_botin Gazebo. Openlaunch/display.launch.pyagain and paste the following lines before thereturnlaunch.LaunchDescription([line.
+Then add the linespawn_entity,before therviz_nodeline, as shown below.
+
+## Build, Run and Verification
+Let us run our package to check if the/demo/imuand/demo/odomtopics are active in the system.
+Navigate to the root of the project and execute the following lines:
+Gazebo should launch and you should see a 3D model ofsam_bot:
+To see the active topics in the system, open a new terminal and execute:
+You should see/demo/imuand/demo/odomin the list of topics.
+To see more information about the topics, execute:
+You should see an output similar to below:
+Observe that the/demo/imutopic publishessensor_msgs/Imutype messages while the/demo/odomtopic publishesnav_msgs/Odometrytype messages. The information being published on these topics come from the gazebo simulation of the IMU sensor and the differential drive respectively. Also note that both topics currently have no subscribers. In the next section, we will create arobot_localizationnode that will subscribe to these two topics. It will then use the messages published on both topics to provide a fused, locally accurate and smooth odometry information for Nav2.
+
+## Robot Localization Demo
+Therobot_localizationpackage is used to provide a fused and locally accurate smooth odometry information from the data provided byNodometry sensor inputs. These information can be provided to the package throughnav_msgs/Odometry,sensor_msgs/Imu,geometry_msgs/PoseWithCovarianceStamped, andgeometry_msgs/TwistWithCovarianceStampedmessages.
+A usual robot setup consists of at least the wheel encoders and IMU as its odometry sensor sources. When multiple sources are provided torobot_localization, it is able to fuse the odometry information given by the sensors through the use of state estimation nodes. These nodes make use of either an Extended Kalman filter (ekf_node) or an Unscented Kalman Filter (ukf_node) to implement this fusion. In addition, the package also implements anavsat_transform_nodewhich transforms geographic coordinates into the robot’s world frame when working with GPS.
+Fused sensor data is published by therobot_localizationpackage through theodometry/filteredand theaccel/filteredtopics, if enabled in its configuration. In addition, it can also publish theodom=>base_linktransform on the/tftopic.
+If your robot is only able to provide one odometry source, the use ofrobot_localizationwould have minimal effects aside from smoothing. In this case, an alternative approach is to publish transforms through a tf2 broadcaster in your single source of odometry node. Nevertheless, you can still opt to userobot_localizationto publish the transforms and some smoothing properties may still be observed in the output.
+For the rest of this section, we will show how to userobot_localizationto fuse the sensors ofsam_bot. It will use thesensor_msgs/Imumessages published on/demo/Imuand thenav_msgs/Odometrymessage published on/demo/odomand then it will publish data onodometry/filtered,accel/filtered, and/tftopics.
+
+## Configuring Robot Localization
+Let us now configure therobot_localizationpackage to use an Extended Kalman Filter (ekf_node) to fuse odometry information and publish theodom=>base_linktransform.
+First, install therobot_localizationpackage using your machines package manager or by executing the following command:
+Next, we specify the parameters of theekf_nodeusing a YAML file. Create a directory namedconfigat the root of your project and create a file namedekf.yaml. Copy the following lines of code into yourekf.yamlfile.
+In this configuration, we defined the parameter values offrequency,two_d_mode,publish_acceleration,publish_tf,map_frame,odom_frame,base_link_frame, andworld_frame. For more information on the other parameters you can modify, seeParameters of state estimation nodes, and a sampleefk.yamlcan be foundhere.
+To add a sensor input to theekf_filter_node, add the next number in the sequence to its base name (odom, imu, pose, twist). In our case, we have onenav_msgs/Odometryand onesensor_msgs/Imuas inputs to the filter, thus we useodom0andimu0. We set the value ofodom0todemo/odom, which is the topic that publishes thenav_msgs/Odometry. Similarly, we set the value ofimu0to the topic that publishessensor_msgs/Imu, which isdemo/imu.
+You can specify which values from a sensor are to be used by the filter using the_configparameter. The order of the values of this parameter is x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az. In our example, we set everything inodom0_configtofalseexcept the 1st, 2nd, 3rd, and 12th entries, which means the filter will only use the x, y, z, and the vyaw values ofodom0.
+In theimu0_configmatrix, you’ll notice that only roll, pitch, and yaw are used. Typical mobile robot-grade IMUs will also provide angular velocities and linear accelerations. Forrobot_localizationto work properly, you should not fuse in multiple fields that are derivative of each other. Since angular velocity is fused internally to the IMU to provide the roll, pitch and yaw estimates, we should not fuse in the angular velocities used to derive that information. We also do not fuse in angular velocity due to the noisy characteristics it has when not using exceptionally high quality (and expensive) IMUs.
+
+## Launch and Build Files
+Now, let us add theekf_nodeinto the launch file. Openlaunch/display.launch.pyand paste the following lines before thereturnlaunch.LaunchDescription([line.
+Next, add the following launch arguments within thereturnlaunch.LaunchDescription([block.
+Lastly, addrobot_localization_node,above therviz_nodeline to launch the robot localization node.
+Next, we need to add therobot_localizationdependency to our package definition. Openpackage.xmland add the following line below the last<exec_depend>tag.
+Lastly, openCMakeLists.txtand append theconfigdirectory inside theinstall(DIRECTORY...), as shown in the snippet below.
+
+## Build, Run and Verification
+Let us now build and run our package. Navigate to the root of the project and execute the following lines:
+Gazebo and RVIZ should launch. In the RVIZ window, you should see the model and TF frames ofsam_bot:
+Next, let us verify that theodometry/filtered,accel/filtered, and/tftopics are active in the system. Open a new terminal and execute:
+You should seeodometry/filtered,accel/filtered, and/tfin the list of the topics.
+You can also check the subscriber count of these topics again by executing:
+You should see that/demo/imuand/demo/odomnow both have 1 subscriber each.
+To verify that theekf_filter_nodeare the subscribers of these topics, execute:
+You should see an output as shown below.
+From the output above, we can see that theekf_filter_nodeis subscribed to/demo/imuand/demo/odom. We can also see that theekf_filter_nodepublishes on theodometry/filtered,accel/filtered, and/tftopics.
+You may also verify thatrobot_localizationis publishing theodom=>base_linktransform by using the tf2_echo utility. Run the following command in a separate command line terminal:
+You should see a continuous output similar to what is shown below.
+
+## Conclusion
+In this guide, we have discussed the messages and transforms that are expected by Nav2 from the odometry system. We have seen how to set up an odometry system and how to verify the published messages. We also have discussed how multiple odometry sensors can be used to provide a filtered and smoothed odometry usingrobot_localization. We have also checked if theodom=>base_linktransform is being published correctly byrobot_localization.
+
+Code Examples:
+
+Language: unknown
+File: nav_msgs/Odometry
+```
+# This represents estimates of position and velocity in free space.
+# The pose in this message should be specified in the coordinate frame given by header.frame_id
+# The twist in this message should be specified in the coordinate frame given by the child_frame_id
+# Includes the frame id of the pose parent.
+
+std_msgs/Header
+header
+
+
+# Frame id the pose is pointing at. The twist is in this coordinate frame.
+
+string
+child_frame_id
+
+
+# Estimated pose that is typically relative to a fixed world frame.
+
+geometry_msgs/PoseWithCovariance
+pose
+
+
+# Estimated linear and angular velocity relative to child_frame_id.
+
+geometry_msgs/TwistWithCovariance
+twist
+
+```
+
+Language: unknown
+File: base_link
+```
+linear
+=
+(
+right_wheel_est_vel
++
+left_wheel_est_vel
+)
+/
+2
+angular
+=
+(
+right_wheel_est_vel
+-
+left_wheel_est_vel
+)
+/
+wheel_separation
+;
+```
+
+Language: unknown
+File: gazebo_ros_pkgs
+```
+sudo
+apt
+install
+ros-<ros2-distro>-gazebo-ros-pkgs
+
+```
+
+Language: unknown
+File: </robot>
+```
+132
+<link
+name=
+"imu_link"
+>
+133
+<visual>
+134
+<geometry>
+135
+<box
+size=
+"0.1 0.1 0.1"
+/>
+136
+</geometry>
+137
+</visual>
+138
+139
+<collision>
+140
+<geometry>
+141
+<box
+size=
+"0.1 0.1 0.1"
+/>
+142
+</geometry>
+143
+</collision>
+144
+145
+<xacro:box_inertia
+m=
+"0.1"
+w=
+"0.1"
+d=
+"0.1"
+h=
+"0.1"
+/>
+146
+</link>
+147
+148
+<joint
+name=
+"imu_joint"
+type=
+"fixed"
+>
+149
+<parent
+link=
+"base_link"
+/>
+150
+<child
+link=
+"imu_link"
+/>
+151
+<origin
+xyz=
+"0 0 0.01"
+/>
+152
+</joint>
+153
+154
+<gazebo
+reference=
+"imu_link"
+>
+155
+<sensor
+name=
+"imu_sensor"
+type=
+"imu"
+>
+156
+<plugin
+filename=
+"libgazebo_ros_imu_sensor.so"
+name=
+"imu_plugin"
+>
+157
+<ros>
+158
+<namespace>
+/demo
+</namespace>
+159
+<remapping>
+~/out:=imu
+</remapping>
+160
+</ros>
+161
+<initial_orientation_as_reference>
+false
+</initial_orientation_as_reference>
+162
+</plugin>
+163
+<always_on>
+true
+</always_on>
+164
+<update_rate>
+100
+</update_rate>
+165
+<visualize>
+true
+</visualize>
+166
+<imu>
+167
+<angular_velocity>
+168
+<x>
+169
+<noise
+type=
+"gaussian"
+>
+170
+<mean>
+0.0
+</mean>
+171
+<stddev>
+2e-4
+</stddev>
+172
+<bias_mean>
+0.0000075
+</bias_mean>
+173
+<bias_stddev>
+0.0000008
+</bias_stddev>
+174
+</noise>
+175
+</x>
+176
+<y>
+177
+<noise
+type=
+"gaussian"
+>
+178
+<mean>
+0.0
+</mean>
+179
+<stddev>
+2e-4
+</stddev>
+180
+<bias_mean>
+0.0000075
+</bias_mean>
+181
+<bias_stddev>
+0.0000008
+</bias_stddev>
+182
+</noise>
+183
+</y>
+184
+<z>
+185
+<noise
+type=
+"gaussian"
+>
+186
+<mean>
+0.0
+</mean>
+187
+<stddev>
+2e-4
+</stddev>
+188
+<bias_mean>
+0.0000075
+</bias_mean>
+189
+<bias_stddev>
+0.0000008
+</bias_stddev>
+190
+</noise>
+191
+</z>
+192
+</angular_velocity>
+193
+<linear_acceleration>
+194
+<x>
+195
+<noise
+type=
+"gaussian"
+>
+196
+<mean>
+0.0
+</mean>
+197
+<stddev>
+1.7e-2
+</stddev>
+198
+<bias_mean>
+0.1
+</bias_mean>
+199
+<bias_stddev>
+0.001
+</bias_stddev>
+200
+</noise>
+201
+</x>
+202
+<y>
+203
+<noise
+type=
+"gaussian"
+>
+204
+<mean>
+0.0
+</mean>
+205
+<stddev>
+1.7e-2
+</stddev>
+206
+<bias_mean>
+0.1
+</bias_mean>
+207
+<bias_stddev>
+0.001
+</bias_stddev>
+208
+</noise>
+209
+</y>
+210
+<z>
+211
+<noise
+type=
+"gaussian"
+>
+212
+<mean>
+0.0
+</mean>
+213
+<stddev>
+1.7e-2
+</stddev>
+214
+<bias_mean>
+0.1
+</bias_mean>
+215
+<bias_stddev>
+0.001
+</bias_stddev>
+216
+</noise>
+217
+</z>
+218
+</linear_acceleration>
+219
+</imu>
+220
+</sensor>
+221
+</gazebo>
+```
+
+Language: unknown
+File: </gazebo>
+```
+223
+<gazebo>
+224
+<plugin
+name=
+'diff_drive'
+filename=
+'libgazebo_ros_diff_drive.so'
+>
+225
+<ros>
+226
+<namespace>
+/demo
+</namespace>
+227
+</ros>
+228
+229
+<!-- wheels -->
+230
+<left_joint>
+drivewhl_l_joint
+</left_joint>
+231
+<right_joint>
+drivewhl_r_joint
+</right_joint>
+232
+233
+<!-- kinematics -->
+234
+<wheel_separation>
+0.4
+</wheel_separation>
+235
+<wheel_diameter>
+0.2
+</wheel_diameter>
+236
+237
+<!-- limits -->
+238
+<max_wheel_torque>
+20
+</max_wheel_torque>
+239
+<max_wheel_acceleration>
+1.0
+</max_wheel_acceleration>
+240
+241
+<!-- output -->
+242
+<publish_odom>
+true
+</publish_odom>
+243
+<publish_odom_tf>
+false
+</publish_odom_tf>
+244
+<publish_wheel_tf>
+true
+</publish_wheel_tf>
+245
+246
+<odometry_frame>
+odom
+</odometry_frame>
+247
+<robot_base_frame>
+base_link
+</robot_base_frame>
+248
+</plugin>
+249
+</gazebo>
+```
+
+Language: unknown
+File: generate_launch_description()
+```
+joint_state_publisher_gui_node
+=
+launch_ros.actions.Node
+(
+package
+=
+'joint_state_publisher_gui'
+,
+
+executable
+=
+'joint_state_publisher_gui'
+,
+
+name
+=
+'joint_state_publisher_gui'
+,
+
+condition
+=
+launch.conditions.IfCondition
+(
+LaunchConfiguration
+(
+'gui'
+))
+)
+```
+
+Language: unknown
+File: generate_launch_description()
+```
+DeclareLaunchArgument
+(
+name
+=
+'gui'
+,
+default_value
+=
+'True'
+,
+
+description
+=
+'Flag to enable joint_state_publisher_gui'
+)
+```
+
+Language: unknown
+File: generate_launch_description()
+```
+joint_state_publisher_node
+=
+launch_ros.actions.Node
+(
+package
+=
+'joint_state_publisher'
+,
+
+executable
+=
+'joint_state_publisher'
+,
+
+name
+=
+'joint_state_publisher'
+,
+
+arguments
+=[
+default_model_path
+]
+,
+#Add this line
+parameters
+=[{
+'robot_description'
+:
+Command
+([
+'xarcro '
+,
+default_model_path
+])}]
+,
+#Remove this line
+condition
+=
+launch.conditions.UnlessCondition
+(
+LaunchConfiguration
+(
+'gui'
+))
+# Remove this line
+)
+```
+
+Language: unknown
+File: generate_launch_description()
+```
+<exec_depend>joint_state_publisher_gui</exec_depend>
+
+```
+
+Language: unknown
+File: display.launch.py
+```
+launch.actions.ExecuteProcess
+(
+cmd
+=[
+'gazebo'
+,
+'--verbose'
+,
+'-s'
+,
+'libgazebo_ros_init.so'
+,
+'-s'
+,
+'libgazebo_ros_factory.so'
+]
+,
+output
+=
+'screen'
+)
+,
+
+```
+
+Language: unknown
+File: returnlaunch.LaunchDescription([
+```
+spawn_entity
+=
+launch_ros.actions.Node
+(
+package
+=
+'gazebo_ros'
+,
+
+executable
+=
+'spawn_entity.py'
+,
+
+arguments
+=[
+'-entity'
+,
+'sam_bot'
+,
+'-topic'
+,
+'robot_description'
+]
+,
+
+output
+=
+'screen'
+)
+```
+
+Language: unknown
+File: rviz_node
+```
+robot_state_publisher_node,
+
+spawn_entity,
+
+rviz_node
+
+])
+```
+
+Language: unknown
+File: /demo/odom
+```
+colcon
+build
+.
+install/setup.bash
+ros2
+launch
+sam_bot_description
+display.launch.py
+
+```
+
+Language: unknown
+File: sam_bot
+```
+ros2
+topic
+list
+
+```
+
+Language: unknown
+File: /demo/odom
+```
+ros2
+topic
+info
+/demo/imu
+ros2
+topic
+info
+/demo/odom
+
+```
+
+Language: unknown
+File: /demo/odom
+```
+Type:
+sensor_msgs/msg/Imu
+Publisher
+count:
+1
+
+Subscription
+count:
+0
+```
+
+Language: unknown
+File: /demo/odom
+```
+Type:
+nav_msgs/msg/Odometry
+Publisher
+count:
+1
+
+Subscription
+count:
+0
+```
+
+Language: unknown
+File: robot_localization
+```
+sudo
+apt
+install
+ros-<ros2-distro>-robot-localization
+
+```
+
+Language: unknown
+File: ekf.yaml
+```
+### ekf config file ###
+ekf_filter_node
+:
+ros__parameters
+:
+# The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
+# computation until it receives at least one message from one of theinputs. It will then run continuously at the
+# frequency specified here, regardless of whether it receives more measurements. Defaults to 30 if unspecified.
+frequency
+:
+30.0
+# ekf_localization_node and ukf_localization_node both use a 3D omnidirectional motion model. If this parameter is
+# set to true, no 3D information will be used in your state estimate. Use this if you are operating in a planar
+# environment and want to ignore the effect of small variations in the ground plane that might otherwise be detected
+# by, for example, an IMU. Defaults to false if unspecified.
+two_d_mode
+:
+false
+# Whether to publish the acceleration state. Defaults to false if unspecified.
+publish_acceleration
+:
+true
+# Whether to broadcast the transformation over the /tf topic. Defaultsto true if unspecified.
+publish_tf
+:
+true
+# 1. Set the map_frame, odom_frame, and base_link frames to the appropriate frame names for your system.
+#     1a. If your system does not have a map_frame, just remove it, and make sure "world_frame" is set to the value of odom_frame.
+# 2. If you are fusing continuous position data such as wheel encoder odometry, visual odometry, or IMU data, set "world_frame"
+#    to your odom_frame value. This is the default behavior for robot_localization's state estimation nodes.
+# 3. If you are fusing global absolute position data that is subject to discrete jumps (e.g., GPS or position updates from landmark
+#    observations) then:
+#     3a. Set your "world_frame" to your map_frame value
+#     3b. MAKE SURE something else is generating the odom->base_link transform. Note that this can even be another state estimation node
+#         from robot_localization! However, that instance should *not* fuse the global data.
+map_frame
+:
+map
+# Defaults to "map" if unspecified
+odom_frame
+:
+odom
+# Defaults to "odom" if unspecified
+base_link_frame
+:
+base_link
+# Defaults to "base_link" ifunspecified
+world_frame
+:
+odom
+# Defaults to the value ofodom_frame if unspecified
+odom0
+:
+demo/odom
+odom0_config
+:
+[
+true
+,
+true
+,
+true
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+,
+true
+,
+false
+,
+false
+,
+false
+]
+imu0
+:
+demo/imu
+imu0_config
+:
+[
+false
+,
+false
+,
+false
+,
+true
+,
+true
+,
+true
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+,
+false
+]
+```
+
+Language: unknown
+File: returnlaunch.LaunchDescription([
+```
+robot_localization_node
+=
+launch_ros.actions.Node
+(
+package
+=
+'robot_localization'
+,
+
+executable
+=
+'ekf_node'
+,
+
+name
+=
+'ekf_filter_node'
+,
+
+output
+=
+'screen'
+,
+
+parameters
+=[
+os.path.join
+(
+pkg_share,
+'config/ekf.yaml'
+)
+,
+{
+'use_sim_time'
+:
+LaunchConfiguration
+(
+'use_sim_time'
+)}]
+)
+```
+
+Language: unknown
+File: returnlaunch.LaunchDescription([
+```
+launch.actions.DeclareLaunchArgument
+(
+name
+=
+'use_sim_time'
+,
+default_value
+=
+'True'
+,
+
+description
+=
+'Flag to enable use_sim_time'
+)
+,
+
+```
+
+Language: unknown
+File: rviz_node
+```
+robot_state_publisher_node,
+
+spawn_entity,
+
+robot_localization_node,
+
+rviz_node
+
+])
+```
+
+Language: unknown
+File: <exec_depend>
+```
+<exec_depend>robot_localization</exec_depend>
+
+```
+
+Language: unknown
+File: install(DIRECTORY...)
+```
+install
+(
+DIRECTORY
+src
+launch
+rviz
+config
+
+DESTINATION
+share/
+${
+PROJECT_NAME
+}
+)
+```
+
+Language: unknown
+File: install(DIRECTORY...)
+```
+colcon
+build
+.
+install/setup.bash
+ros2
+launch
+sam_bot_description
+display.launch.py
+
+```
+
+Language: unknown
+File: /tf
+```
+ros2
+topic
+list
+
+```
+
+Language: unknown
+File: /tf
+```
+ros2
+topic
+info
+/demo/imu
+ros2
+topic
+info
+/demo/odom
+
+```
+
+Language: unknown
+File: ekf_filter_node
+```
+ros2
+node
+info
+/ekf_filter_node
+
+```
+
+Language: unknown
+File: ekf_filter_node
+```
+/ekf_filter_node
+Subscribers:
+
+/demo/imu:
+sensor_msgs/msg/Imu
+
+/demo/odom:
+nav_msgs/msg/Odometry
+
+/parameter_events:
+rcl_interfaces/msg/ParameterEvent
+
+/set_pose:
+geometry_msgs/msg/PoseWithCovarianceStamped
+Publishers:
+
+/accel/filtered:
+geometry_msgs/msg/AccelWithCovarianceStamped
+
+/diagnostics:
+diagnostic_msgs/msg/DiagnosticArray
+
+/odometry/filtered:
+nav_msgs/msg/Odometry
+
+/parameter_events:
+rcl_interfaces/msg/ParameterEvent
+
+/rosout:
+rcl_interfaces/msg/Log
+
+/tf:
+tf2_msgs/msg/TFMessage
+Service
+Servers:
+
+...
+
+```
+
+Language: unknown
+File: base_link
+```
+ros2
+run
+tf2_ros
+tf2_echo
+odom
+base_link
+
+```
+
+Language: unknown
+File: base_link
+```
+At
+time
+8
+.842000000
+-
+Translation:
+[
+0
+.003,
+-0.000,
+0
+.127
+]
+
+-
+Rotation:
+in
+Quaternion
+[
+-0.000,
+0
+.092,
+0
+.003,
+0
+.996
+]
+
+At
+time
+9
+.842000000
+-
+Translation:
+[
+0
+.002,
+-0.000,
+0
+.127
+]
+
+-
+Rotation:
+in
+Quaternion
+[
+-0.000,
+0
+.092,
+0
+.003,
+0
+.996
+]
+```

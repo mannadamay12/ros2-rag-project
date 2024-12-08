@@ -1,0 +1,45 @@
+Title: DistanceTraveled
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/DistanceTraveled.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+
+
+## Example
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+bt_navigator
+:
+ros__parameters
+:
+# other bt_navigator parameters
+transform_tolerance
+:
+0.1
+```
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<DistanceTraveled
+distance=
+"0.8"
+global_frame=
+"map"
+robot_base_frame=
+"base_link"
+/>
+```

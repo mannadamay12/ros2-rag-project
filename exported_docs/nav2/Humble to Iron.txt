@@ -1,0 +1,141 @@
+Title: Humble to Iron
+URL: https://docs.nav2.org/migration/Humble.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## New Behavior-Tree Navigator Plugins
+New inPR 3345, the navigator types are exposed to users as plugins that can be replaced or new navigator types added. The default behaviors of navigate to pose and navigate through poses continue to be default behavior but are now customizable with new action interface definitions. These plugins implement thenav2_core::BehaviorTreeNavigatorbase class, which must process the action request, feedback, and completion messages. The behavior tree is handled by this base class with as much general logic as possible abstracted away from users to minimize repetition.
+SeeWriting a New Navigator Pluginfor a tutorial about writing new navigator plugins.
+
+## Added Collision Monitor
+PR 2982adds new safety layer operating independently of Nav2 stack which ensures the robot to control the collisions with near obstacles, obtained from different sensors (LaserScan, PointCloud, IR, Sonars, etc…). SeeCollision Monitorfor more details. It is not included in the default bringup batteries included fromnav2_bringup.
+
+## Removed use_sim_time from yaml
+PR #3131makes it possible to set the use_sim_time parameter from the launch file for multiple nodes instead of individually via the yaml files. If using the Nav2 launch files, you can optionally remove the use_sim_time parameter from your yaml files and set it via a launch argument.
+
+## Run-time Speed up of Smac Planner
+The core data structure of the graph implementation in the Smac Planner framework was swapped out inPR 3201to using a specialized unordered map implementation. This speeds up the planner by 10% on trivial requests and reports up to 30% on complex plans that involve numerous rehashings.
+
+## Recursive Refinement of Smac and Simple Smoothers
+The number of recursive refinements for the Simple and Smac Planner Smoothers have been exposed under therefinement_numparameter. Previous behavior had this hardcoded ifdo_refinement=Trueto4. Now, default is2to help decrease out-of-the-box over smoothing reducing in paths closer to collision than probably ideal, but old behavior can be achieved by changing this to4.
+
+## Simple Commander Python API
+PR 3159and follow-up PRs add in Costmap API in Python3 simple commander to receiveOccupancyGridmessages from Nav2 and be able to work with them natively in Python3, analog to the C++ Costmap API. It also includes a line iterator and collision checking object to perform footprint or other collision checking in Python3. See the Simple Commander API for more details.
+
+## Smac Planner Start Pose Included in Path
+PR 3168adds the starting pose to the Smac Planners that was previously excluded during backtracing.
+
+## Parameterizable Collision Checking in RPP
+PR 3204adds makes collision checking for RPP optional (default on).
+
+## Expanded Planner Benchmark Tests
+PR 3218adds launch files and updated scripts for performing objective random planning tests across the planners in Nav2 for benchmarking and metric computation.
+
+## Smac Planner Path Tolerances
+PR 3219adds path tolerances to Hybrid-A* and State Lattice planners to return approximate paths if exact paths cannot be found, within a configurable tolerance aroun the goal pose.
+
+## costmap_2d_node default constructor
+PR #3222changes the constructor used by the standalone costmap node. The new constructor does not set a name and namespace internally so it can be set via the launch file.
+
+## Feedback for Navigation Failures
+PR #3146updates the global planners to throw exceptions on planning failures. These exceptions get reported back to the planner server which in turn places a error code on the Behavior Tree Navigator’s blackboard for use in contextual error handling in the autonomy application.
+The following errors codes are supported (with more to come as necessary): Unknown, TF Error, Start or Goal Outside of Map, Start or Goal Occupied, Timeout, or No Valid Path Found.
+PR #3248updates the compute path through poses action to report planning failures. These exceptions get reported back to the planner server which in turn places a error code on the Behavior Tree Navigator’s blackboard for use in contextual error handling in the autonomy application.
+The following errors codes are supported (with more to come as necessary): Unknown, TF Error, Start or Goal Outside of Map, Start or Goal Occupied, Timeout, No Valid Path Found and No Waypoints given.
+PR #3227updates the controllers to throw exceptions on failures. These exceptions get reported back to the controller server which in turn places a error code on the Behavior Tree Navigatior’s blackboard for use in contextual error handling in the autonomy application.
+The following error codes are supported (with more to come as necessary): Unknown, TF Error, Invalid Path, Patience Exceeded, Failed To Make Progress, or No Valid Control.
+PR #3251pipes the highest priority error code through the bt_navigator and defines the error code structure.
+A new parameter for the the BT Navigator called “error_code_id_names” was added to the nav2_params.yaml to define the error codes to compare.
+The lowest error in the “error_code_id_names” is then returned in the action request (navigate to pose, navigate through poses waypoint follower), whereas the code enums increase the higher up in the software stack - giving higher priority to lower-level failures.
+The error codes produced from the servers follow the guidelines stated below.
+Error codes from 0 to 9999 are reserved for nav2 while error codes from 10000-65535 are reserved for external servers.
+Each server has two “reserved” error codes. 0 is reserved for NONE and the first error code in the sequence is reserved for UNKNOWN.
+The current implemented servers with error codes are:
+This pr also updates the waypoint follower server to throw exceptions on failures. These exceptions get reported back to the server which in turn places a error code on the Behavior Tree Navigator’s blackboard for use in contextual error handling in the autonomy application.
+The following errors codes are supported (with more to come as necessary): Unknown and Task Executor Failed.
+SeeAdding a New Nav2 Task Serverand the PR for additional information.
+
+## Costmap Filters
+Costmap Filters now are have an ability to be enabled/disabled in run-time by callingtoggle_filterservice for appropriate filter (PR #3229).
+Added new binary flip filter, allowing e.g. to turn off camera in sensitive areas, turn on headlights/leds/other safety things or switch operating mode when robot is inside marked on mask areas (PR #3228).
+
+## Savitzky-Golay Smoother
+Adding a new smoother algorithm, the Savitzky-Golay smoother to the smoother server plugin list. See the configuration guideSavitzky-Golay Smootherfor more details.
+
+## Changes to Map yaml file path for map_server node in Launch
+PR #3174adds a way to set the path to map yaml file for the map_server node either from the yaml file or using the launch configuration parametermapgiving priority to the launch configuration parameter.yaml_filenameis no longer strictly required to be present innav2_params.yaml.
+
+## SmootherSelector BT Node
+PR #3283adds a BT node to set the smoother based on a topic or a default. See the configuration guideSimple Smootherfor more details.
+
+## Publish Costmap Layers
+PR #3320adds the ability for the nav2_costmap_2d package to publish out costmap data associated with each layer.
+
+## Give Behavior Server Access to Both Costmaps
+PR #3255adds the ability for a behavior to access the local and global costmap.
+To update behaviors, any reference to the global_frame must be updated to the local_frame parameter
+along with theconfigurationmethod which now takes in the local and global collision checkers.
+Lastly,getResourceInfomust be overridden to returnCostmapInfoType::LOCAL. Other options includeGLOBALif the behavior useses global costmap and/or footprint)
+orBOTHif both are required. This allows us to only create and maintain the minimum amount of expensive resources.
+
+## New Model Predictive Path Integral Controller
+The new Nav2 MPPI Controller is a predictive controller - a successor to TEB and pure path tracking MPC controllers - with Nav2. It uses a sampling based approach to select optimal trajectories, optimizing between successive iterations. It contains plugin-based objective functions for customization and extension for various behaviors and behavioral attributes.
+See the README.md andModel Predictive Path Integral Controllerpage for more detail.
+
+## Behavior Tree Uses Error Codes
+PR #3324adds three new condition nodes to check for error codes on the blackboard set by action BT nodes which contain them.
+TheAreErrorCodesPresentcondition node allows the user to specify the error code from the server along with the error codes to match against.
+TheWouldAControllerRecoveryHelpchecks if the active error code is UNKNOWN, PATIENCE_EXCEEDED, FAILED_TO_MAKE_PROGRESS or NO_VALID_CONTROL.
+If the error code is a match, the condition returnsSUCCESS.
+These error code are potentially able to be cleared by a controller recovery.
+TheWouldAPlannerRecoveryHelpchecks if the active error code is UNKNOWN, NO_VALID_CONTROL, or TIMEOUT.
+If the error code is a match, the condition returnsSUCCESS.
+These error code are potentially able to be cleared by a planner recovery.
+TheWouldASmootherRecoveryHelpchecks if the active error code is UNKNOWN, TIMEOUT, FAILED_TO_SMOOTH_PATH, or SMOOTHED_PATH_IN_COLLISION.
+If the error code is a match, the condition returnsSUCCESS.
+These error code are potentially able to be cleared by a smoother recovery.
+
+## Load, Save and Loop Waypoints from the Nav2 Panel in RViz
+PR #3165provides three new functionalities for the nav2 panel in RViz, they are:
+Looping functionality is not specific to the nav2 panel in RViz. Users utilizing nav2_waypoint_follower can take advantage of the changes made to the FollowWaypoint action, by specifying the desired number of loops in the action request that will be eventually sent to the nav2_waypoint_follower server.
+
+## DWB Forward vs Reverse Pruning
+PR #3374adds a newforward_prune_distanceparameter in the DWB controller. It replaces theprune_distancefor forward path shortening, enabled through theshorten_transformed_planboolean parameter. This change allows to use different values for forward and backward path shortening.
+
+## More stable regulation on curves for long lookahead distances
+PR #3414adds a newuse_fixed_curvature_lookaheadparameter to the RPP controller. This makes slowing down on curve not dependent on the instantaneous lookahead point, but instead on a fixed distance set by the parametercurvature_lookahead_dist.
+
+## Publish Collision Monitor State
+PR #3504adds a newstate_topicparameter to the CollisionMonitor. If specified, this optional parameter enables the state topic publisher. The topic reports the currently activated polygon action type and name.
+
+## Renamed ROS-parameter in Collision Monitor
+PR #3513renamesmax_pointsparameter tomin_pointsand changes its meaning. Formerlymax_pointsmeant the maximum number of points inside the area still not triggering the action, whilemin_points- is a minimal number of points starting from the action to be initiated. In other wordsmin_pointsnow should be adjusted asmax_points+1.
+
+## New safety behavior model “limit” in Collision Monitor
+PR #3519adds a new collision monitor behavior modellimitthat restricts maximum linear and angular speed to specific values (linear_limitandangular_limit) if enough points are in the given shape.
+
+## Velocity smoother applies deceleration when timeout
+PR #3512makes the VelocitySmoother apply the deceleration when the input command timeout.
+
+## PoseProgressChecker plugin
+PR #3530adds a newnav2_controller::PoseProgressCheckerplugin. It builds on the behavior of theSimpleProgressCheckerby adding a new parameterrequired_movement_angle, allowing the plugin to considers that there is still progress when there is no translation movement, from the moment there is a rotation movement superior torequired_movement_anglewithin themovement_time_allowance.
+
+## Allow multiple goal checkers and change parameter progress_checker_plugin(s) name and type
+PR #3555initializes the progress checker plugin(s) in the same way as for the goal checker and controller plugins: it is now a list of string and was renamed fromprogress_checker_plugintoprogress_checker_plugins, and the type changed fromstringtovector<string>. This allows the initialization of multiple progress checkers that can be chosen from the addedprogress_checker_idfieldof theFollowPathaction.
+Beware that it is a breaking change and that configuration files will need to be updated.
+
+## IsBatteryChargingCondition BT Node
+PR #3553adds a BT node to check if the battery is charging. See the configuration guideIsBatteryChargingfor more details.
+
+## Behavior Server Error Codes
+PR #3569updates the behavior server plugins to provide error codes on failure.
+
+## New Denoise Costmap Layer Plugin
+PR #2567adds the new plugin for filtering noise on the costmap.
+Due to errors inVoxelLayerorObstacleLayermeasurements, salt and pepper noise may appear on thecostmap. This noise creates false obstacles that prevent the robot from finding the best path on the map.
+The newDenoiseLayerplugin is designed to filter out noise-induced standalone obstacles or small obstacles groups. This plugin allows you to add layer that will filter local or global costmap.
+More information aboutDenoiseLayerplugin and how it works could be foundhere.
+
+## SmacPlannerHybrid viz_expansions parameter
+PR #3577adds a new parameter for visualising SmacPlannerHybrid expansions for debug purpose.

@@ -1,0 +1,19 @@
+Title: GoalUpdated
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/GoalUpdated.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<GoalUpdated/>
+```

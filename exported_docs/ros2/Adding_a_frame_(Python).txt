@@ -1,0 +1,137 @@
+Title: Adding a frame (Python)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Adding-A-Frame-Py.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Adding a frame (Python)Goal:Learn how to to add an extra frame to tf2.Tutorial level:IntermediateTime:15 minutesContentsBackgroundtf2 treeTasks1 Write the fixed frame broadcaster1.1 Examine the code1.2 Add an entry point1.3 Write the launch file1.4 Build1.5 Run2 Write the dynamic frame broadcaster2.1 Examine the code2.2 Add an entry point2.3 Write the launch file2.4 Build1.5 RunSummaryBackgroundIn previous tutorials, we recreated the turtle demo by writing atf2 broadcasterand atf2 listener.
+This tutorial will teach you how to add extra fixed and dynamic frames to the transformation tree.
+In fact, adding a frame in tf2 is very similar to creating the tf2 broadcaster, but this example will show you some additional features of tf2.For many tasks related to transformations, it is easier to think inside a local frame.
+For example, it is easiest to reason about laser scan measurements in a frame at the center of the laser scanner.
+tf2 allows you to define a local frame for each sensor, link, or joint in your system.
+When transforming from one frame to another, tf2 will take care of all the hidden intermediate frame transformations that are introduced.tf2 treetf2 builds up a tree structure of frames and, thus, does not allow a closed loop in the frame structure.
+This means that a frame only has one single parent, but it can have multiple children.
+Currently, our tf2 tree contains three frames:world,turtle1andturtle2.
+The two turtle frames are children of theworldframe.
+If we want to add a new frame to tf2, one of the three existing frames needs to be the parent frame, and the new one will become its child frame.Tasks1 Write the fixed frame broadcasterIn our turtle example, we’ll add a new framecarrot1, which will be the child of theturtle1.
+This frame will serve as the goal for the second turtle.Let’s first create the source files.
+Go to thelearning_tf2_pypackage we created in the previous tutorials.
+Inside thesrc/learning_tf2_py/learning_tf2_pydirectory download the fixed frame broadcaster code by entering the following command:LinuxmacOSWindowswget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/fixed_frame_tf2_broadcaster.pywget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/fixed_frame_tf2_broadcaster.pyIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/fixed_frame_tf2_broadcaster.py -o fixed_frame_tf2_broadcaster.pyOr in powershell:curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/fixed_frame_tf2_broadcaster.py -o fixed_frame_tf2_broadcaster.pyNow open the file calledfixed_frame_tf2_broadcaster.py.fromgeometry_msgs.msgimportTransformStampedimportrclpyfromrclpy.nodeimportNodefromtf2_rosimportTransformBroadcasterclassFixedFrameBroadcaster(Node):def__init__(self):super().__init__('fixed_frame_tf2_broadcaster')self.tf_broadcaster=TransformBroadcaster(self)self.timer=self.create_timer(0.1,self.broadcast_timer_callback)defbroadcast_timer_callback(self):t=TransformStamped()t.header.stamp=self.get_clock().now().to_msg()t.header.frame_id='turtle1't.child_frame_id='carrot1't.transform.translation.x=0.0t.transform.translation.y=2.0t.transform.translation.z=0.0t.transform.rotation.x=0.0t.transform.rotation.y=0.0t.transform.rotation.z=0.0t.transform.rotation.w=1.0self.tf_broadcaster.sendTransform(t)defmain():rclpy.init()node=FixedFrameBroadcaster()try:rclpy.spin(node)exceptKeyboardInterrupt:passrclpy.shutdown()The code is very similar to the tf2 broadcaster tutorial example and the only difference is that the transform here does not change over time.1.1 Examine the codeLet’s take a look at the key lines in this piece of code.
+Here we create a new transform, from the parentturtle1to the new childcarrot1.
+Thecarrot1frame is 2 meters offset in y axis in terms of theturtle1frame.t=TransformStamped()t.header.stamp=self.get_clock().now().to_msg()t.header.frame_id='turtle1't.child_frame_id='carrot1't.transform.translation.x=0.0t.transform.translation.y=2.0t.transform.translation.z=0.01.2 Add an entry pointTo allow theros2runcommand to run your node, you must add the entry point tosetup.py(located in thesrc/learning_tf2_pydirectory).Add the following line between the'console_scripts':brackets:'fixed_frame_tf2_broadcaster = learning_tf2_py.fixed_frame_tf2_broadcaster:main',1.3 Write the launch fileNow let’s create a launch file for this example.
+With your text editor, create a new file calledturtle_tf2_fixed_frame_demo_launch.pyin thesrc/learning_tf2_py/launchdirectory, and add the following lines:importosfromament_index_python.packagesimportget_package_share_directoryfromlaunchimportLaunchDescriptionfromlaunch.actionsimportIncludeLaunchDescriptionfromlaunch.launch_description_sourcesimportPythonLaunchDescriptionSourcefromlaunch_ros.actionsimportNodedefgenerate_launch_description():demo_nodes=IncludeLaunchDescription(PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('learning_tf2_py'),'launch'),'/turtle_tf2_demo_launch.py']),)returnLaunchDescription([demo_nodes,Node(package='learning_tf2_py',executable='fixed_frame_tf2_broadcaster',name='fixed_broadcaster',),])This launch file imports the required packages and then creates ademo_nodesvariable that will store nodes that we created in the previous tutorial’s launch file.The last part of the code will add our fixedcarrot1frame to the turtlesim world using ourfixed_frame_tf2_broadcasternode.Node(package='learning_tf2_py',executable='fixed_frame_tf2_broadcaster',name='fixed_broadcaster',),1.4 BuildRunrosdepin the root of your workspace to check for missing dependencies.LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfStill in the root of your workspace, build your package:LinuxmacOSWindowscolcon build --packages-select learning_tf2_pycolcon build --packages-select learning_tf2_pycolcon build --merge-install --packages-select learning_tf2_pyOpen a new terminal, navigate to the root of your workspace, and source the setup files:LinuxmacOSWindows. install/setup.bash. install/setup.bash#CMDcall install\setup.bat#Powershell.\install\setup.ps11.5 RunNow you can start the turtle broadcaster demo:ros2 launch learning_tf2_py turtle_tf2_fixed_frame_demo_launch.pyYou should notice that the newcarrot1frame appeared in the transformation tree.If you drive the first turtle around, you should notice that the behavior didn’t change from the previous tutorial, even though we added a new frame.
+That’s because adding an extra frame does not affect the other frames and our listener is still using the previously defined frames.Therefore if we want our second turtle to follow the carrot instead of the first turtle, we need to change value of thetarget_frame.
+This can be done two ways.
+One way is to pass thetarget_frameargument to the launch file directly from the console:ros2 launch learning_tf2_py turtle_tf2_fixed_frame_demo_launch.py target_frame:=carrot1The second way is to update the launch file.
+To do so, open theturtle_tf2_fixed_frame_demo_launch.pyfile, and add the'target_frame':'carrot1'parameter vialaunch_argumentsargument.defgenerate_launch_description():demo_nodes=IncludeLaunchDescription(...,launch_arguments={'target_frame':'carrot1'}.items(),)Now rebuild the package, restart theturtle_tf2_fixed_frame_demo_launch.py, and you’ll see the second turtle following the carrot instead of the first turtle!2 Write the dynamic frame broadcasterThe extra frame we published in this tutorial is a fixed frame that doesn’t change over time in relation to the parent frame.
+However, if you want to publish a moving frame you can code the broadcaster to change the frame over time.
+Let’s change ourcarrot1frame so that it changes relative toturtle1frame over time.
+Go to thelearning_tf2_pypackage we created in the previous tutorial.
+Inside thesrc/learning_tf2_py/learning_tf2_pydirectory download the dynamic frame broadcaster code by entering the following command:LinuxmacOSWindowswget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/dynamic_frame_tf2_broadcaster.pywget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/dynamic_frame_tf2_broadcaster.pyIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/dynamic_frame_tf2_broadcaster.py -o dynamic_frame_tf2_broadcaster.pyOr in powershell:curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/dynamic_frame_tf2_broadcaster.py -o dynamic_frame_tf2_broadcaster.pyNow open the file calleddynamic_frame_tf2_broadcaster.py:importmathfromgeometry_msgs.msgimportTransformStampedimportrclpyfromrclpy.nodeimportNodefromtf2_rosimportTransformBroadcasterclassDynamicFrameBroadcaster(Node):def__init__(self):super().__init__('dynamic_frame_tf2_broadcaster')self.tf_broadcaster=TransformBroadcaster(self)self.timer=self.create_timer(0.1,self.broadcast_timer_callback)defbroadcast_timer_callback(self):seconds,_=self.get_clock().now().seconds_nanoseconds()x=seconds*math.pit=TransformStamped()t.header.stamp=self.get_clock().now().to_msg()t.header.frame_id='turtle1't.child_frame_id='carrot1't.transform.translation.x=10*math.sin(x)t.transform.translation.y=10*math.cos(x)t.transform.translation.z=0.0t.transform.rotation.x=0.0t.transform.rotation.y=0.0t.transform.rotation.z=0.0t.transform.rotation.w=1.0self.tf_broadcaster.sendTransform(t)defmain():rclpy.init()node=DynamicFrameBroadcaster()try:rclpy.spin(node)exceptKeyboardInterrupt:passrclpy.shutdown()2.1 Examine the codeInstead of a fixed definition of our x and y offsets, we are using thesin()andcos()functions on the current time so that the offset ofcarrot1is constantly changing.seconds,_=self.get_clock().now().seconds_nanoseconds()x=seconds*math.pi...t.transform.translation.x=10*math.sin(x)t.transform.translation.y=10*math.cos(x)2.2 Add an entry pointTo allow theros2runcommand to run your node, you must add the entry point tosetup.py(located in thesrc/learning_tf2_pydirectory).Add the following line between the'console_scripts':brackets:'dynamic_frame_tf2_broadcaster = learning_tf2_py.dynamic_frame_tf2_broadcaster:main',2.3 Write the launch fileTo test this code, create a new launch fileturtle_tf2_dynamic_frame_demo_launch.pyin thesrc/learning_tf2_py/launchdirectory and paste the following code:importosfromament_index_python.packagesimportget_package_share_directoryfromlaunchimportLaunchDescriptionfromlaunch.actionsimportIncludeLaunchDescriptionfromlaunch.launch_description_sourcesimportPythonLaunchDescriptionSourcefromlaunch_ros.actionsimportNodedefgenerate_launch_description():demo_nodes=IncludeLaunchDescription(PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('learning_tf2_py'),'launch'),'/turtle_tf2_demo_launch.py']),launch_arguments={'target_frame':'carrot1'}.items(),)returnLaunchDescription([demo_nodes,Node(package='learning_tf2_py',executable='dynamic_frame_tf2_broadcaster',name='dynamic_broadcaster',),])2.4 BuildRunrosdepin the root of your workspace to check for missing dependencies.LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfStill in the root of your workspace, build your package:LinuxmacOSWindowscolcon build --packages-select learning_tf2_pycolcon build --packages-select learning_tf2_pycolcon build --merge-install --packages-select learning_tf2_pyOpen a new terminal, navigate to the root of your workspace, and source the setup files:LinuxmacOSWindows. install/setup.bash. install/setup.bash#CMDcall install\setup.bat#Powershell.\install\setup.ps11.5 RunNow you can start the dynamic frame demo:ros2 launch learning_tf2_py turtle_tf2_dynamic_frame_demo_launch.pyYou should see that the second turtle is following the carrot’s position that is constantly changing.SummaryIn this tutorial, you learned about the tf2 transformation tree, its structure, and its features.
+You also learned that it is easiest to think inside a local frame, and learned to add extra fixed and dynamic frames for that local frame.
+
+Code Examples:
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/fixed_frame_tf2_broadcaster.py
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/fixed_frame_tf2_broadcaster.py
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/fixed_frame_tf2_broadcaster.py -o fixed_frame_tf2_broadcaster.py
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/fixed_frame_tf2_broadcaster.py -o fixed_frame_tf2_broadcaster.py
+
+Language: unknown
+fromgeometry_msgs.msgimportTransformStampedimportrclpyfromrclpy.nodeimportNodefromtf2_rosimportTransformBroadcasterclassFixedFrameBroadcaster(Node):def__init__(self):super().__init__('fixed_frame_tf2_broadcaster')self.tf_broadcaster=TransformBroadcaster(self)self.timer=self.create_timer(0.1,self.broadcast_timer_callback)defbroadcast_timer_callback(self):t=TransformStamped()t.header.stamp=self.get_clock().now().to_msg()t.header.frame_id='turtle1't.child_frame_id='carrot1't.transform.translation.x=0.0t.transform.translation.y=2.0t.transform.translation.z=0.0t.transform.rotation.x=0.0t.transform.rotation.y=0.0t.transform.rotation.z=0.0t.transform.rotation.w=1.0self.tf_broadcaster.sendTransform(t)defmain():rclpy.init()node=FixedFrameBroadcaster()try:rclpy.spin(node)exceptKeyboardInterrupt:passrclpy.shutdown()
+
+Language: unknown
+t=TransformStamped()t.header.stamp=self.get_clock().now().to_msg()t.header.frame_id='turtle1't.child_frame_id='carrot1't.transform.translation.x=0.0t.transform.translation.y=2.0t.transform.translation.z=0.0
+
+Language: unknown
+'fixed_frame_tf2_broadcaster = learning_tf2_py.fixed_frame_tf2_broadcaster:main',
+
+Language: unknown
+importosfromament_index_python.packagesimportget_package_share_directoryfromlaunchimportLaunchDescriptionfromlaunch.actionsimportIncludeLaunchDescriptionfromlaunch.launch_description_sourcesimportPythonLaunchDescriptionSourcefromlaunch_ros.actionsimportNodedefgenerate_launch_description():demo_nodes=IncludeLaunchDescription(PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('learning_tf2_py'),'launch'),'/turtle_tf2_demo_launch.py']),)returnLaunchDescription([demo_nodes,Node(package='learning_tf2_py',executable='fixed_frame_tf2_broadcaster',name='fixed_broadcaster',),])
+
+Language: unknown
+Node(package='learning_tf2_py',executable='fixed_frame_tf2_broadcaster',name='fixed_broadcaster',),
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select learning_tf2_py
+
+Language: unknown
+colcon build --packages-select learning_tf2_py
+
+Language: unknown
+colcon build --merge-install --packages-select learning_tf2_py
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+#CMDcall install\setup.bat#Powershell.\install\setup.ps1
+
+Language: unknown
+ros2 launch learning_tf2_py turtle_tf2_fixed_frame_demo_launch.py
+
+Language: unknown
+ros2 launch learning_tf2_py turtle_tf2_fixed_frame_demo_launch.py target_frame:=carrot1
+
+Language: unknown
+defgenerate_launch_description():demo_nodes=IncludeLaunchDescription(...,launch_arguments={'target_frame':'carrot1'}.items(),)
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/dynamic_frame_tf2_broadcaster.py
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/dynamic_frame_tf2_broadcaster.py
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/dynamic_frame_tf2_broadcaster.py -o dynamic_frame_tf2_broadcaster.py
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/dynamic_frame_tf2_broadcaster.py -o dynamic_frame_tf2_broadcaster.py
+
+Language: unknown
+importmathfromgeometry_msgs.msgimportTransformStampedimportrclpyfromrclpy.nodeimportNodefromtf2_rosimportTransformBroadcasterclassDynamicFrameBroadcaster(Node):def__init__(self):super().__init__('dynamic_frame_tf2_broadcaster')self.tf_broadcaster=TransformBroadcaster(self)self.timer=self.create_timer(0.1,self.broadcast_timer_callback)defbroadcast_timer_callback(self):seconds,_=self.get_clock().now().seconds_nanoseconds()x=seconds*math.pit=TransformStamped()t.header.stamp=self.get_clock().now().to_msg()t.header.frame_id='turtle1't.child_frame_id='carrot1't.transform.translation.x=10*math.sin(x)t.transform.translation.y=10*math.cos(x)t.transform.translation.z=0.0t.transform.rotation.x=0.0t.transform.rotation.y=0.0t.transform.rotation.z=0.0t.transform.rotation.w=1.0self.tf_broadcaster.sendTransform(t)defmain():rclpy.init()node=DynamicFrameBroadcaster()try:rclpy.spin(node)exceptKeyboardInterrupt:passrclpy.shutdown()
+
+Language: unknown
+seconds,_=self.get_clock().now().seconds_nanoseconds()x=seconds*math.pi...t.transform.translation.x=10*math.sin(x)t.transform.translation.y=10*math.cos(x)
+
+Language: unknown
+'dynamic_frame_tf2_broadcaster = learning_tf2_py.dynamic_frame_tf2_broadcaster:main',
+
+Language: unknown
+importosfromament_index_python.packagesimportget_package_share_directoryfromlaunchimportLaunchDescriptionfromlaunch.actionsimportIncludeLaunchDescriptionfromlaunch.launch_description_sourcesimportPythonLaunchDescriptionSourcefromlaunch_ros.actionsimportNodedefgenerate_launch_description():demo_nodes=IncludeLaunchDescription(PythonLaunchDescriptionSource([os.path.join(get_package_share_directory('learning_tf2_py'),'launch'),'/turtle_tf2_demo_launch.py']),launch_arguments={'target_frame':'carrot1'}.items(),)returnLaunchDescription([demo_nodes,Node(package='learning_tf2_py',executable='dynamic_frame_tf2_broadcaster',name='dynamic_broadcaster',),])
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select learning_tf2_py
+
+Language: unknown
+colcon build --packages-select learning_tf2_py
+
+Language: unknown
+colcon build --merge-install --packages-select learning_tf2_py
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+#CMDcall install\setup.bat#Powershell.\install\setup.ps1
+
+Language: unknown
+ros2 launch learning_tf2_py turtle_tf2_dynamic_frame_demo_launch.py

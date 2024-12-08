@@ -1,0 +1,21 @@
+Title: IsPathValid
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/IsPathValid.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<IsPathValid
+server_timeout=
+"10"
+path=
+"{path}"
+/>
+```

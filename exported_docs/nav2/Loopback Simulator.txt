@@ -1,0 +1,38 @@
+Title: Loopback Simulator
+URL: https://docs.nav2.org/configuration/packages/configuring-loopback-sim.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: /clock
+```
+loopback_simulator
+:
+ros__parameters
+:
+base_frame_id
+:
+"base_footprint"
+odom_frame_id
+:
+"odom"
+map_frame_id
+:
+"map"
+scan_frame_id
+:
+"base_scan"
+# tb4_loopback_simulator.launch.py remaps to 'rplidar_link'
+update_duration
+:
+0.02
+```

@@ -1,0 +1,63 @@
+Title: Usingros2doctorto identify issues
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Getting-Started-With-Ros2doctor.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Usingros2doctorto identify issuesGoal:Identify issues in your ROS 2 setup using theros2doctortool.Tutorial level:BeginnerTime:10 minutesContentsBackgroundPrerequisitesTasks1 Check your setup2 Check a system3 Get a full reportSummaryRelated contentNext stepsBackgroundWhen your ROS 2 setup is not running as expected, you can check its settings with theros2doctortool.ros2doctorchecks all aspects of ROS 2, including platform, version, network, environment, running systems and more, and warns you about possible errors and reasons for issues.Prerequisitesros2doctoris part of theros2clipackage.
+As long as you haveros2cliinstalled (which any normal install should have), you will be able to useros2doctor.This tutorial usesturtlesimto illustrate some of the examples.Tasks1 Check your setupLet’s examine your general ROS 2 setup as a whole withros2doctor.
+First, source ROS 2 in a new terminal, then enter the command:ros2 doctorThis will conduct checks over all your setup modules and return warnings and errors.If your ROS 2 setup is in perfect shape, you’ll see a message similar to this:All <n> checks passedHowever, it’s not unusual to have a few warnings returned.
+AUserWarningdoesn’t mean your setup is unusable; it’s more likely just an indication that something is configured in a way that’s not ideal.If you do receive a warning, it will look something like this:<path>: <line>: UserWarning: <message>For example,ros2doctorwill find this warning if you’re using an unstable ROS 2 distribution:UserWarning: Distribution <distro> is not fully supported or tested. To get more consistent features, download a stable version at https://index.ros.org/doc/ros2/Installation/Ifros2doctoronly finds warnings in your system, you will still receive theAll<n>checkspassedmessage.Most checks are categorized as warnings as opposed to errors.
+It’s mostly up to you, the user, to determine the importance of the feedbackros2doctorreturns.
+If it does find a rare error in your setup, indicated byUserWarning:ERROR:, the check is considered failed.You will see a message similar to the following list of issue feedback:1/3 checks failedFailed modules:  networkAn error indicates the system is missing important settings or functions that are crucial to ROS 2.
+Errors should be addressed to ensure the system functions properly.2 Check a systemYou can also examine a running ROS 2 system to identify possible causes for issues.
+To seeros2doctorworking on a running system, let’s run turtlesim, which has nodes actively communicating with each other.Start up the system by opening a new terminal, sourcing ROS 2, and entering the command:ros2 run turtlesim turtlesim_nodeOpen another terminal and source ROS 2 to run the teleop controls:ros2 run turtlesim turtle_teleop_keyNow runros2doctoragain in its own terminal.
+You will see the warnings and errors you had the last time you ranros2doctoron your setup if you had any.
+Following those will be a couple new warnings relating to the system itself:UserWarning: Publisher without subscriber detected on /turtle1/color_sensor.UserWarning: Publisher without subscriber detected on /turtle1/pose.It seems that the/turtlesimnode publishes data to two topics that aren’t being subscribed to, andros2doctorthinks this could possibly lead to issues.If you run commands to echo the/color_sensorand/posetopics, those warnings will disappear because the publishers will have subscribers.You can try this by opening two new terminals while turtlesim is still running, sourcing ROS 2 in each, and running each of the following commands in their own terminal:ros2 topic echo /turtle1/color_sensorros2 topic echo /turtle1/poseThen runros2doctorin its terminal again.
+Thepublisherwithoutsubscriberwarnings will be gone.
+(Make sure to enterCtrl+Cin the terminals where you ranecho).Now try exiting either the turtlesim window or quitting the teleop and runningros2doctoragain.
+You’ll see more warnings indicatingpublisherwithoutsubscriberorsubscriberwithoutpublisherfor different topics, now that one node in the system isn’t available.In a complex system with many nodes,ros2doctorwould be invaluable for identifying possible reasons for communication issues.3 Get a full reportWhileros2doctorwill let you know warnings about your network, system, etc., running it with the--reportargument will give you much more detail to help you analyze issues.You might want to use--reportif you get a warning about your network setup and want to find out exactly what part of your configuration is causing the warning.It’s also very helpful when you need to open a support ticket to get help with ROS 2.
+You can copy and paste the relevant parts of your report into the ticket so the people helping you can better understand your environment and provide better assistance.To get a full report, enter the following command in the terminal:ros2 doctor --reportWhich will return a list of information categorized into five groups:NETWORK CONFIGURATION...PLATFORM INFORMATION...RMW MIDDLEWARE...ROS 2 INFORMATION...TOPIC LIST...You can crosscheck the information here against the warnings you get when runningros2doctor.
+For example, ifros2doctorreturned the warning (mentioned earlier) that your distribution is “not fully supported or tested”, you might take a look at theROS2INFORMATIONsection of the report:distribution name      : <distro>distribution type      : ros2distribution status    : prereleaserelease platforms      : {'<platform>': ['<version>']}Here you can see thedistributionstatusisprerelease, which explains why it’s not fully supported.Summaryros2doctorwill inform you of problems in your ROS 2 setup and running systems.
+You can get a deeper look at information behind those warnings by using the--reportargument.Keep in mind,ros2doctoris not a debug tool; it won’t help with errors in your code or on the implementation side of your system.Related contentros2doctor’s READMEwill tell you more about different arguments.
+You might want to take a look around theros2doctorrepo as well, since it’s fairly beginner friendly and a great place to get started with contributing.Next stepsYou’ve completed the beginner level tutorials!
+
+Code Examples:
+
+Language: unknown
+ros2 doctor
+
+Language: unknown
+All <n> checks passed
+
+Language: unknown
+<path>: <line>: UserWarning: <message>
+
+Language: unknown
+UserWarning: Distribution <distro> is not fully supported or tested. To get more consistent features, download a stable version at https://index.ros.org/doc/ros2/Installation/
+
+Language: unknown
+1/3 checks failedFailed modules:  network
+
+Language: unknown
+ros2 run turtlesim turtlesim_node
+
+Language: unknown
+ros2 run turtlesim turtle_teleop_key
+
+Language: unknown
+UserWarning: Publisher without subscriber detected on /turtle1/color_sensor.UserWarning: Publisher without subscriber detected on /turtle1/pose.
+
+Language: unknown
+ros2 topic echo /turtle1/color_sensor
+
+Language: unknown
+ros2 topic echo /turtle1/pose
+
+Language: unknown
+ros2 doctor --report
+
+Language: unknown
+NETWORK CONFIGURATION...PLATFORM INFORMATION...RMW MIDDLEWARE...ROS 2 INFORMATION...TOPIC LIST...
+
+Language: unknown
+distribution name      : <distro>distribution type      : ros2distribution status    : prereleaserelease platforms      : {'<platform>': ['<version>']}

@@ -1,0 +1,9 @@
+Title: RotateToGoalCritic
+URL: https://docs.nav2.org/configuration/packages/trajectory_critics/rotate_to_goal.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<dwbplugin>: DWB plugin name defined in thecontroller_plugin_idsparameter inController Server.
+<name>: RotateToGoalCritic critic name defined in the<dwb plugin>.criticsparameter defined inDWB Controller.

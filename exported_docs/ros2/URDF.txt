@@ -1,0 +1,6 @@
+Title: URDF
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/URDF/URDF-Main.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+URDFURDF (Unified Robot Description Format) is a file format for specifying the geometry and organization of robots in ROS.Building a visual robot model from scratchBuilding a movable robot modelAdding physical and collision propertiesUsing Xacro to clean up your codeUsing URDF withrobot_state_publisherGenerating an URDF File

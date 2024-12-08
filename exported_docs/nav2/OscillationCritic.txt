@@ -1,0 +1,9 @@
+Title: OscillationCritic
+URL: https://docs.nav2.org/configuration/packages/trajectory_critics/oscillation.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<dwbplugin>: DWB plugin name defined in thecontroller_plugin_idsparameter inController Server.
+<name>: OscillationCritic critic name defined in the<dwb plugin>.criticsparameter defined inDWB Controller.

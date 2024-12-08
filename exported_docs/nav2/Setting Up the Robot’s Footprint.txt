@@ -1,0 +1,131 @@
+Title: Setting Up the Robot’s Footprint
+URL: https://docs.nav2.org/setup_guides/footprint/setup_footprint.html#configuring-the-robot-s-footprint
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Footprint Introduction
+The footprint outlines the robot’s 2D shape when projected to the ground and is primarily used by Nav2 to avoid collisions during planning. The algorithms involved in this task makes sure that the robot does not collide with the obstacles in the costmap while it computes the robot’s paths or plans.
+The footprint is set up using thefootprintorrobot_radiusparameter of the global and local costmaps which we tackled in the previous tutorials (Setting Up Sensors Guide). The value defined in thefootprintparameter is an ordered vector of 2-D points defining the robot’s footprint with thebase_linkframe as the origin. The first and last points in the vector are joined into the last line segment to close the footprint’s shape. As an alternative, you may also use therobot_radiusparameter wherein circular footprint is automatically generated and centered atbase_link.  In cases both thefootprintandrobot_radiusparameters have been defined in the configuration, thefootprintis used.
+For the global costmap footprint, the decision to choose between therobot_radius(circular) orfootprint(polygon) parameter depends on the robot, its environment, and the path planning algorithm you will use. Even if you are working with a non-circular robot, there may be situations where a circular footprint is acceptable. For example, path planning algorithms likeNavFnassume that the robot is circular since it only checks for collision per grid cell, so it will not be necessary to outline the robot’s exact shape for its footprint. On the other hand, algorithms such asSmac Planner’s Hybrid-A*perform collision checking on the robot’s polygon-shaped footprint if possible and necessary. Hence, it might be useful to use a polygon-shaped footprint. Another example is having a small RC car sized robot roaming a warehouse. This robot is so small it won’t need to make confined maneuvers – thusly approximating it with the largest cross-sectional radius is a good time-saving optimization.
+For the local costmap footprint, it is typical for non-circular robots to be set up withfootprint(polygon). Some situations where this is not recommended is when you do not have enough computing resources to implement collision avoidance algorithms on a polygon-shaped footprint. Another possible reason to userobot_radius(circular) for the local costmap is when the robot is very small relative to its environment such that precise collision avoidance is not necessary. However, generally the local trajectory planner should use the actual footprint polygon of the robot.
+Note that this can also be adjusted over time using the costmap’s~/footprinttopic, which will update the polygon over time as needed due to changes in the robot’s state, such as movement of an attached manipulator, picking up a pallet, or other actions that adjust a robot’s shape. That polygon will then automatically be used by the planners and controllers.
+
+## Configuring the Robot’s Footprint
+In this section, we will configure the footprint ofsam_botsuch thatfootprint(polygon) is used for the local costmap androbot_radius(circular) is used for the global costmap. We will utilize the default configuration file of Nav2 with a modified footprint parameter for the global and local costmaps.
+Under theconfigdirectory, create a new file namednav2_params.yaml. Next, copy the contents ofconfig/nav2_params.yamland paste them into the newly created file. The contents ofconfig/nav2_params.yamlare copied from the default configuration file of Nav2 but with changes in thefootprintandrobot_radiusparameters to match the shape ofsam_bot.
+Below is the code snippet fromnav2_params.yamldefining the local costmap footprint. In this configuration file, thefootprintparameter of the local costmap has already been set with a rectangular-shaped footprint. This box is centered at thebase_linkframe ofsam_bot.
+For the global costmap, we have already set therobot_radiusparameter to create a circular footprint that matchessam_bot’s size and centered atbase_link. The parameter that was modified is shown in the code snippet below.
+
+## Build, Run and Verification
+We will now confirm that we have properly set upsam_bot’s footprint.
+First, we launchlaunch/display.launch.pyto launch the robot state publisher, spawnsam_botin Gazebo, and visualizesam_botand its footprint in Rviz. The robot state publisher publishes thebase_link=>sensorstransforms defined insam_bot’s URDF, while Gazebo’s differential drive plugin publishes theodom=>base_linktransform. Open a new terminal and execute the lines below.
+After launchingdisplay.launch.py, RViz and Gazebo should open. RViz should showsam_bot, the frames ofsam_bot’s parts, and theodomframe without errors. Gazebo should showsam_botwith a sphere and a cube detectable bysambot’s lidar sensor.
+Next, we will publish themap=>odomtransform using thestatic_transform_publisher. We publish themap=>odomtransform as static in this guide as a simple way to publish the transform and visualize the footprint. Open a new terminal and execute the lines below.
+Themap=>odomtransform should now be being published and themapframe should be added in RViz without errors.
+Lastly, we will launch Nav2 using thenav2_params.yamlconfiguration file we just made andnavigation_launch.py, the built-in launch file ofnav2_bringup. Open a new terminal and execute the following:
+We should now be able to visualize the footprints in RViz, which will be discussed in the next section.
+
+## Visualizing Footprint in RViz
+To visualize the footprint of the local costmap, click the add button at the bottom-left part of the RViz window. Under theBytopictab, select thePolygonunder the/local_costmap/published_footprinttopic, as shown below.
+Set the fixed frame in RViz toodomand you should see the rectangular-shaped footprint ofsam_bot:
+On the other hand, for the global costmap, click the add button at the bottom-left part of the RViz window. Go toBytopictab then select thePolygonunder the/global_costmap/published_footprinttopic, as shown below.
+Set the fixed frame in RViz tomapand you should see the circular footprint ofsam_bot:
+
+## Conclusion
+In this guide, we have shown how to configure a circular and polygon-shaped footprint for your robot. This footprint is important since it plays a major role in Nav2’s pathfinding algorithms function.
+As a demo, we have configured the costmap footprint parameters ofsam_bot. We set the local costmap to use a polygon-shaped footprint followingsam_bot’s shape while we set the the global costmap to use a circular footprint. Lastly, we visualized and confirmed the footprints of the local and global costmaps in RViz.
+
+Code Examples:
+
+Language: unknown
+File: sam_bot
+```
+188
+resolution
+:
+0.05
+189
+footprint
+:
+"[
+[0.21,
+0.195],
+[0.21,
+-0.195],
+[-0.21,
+-0.195],
+[-0.21,
+0.195]
+]"
+190
+plugins
+:
+[
+"voxel_layer"
+,
+"inflation_layer"
+]
+```
+
+Language: unknown
+File: base_link
+```
+232
+use_sim_time
+:
+True
+233
+robot_radius
+:
+0.3
+234
+resolution
+:
+0.05
+```
+
+Language: unknown
+File: base_link
+```
+colcon
+build
+.
+install/setup.bash
+ros2
+launch
+sam_bot_description
+display.launch.py
+
+```
+
+Language: unknown
+File: odom
+```
+ros2
+run
+tf2_ros
+static_transform_publisher
+0
+0
+0
+0
+0
+0
+map
+odom
+
+```
+
+Language: unknown
+File: nav2_bringup
+```
+ros2
+launch
+nav2_bringup
+navigation_launch.py
+params_file:
+=
+<full/path/to/config/nav2_params.yaml>
+
+```

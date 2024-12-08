@@ -1,0 +1,131 @@
+Title: How to Contribute to This Site
+URL: https://moveit.picknik.ai/main/doc/how_to_contribute/how_to_contribute_to_site.html
+Section: index.html
+--------------------------------------------------------------------------------
+
+
+## Learning Objectives
+
+
+## Requirements
+
+
+## Steps
+
+
+## Further Reading
+
+
+Code Examples:
+
+Language: unknown
+File: ~/ws_moveit/src/moveit2_tutorials
+```
+make
+html
+
+# Or run the following lines if you want to automatically rebuild the website on new changes
+while
+inotifywait
+-re
+modify,move,create,delete
+.
+;
+do
+make
+html
+
+done
+```
+
+Language: unknown
+File: ./build/html/index.html
+```
+xdg-open
+./build/html/index.html
+
+```
+
+Language: unknown
+File: pip
+```
+python3
+-m
+venv
+.venv
+
+source
+.venv/bin/activate
+
+```
+
+Language: unknown
+File: pip
+```
+pip3
+install
+--upgrade
+--requirement
+requirements.txt
+
+```
+
+Language: unknown
+File: htmlproofer
+```
+./htmlproofer.sh
+
+```
+
+Language: unknown
+File: htmlproofer
+```
+python3
+-m
+pip
+install
+--user
+pre-commit
+
+```
+
+Language: unknown
+File: htmlproofer
+```
+pre-commit
+run
+--all
+
+```
+
+Language: unknown
+File: htmlproofer
+```
+ros2
+run
+industrial_ci
+rerun_ci
+src/moveit2_tutorials
+\
+DOCKER_IMAGE
+=
+'moveit/moveit2:rolling-source'
+\
+UPSTREAM_WORKSPACE
+=
+'moveit2_tutorials.repos'
+\
+TARGET_CMAKE_ARGS
+=
+'-DCMAKE_BUILD_TYPE=Release'
+\
+CCACHE_DIR
+=
+"
+$HOME
+/.ccache"
+\
+CLANG_TIDY
+=
+'true'
+```

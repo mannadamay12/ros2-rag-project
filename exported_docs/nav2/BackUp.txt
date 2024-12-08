@@ -1,0 +1,33 @@
+Title: BackUp
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/BackUp.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: BackUp
+```
+<BackUp
+backup_dist=
+"-0.2"
+backup_speed=
+"0.05"
+server_name=
+"backup_server"
+server_timeout=
+"10"
+error_code_id=
+"{backup_error_code}"
+/>
+```

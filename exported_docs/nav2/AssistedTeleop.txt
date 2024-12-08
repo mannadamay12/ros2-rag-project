@@ -1,0 +1,28 @@
+Title: AssistedTeleop
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/AssistedTeleop.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: AssistedTeleop
+```
+<AssistedTeleop
+is_recovery=
+"false"
+server_name=
+"assisted_teleop_server"
+server_timeout=
+"10"
+error_code_id=
+"{assisted_teleop_error_code}"
+/>
+```

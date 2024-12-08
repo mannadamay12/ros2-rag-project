@@ -1,0 +1,71 @@
+Title: Maintain source checkout
+URL: https://docs.ros.org/en/jazzy/Installation/Maintaining-a-Source-Checkout.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Maintain source checkoutNoteFor instructions on maintaining a source checkout of thelatest development versionof ROS 2, refer toMaintaining a source checkout of ROS 2 RollingUpdate your repository listLatest ROS 2 Jazzy branchesUpdate your repositoriesDownload the new source codeRebuild your workspaceInspect your source checkoutIf you have installed ROS 2 from source, there may have been changes made to the source code since the time that you checked it out.
+To keep your source checkout up to date, you will have to periodically update yourros2.reposfile, download the latest sources, and rebuild your workspace.Update your repository listEach ROS 2 release includes aros2.reposfile that contains the list of repositories and their version for that release.Latest ROS 2 Jazzy branchesIf you wish to checkout the latest code for ROS 2 Jazzy, you can get the relevant repository list by running:LinuxmacOSWindowscd~/ros2_jazzy
+mv-iros2.reposros2.repos.old
+wgethttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.reposcd~/ros2_jazzy
+mv-iros2.reposros2.repos.old
+wgethttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repos# CMDcd\dev\ros2_jazzy
+curl-skhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repos-oros2.repos# PowerShellcd\dev\ros2_jazzy
+curlhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repos-oros2.reposUpdate your repositoriesYou will notice that in theros2.reposfile, each repository has aversionassociated with it that points to a particular commit hash, tag, or branch name.
+It is possible that these versions refer to new tags/branches that your local copy of the repositories will not recognize as they are out-of-date.
+Because of this, you should update the repositories that you have already checked out with the following command:vcscustom--argsremoteupdateDownload the new source codeYou should now be able to download the sources associated with the new repository list with:LinuxmacOSWindowsvcsimportsrc<ros2.repos
+vcspullsrcvcsimportsrc<ros2.repos
+vcspullsrc# CMDvcsimportsrc<ros2.repos
+vcspullsrc# PowerShellvcsimport--inputros2.repossrc
+vcspullsrcRebuild your workspaceNow that the workspace is up to date with the latest sources, remove your previous install and rebuild your workspace with, for example:colconbuild--symlink-installInspect your source checkoutDuring your development you may have deviated from the original state of your workspace from when you imported the repository list.
+If you wish to know the versions of the set of repositories in your workspace, you can export the information using the following command:LinuxmacOSWindowscd~/ros2_jazzy
+vcsexportsrc>my_ros2.reposcd~/ros2_jazzy
+vcsexportsrc>my_ros2.reposcd\dev\ros2_jazzy
+vcsexportsrc>my_ros2.reposThismy_ros2.reposfile can then be shared with others so that they can reproduce the state of the repositories in your workspace.
+
+Code Examples:
+
+Language: unknown
+cd~/ros2_jazzy
+mv-iros2.reposros2.repos.old
+wgethttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repos
+
+Language: unknown
+cd~/ros2_jazzy
+mv-iros2.reposros2.repos.old
+wgethttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repos
+
+Language: unknown
+# CMDcd\dev\ros2_jazzy
+curl-skhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repos-oros2.repos# PowerShellcd\dev\ros2_jazzy
+curlhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repos-oros2.repos
+
+Language: unknown
+vcscustom--argsremoteupdate
+
+Language: unknown
+vcsimportsrc<ros2.repos
+vcspullsrc
+
+Language: unknown
+vcsimportsrc<ros2.repos
+vcspullsrc
+
+Language: unknown
+# CMDvcsimportsrc<ros2.repos
+vcspullsrc# PowerShellvcsimport--inputros2.repossrc
+vcspullsrc
+
+Language: unknown
+colconbuild--symlink-install
+
+Language: unknown
+cd~/ros2_jazzy
+vcsexportsrc>my_ros2.repos
+
+Language: unknown
+cd~/ros2_jazzy
+vcsexportsrc>my_ros2.repos
+
+Language: unknown
+cd\dev\ros2_jazzy
+vcsexportsrc>my_ros2.repos

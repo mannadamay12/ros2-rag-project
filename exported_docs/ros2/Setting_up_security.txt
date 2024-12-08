@@ -1,0 +1,103 @@
+Title: Setting up security
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/Security/Introducing-ros2-security.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Setting up securityGoal:Set up security withsros2.Tutorial level:AdvancedTime:15 minutesContentsBackgroundInstallationInstalling from sourceSelecting an alternate middlewareRun the demo1. Create a folder for the security files2. Generate a keystore3. Generate keys and certificates4. Configure environment variables5. Run thetalker/listenerdemoTake the Quiz!Learn More!BackgroundThesros2package provides the tools and instructions to use ROS 2 on top of DDS-Security.
+The security features have been tested across platforms (Linux, macOS, and Windows) as well as across different languages (C++ and Python).
+The SROS2 has been designed to work with any secure middleware, although not all middleware is open source and support varies depending on the ROS distribution in use.InstallationTypically security is available following installation using theROS 2 Installation Guideand theconfiguration guide.
+However, if you intend to install from source or switch middleware implementations, consider the following caveats:Installing from sourceBefore installing from source, you will need to have a recent version openssl (1.0.2g or later) installed:LinuxMacOSWindowssudoaptupdate
+sudoaptinstalllibssl-devbrewinstallopensslYou will need to have OpenSSL on your library path to run DDS-Security demos.
+Run the following command, and consider adding to your~/.bash_profile:exportDYLD_LIBRARY_PATH=`brew--prefixopenssl`/lib:$DYLD_LIBRARY_PATHexportOPENSSL_ROOT_DIR=`brew--prefixopenssl`If you don’t have OpenSSL installed, please followthese instructionsFast DDS requires an additional CMake flag to build the security plugins, so the colcon invocation needs to be modified to pass:colconbuild--symlink-install--cmake-args-DSECURITY=ONSelecting an alternate middlewareIf you choose not to use the default middleware implementation, be sure tochange your DDS implementationbefore proceeding.ROS 2 allows you to change the DDS implementation at runtime.
+Seehow to work with mulitple RMW implementationsto explore different middleware implementations.Note that secure communication between vendors is not supported.Run the demo1. Create a folder for the security filesBegin by creating folder to store all the files necessary for this demo:LinuxMacOSWindowsmkdir~/sros2_demomkdir~/sros2_demomdC:\dev\ros2\sros2_demo2. Generate a keystoreUse thesros2utilities to create the keystore.
+Files in the keystore will be used to enable security for all the participants in the ROS 2 graph.LinuxMacOSWindowscd~/sros2_demo
+ros2securitycreate_keystoredemo_keystorecd~/sros2_demo
+ros2securitycreate_keystoredemo_keystorecdsros2_demo
+ros2 security create_keystore demo_keystore3. Generate keys and certificatesOnce the keystore is created, create keys and certificates for each node with security enabled.
+For our demo, that includes the talker and listener nodes.
+This command uses thecreate_enclavefeature which is covered in more detail in the next tutorial.LinuxMacOSWindowsros2securitycreate_enclavedemo_keystore/talker_listener/talker
+ros2securitycreate_enclavedemo_keystore/talker_listener/listenerros2securitycreate_enclavedemo_keystore/talker_listener/talker
+ros2securitycreate_enclavedemo_keystore/talker_listener/listenerros2 security create_enclave demo_keystore /talker_listener/talker
+ros2 security create_enclave demo_keystore /talker_listener/listenerIfunabletowrite'randomstate'appears then set the environment variableRANDFILE.setRANDFILE=C:\dev\ros2\sros2_demo\.rndThen re-run the commands above.4. Configure environment variablesThree environment variables allow the middleware to locate encryption materials and enable (and possibly enforce) security.
+These and other security-related environment variables are described in theROS 2 DDS-Security Integration design document.LinuxMacOSWindowsexportROS_SECURITY_KEYSTORE=~/sros2_demo/demo_keystoreexportROS_SECURITY_ENABLE=trueexportROS_SECURITY_STRATEGY=EnforceexportROS_SECURITY_KEYSTORE=~/sros2_demo/demo_keystoreexportROS_SECURITY_ENABLE=trueexportROS_SECURITY_STRATEGY=EnforcesetROS_SECURITY_KEYSTORE=%cd%/demo_keystoresetROS_SECURITY_ENABLE=truesetROS_SECURITY_STRATEGY=EnforceThese variables need to be defined in each terminal used for the demo.
+For convenience you can add them to your boot environment.5. Run thetalker/listenerdemoBegin the demo by launching the talker node.ros2rundemo_nodes_cpptalker--ros-args--enclave/talker_listener/talkerIn another terminal, do the same to launch thelistenernode.
+The environment variables in this terminal must be properly set as described in step 4 above.ros2rundemo_nodes_pylistener--ros-args--enclave/talker_listener/listenerThese nodes will be communicating using authentication and encryption!
+If you look at the packet contents (for example, usingtcpdumporWiresharkas covered in another tutorial), you can see that the messages are encrypted.Note: You can switch between the C++ (demo_nodes_cpp) and Python (demo_nodes_py) packages arbitrarily.These nodes are able to communicate because we have created the appropriate keys and certificates for them.Leave both nodes running as you answer the questions below.Take the Quiz!Question 1Answer 1Open another terminal session, butdo notset the environment variables so that security is not enabled.
+Start the listener.
+What do you expect to happen?The listener launches but does not receive any messages.
+All traffic is encrypted, and without security enabled the listener does not receive anything.Question 2Answer 2Stop the listener, set the environment variableROS_SECURITY_ENABLEtotrueand start the listener again.
+What results do you expect this time?The listener still launches but does not receive messages.
+Although security has now been enabled, it is not been configured properly since ROS is unable to locate the key files.
+The listener launches, but in non-secure mode since security is not enforced, which means that although the properly configured talker is sending encrypted messages, this listener is unable to decrypt them.Question 3Answer 3Stop the listener and setROS_SECURITY_STRATEGYtoEnforce.
+What happens now?The listener fails to launch.
+Security has been enabled and is being enforced.
+Since it still is not properly configured, an error is thrown rather than launching in non-secure mode.Learn More!Are you ready to go further with ROS Security?
+Take a look at theSecure Turtlebot2 Demo.
+You’ll find a functioning and complex implementation of ROS 2 security, ready to try out your own custom scenarios.
+Be sure to create pull requests and issues here so we can continue improving security support in ROS!
+
+Code Examples:
+
+Language: unknown
+sudoaptupdate
+sudoaptinstalllibssl-dev
+
+Language: unknown
+brewinstallopenssl
+
+Language: unknown
+exportDYLD_LIBRARY_PATH=`brew--prefixopenssl`/lib:$DYLD_LIBRARY_PATHexportOPENSSL_ROOT_DIR=`brew--prefixopenssl`
+
+Language: unknown
+colconbuild--symlink-install--cmake-args-DSECURITY=ON
+
+Language: unknown
+mkdir~/sros2_demo
+
+Language: unknown
+mkdir~/sros2_demo
+
+Language: unknown
+mdC:\dev\ros2\sros2_demo
+
+Language: unknown
+cd~/sros2_demo
+ros2securitycreate_keystoredemo_keystore
+
+Language: unknown
+cd~/sros2_demo
+ros2securitycreate_keystoredemo_keystore
+
+Language: unknown
+cdsros2_demo
+ros2 security create_keystore demo_keystore
+
+Language: unknown
+ros2securitycreate_enclavedemo_keystore/talker_listener/talker
+ros2securitycreate_enclavedemo_keystore/talker_listener/listener
+
+Language: unknown
+ros2securitycreate_enclavedemo_keystore/talker_listener/talker
+ros2securitycreate_enclavedemo_keystore/talker_listener/listener
+
+Language: unknown
+ros2 security create_enclave demo_keystore /talker_listener/talker
+ros2 security create_enclave demo_keystore /talker_listener/listener
+
+Language: unknown
+setRANDFILE=C:\dev\ros2\sros2_demo\.rnd
+
+Language: unknown
+exportROS_SECURITY_KEYSTORE=~/sros2_demo/demo_keystoreexportROS_SECURITY_ENABLE=trueexportROS_SECURITY_STRATEGY=Enforce
+
+Language: unknown
+exportROS_SECURITY_KEYSTORE=~/sros2_demo/demo_keystoreexportROS_SECURITY_ENABLE=trueexportROS_SECURITY_STRATEGY=Enforce
+
+Language: unknown
+setROS_SECURITY_KEYSTORE=%cd%/demo_keystoresetROS_SECURITY_ENABLE=truesetROS_SECURITY_STRATEGY=Enforce
+
+Language: unknown
+ros2rundemo_nodes_cpptalker--ros-args--enclave/talker_listener/talker
+
+Language: unknown
+ros2rundemo_nodes_pylistener--ros-args--enclave/talker_listener/listener

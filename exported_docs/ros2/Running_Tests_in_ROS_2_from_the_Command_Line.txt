@@ -1,0 +1,17 @@
+Title: Running Tests in ROS 2 from the Command Line
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Testing/CLI.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Running Tests in ROS 2 from the Command LineBuild and run your testsTo compile and run the tests, simply run thetestverb fromcolcon.colcon test --ctest-args tests [package_selection_args](wherepackage_selection_argsare optional package selection arguments forcolconto limit which packages are built and run)Sourcing the workspacebefore testing should not be necessary.colcontestmakes sure that the tests run with the right environment, have access to their dependencies, etc.Examine Test ResultsTo see the results, simply run thetest-resultverb fromcolcon.colcon test-result --allTo see the exact test cases which fail, use the--verboseflag:colcon test-result --all --verboseDebugging tests with GDBFor detailed guidance on debugging tests using GDB, refer to theGDB Tutorial.
+
+Code Examples:
+
+Language: unknown
+colcon test --ctest-args tests [package_selection_args]
+
+Language: unknown
+colcon test-result --all
+
+Language: unknown
+colcon test-result --all --verbose

@@ -1,0 +1,116 @@
+Title: Collision Detector Node
+URL: https://docs.nav2.org/configuration/packages/collision_monitor/configuring-collision-detector-node.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Features
+Similarly to the Collision Monitor, the Collision Detector uses robot’s relative polygons to define “zones”.
+However, unlike the Collision Monitor that uses different behavior models, the Collision Detector does not use any of them and therefore theaction_typeshould always be set tonone. If set to anything else, it will throw an error
+The zones around the robot and the data sources are the same as for the Collision Monitor, with the exception of the footprint polygon, which is not supported by the Collision Detector.
+
+## Parameters
+
+
+## Polygons parameters
+<polygonname>is the corresponding polygon name ID selected for this type.
+
+## Observation sources parameters
+<sourcename>is the corresponding data source name ID selected for this type.
+
+## Example
+Here is an example of configuration YAML for the Collision Detector.
+
+Code Examples:
+
+Language: unknown
+File: source_timeout:0.0
+```
+collision_detector
+:
+ros__parameters
+:
+base_frame_id
+:
+"base_footprint"
+odom_frame_id
+:
+"odom"
+transform_tolerance
+:
+0.5
+source_timeout
+:
+5.0
+base_shift_correction
+:
+True
+polygons
+:
+[
+"PolygonFront"
+]
+PolygonFront
+:
+type
+:
+"polygon"
+points
+:
+"[[0.3,
+0.3],
+[0.3,
+-0.3],
+[0.0,
+-0.3],
+[0.0,
+0.3]]"
+action_type
+:
+"none"
+min_points
+:
+4
+visualize
+:
+True
+polygon_pub_topic
+:
+"polygon_front"
+observation_sources
+:
+[
+"scan"
+]
+scan
+:
+source_timeout
+:
+0.2
+type
+:
+"scan"
+topic
+:
+"scan"
+enabled
+:
+True
+pointcloud
+:
+type
+:
+"pointcloud"
+topic
+:
+"/intel_realsense_r200_depth/points"
+min_height
+:
+0.1
+max_height
+:
+0.5
+enabled
+:
+True
+```

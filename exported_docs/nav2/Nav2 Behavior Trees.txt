@@ -1,0 +1,42 @@
+Title: Nav2 Behavior Trees
+URL: https://docs.nav2.org/behavior_trees/index.html
+Section: behavior_trees/index.html
+--------------------------------------------------------------------------------
+
+
+Code Examples:
+
+Language: unknown
+File: nav2_bt_navigator
+```
+<root
+main_tree_to_execute=
+"MainTree"
+>
+<BehaviorTree
+ID=
+"MainTree"
+>
+<PipelineSequence
+name=
+"NavigateWithReplanning"
+>
+<DistanceController
+distance=
+"1.0"
+>
+<ComputePathToPose
+goal=
+"{goal}"
+path=
+"{path}"
+/>
+</DistanceController>
+<FollowPath
+path=
+"{path}"
+/>
+</PipelineSequence>
+</BehaviorTree>
+</root>
+```

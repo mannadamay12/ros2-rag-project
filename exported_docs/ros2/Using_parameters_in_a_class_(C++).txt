@@ -1,0 +1,124 @@
+Title: Using parameters in a class (C++)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Using-Parameters-In-A-Class-CPP.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Using parameters in a class (C++)Goal:Create and run a class with ROS parameters using C++.Tutorial level:BeginnerTime:20 minutesContentsBackgroundPrerequisitesTasks1 Create a package2 Write the C++ node3 Build and runSummaryNext stepsBackgroundWhen making your ownnodesyou will sometimes need to add parameters that can be set from the launch file.This tutorial will show you how to create those parameters in a C++ class, and how to set them in a launch file.PrerequisitesIn previous tutorials, you learned how tocreate a workspaceandcreate a package.
+You have also learned aboutparametersand their function in a ROS 2 system.Tasks1 Create a packageOpen a new terminal andsource your ROS 2 installationso thatros2commands will work.Followthese instructionsto create a new workspace namedros2_ws.Recall that packages should be created in thesrcdirectory, not the root of the workspace.
+Navigate intoros2_ws/srcand create a new package:ros2 pkg create --build-type ament_cmake --license Apache-2.0 cpp_parameters --dependencies rclcppYour terminal will return a message verifying the creation of your packagecpp_parametersand all its necessary files and folders.The--dependenciesargument will automatically add the necessary dependency lines topackage.xmlandCMakeLists.txt.1.1 Updatepackage.xmlBecause you used the--dependenciesoption during package creation, you don’t have to manually add dependencies topackage.xmlorCMakeLists.txt.As always, though, make sure to add the description, maintainer email and name, and license information topackage.xml.<description>C++parametertutorial</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>2 Write the C++ nodeInside theros2_ws/src/cpp_parameters/srcdirectory, create a new file calledcpp_parameters_node.cppand paste the following code within:#include<chrono>#include<functional>#include<string>#include<rclcpp/rclcpp.hpp>usingnamespacestd::chrono_literals;classMinimalParam:publicrclcpp::Node{public:MinimalParam():Node("minimal_param_node"){this->declare_parameter("my_parameter","world");autotimer_callback=[this](){std::stringmy_param=this->get_parameter("my_parameter").as_string();RCLCPP_INFO(this->get_logger(),"Hello %s!",my_param.c_str());std::vector<rclcpp::Parameter>all_new_parameters{rclcpp::Parameter("my_parameter","world")};this->set_parameters(all_new_parameters);};timer_=this->create_wall_timer(1000ms,timer_callback);}private:rclcpp::TimerBase::SharedPtrtimer_;};intmain(intargc,char**argv){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalParam>());rclcpp::shutdown();return0;}2.1 Examine the codeThe#includestatements at the top are the package dependencies.The next piece of code creates the class and the constructor.
+The first line of this constructor creates a parameter with the namemy_parameterand a default value ofworld.
+The parameter type is inferred from the default value, so in this case it would be set to a string type.
+Next, alambda functioncalledtimer_callbackis declared.
+It performs a by-reference capture of the current objectthis, takes no input arguments and returns void.
+The first line of ourtimer_callbackfunction gets the parametermy_parameterfrom the node, and stores it inmy_param.
+Then theRCLCPP_INFOfunction ensures the event is logged.
+Theset_parametersfunction sets the parametermy_parameterback to the default string valueworld.
+In the case that the user changed the parameter externally, this ensures it is always reset back to the original.
+In the end,timer_is initialized with a period of 1000ms, which causes thetimer_callbackfunction to be executed once a second.classMinimalParam:publicrclcpp::Node{public:MinimalParam():Node("minimal_param_node"){this->declare_parameter("my_parameter","world");autotimer_callback=[this](){std::stringmy_param=this->get_parameter("my_parameter").as_string();RCLCPP_INFO(this->get_logger(),"Hello %s!",my_param.c_str());std::vector<rclcpp::Parameter>all_new_parameters{rclcpp::Parameter("my_parameter","world")};this->set_parameters(all_new_parameters);};timer_=this->create_wall_timer(1000ms,timer_callback);}Last is the declaration oftimer_.private:rclcpp::TimerBase::SharedPtrtimer_;Following ourMinimalParamis ourmain.
+Here ROS 2 is initialized, an instance of theMinimalParamclass is constructed, andrclcpp::spinstarts processing data from the node.intmain(intargc,char**argv){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalParam>());rclcpp::shutdown();return0;}2.1.1 (Optional) Add ParameterDescriptorOptionally, you can set a descriptor for the parameter.
+Descriptors allow you to specify a text description of the parameter and its constraints, like making it read-only, specifying a range, etc.
+For that to work, the code in the constructor has to be changed to:// ...classMinimalParam:publicrclcpp::Node{public:MinimalParam():Node("minimal_param_node"){autoparam_desc=rcl_interfaces::msg::ParameterDescriptor{};param_desc.description="This parameter is mine!";this->declare_parameter("my_parameter","world",param_desc);autotimer_callback=[this](){std::stringmy_param=this->get_parameter("my_parameter").as_string();RCLCPP_INFO(this->get_logger(),"Hello %s!",my_param.c_str());std::vector<rclcpp::Parameter>all_new_parameters{rclcpp::Parameter("my_parameter","world")};this->set_parameters(all_new_parameters);};timer_=this->create_wall_timer(1000ms,timer_callback);}The rest of the code remains the same.
+Once you run the node, you can then runros2paramdescribe/minimal_param_nodemy_parameterto see the type and description.2.2 Add executableNow open theCMakeLists.txtfile. Below the dependencyfind_package(rclcppREQUIRED)add the following lines of code.add_executable(minimal_param_nodesrc/cpp_parameters_node.cpp)ament_target_dependencies(minimal_param_noderclcpp)install(TARGETSminimal_param_nodeDESTINATIONlib/${PROJECT_NAME})3 Build and runIt’s good practice to runrosdepin the root of your workspace (ros2_ws) to check for missing dependencies before building:LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you can skip ahead to next step.rosdep only runs on Linux, so you can skip ahead to next step.Navigate back to the root of your workspace,ros2_ws, and build your new package:LinuxmacOSWindowscolcon build --packages-select cpp_parameterscolcon build --packages-select cpp_parameterscolcon build --merge-install --packages-select cpp_parametersOpen a new terminal, navigate toros2_ws, and source the setup files:LinuxmacOSWindowssource install/setup.bash. install/setup.bashcall install/setup.batNow run the node:ros2 run cpp_parameters minimal_param_nodeThe terminal should return the following message every second:[INFO] [minimal_param_node]: Hello world!Now you can see the default value of your parameter, but you want to be able to set it yourself.
+There are two ways to accomplish this.3.1 Change via the consoleThis part will use the knowledge you have gained from thetutorial about parametersand apply it to the node you have just created.Make sure the node is running:ros2 run cpp_parameters minimal_param_nodeOpen another terminal, source the setup files from insideros2_wsagain, and enter the following line:ros2 param listThere you will see the custom parametermy_parameter.
+To change it, simply run the following line in the console:ros2 param set /minimal_param_node my_parameter earthYou know it went well if you got the outputSetparametersuccessful.
+If you look at the other terminal, you should see the output change to[INFO][minimal_param_node]:Helloearth!3.2 Change via a launch fileYou can also set the parameter in a launch file, but first you will need to add the launch directory.
+Inside theros2_ws/src/cpp_parameters/directory, create a new directory calledlaunch.
+In there, create a new file calledcpp_parameters_launch.pyfromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNodedefgenerate_launch_description():returnLaunchDescription([Node(package="cpp_parameters",executable="minimal_param_node",name="custom_minimal_param_node",output="screen",emulate_tty=True,parameters=[{"my_parameter":"earth"}])])Here you can see that we setmy_parametertoearthwhen we launch our nodeminimal_param_node.
+By adding the two lines below, we ensure our output is printed in our console.output="screen",emulate_tty=True,Now open theCMakeLists.txtfile.
+Below the lines you added earlier, add the following lines of code.install(DIRECTORY launchDESTINATION share/${PROJECT_NAME})Open a console and navigate to the root of your workspace,ros2_ws, and build your new package:LinuxmacOSWindowscolcon build --packages-select cpp_parameterscolcon build --packages-select cpp_parameterscolcon build --merge-install --packages-select cpp_parametersThen source the setup files in a new terminal:LinuxmacOSWindowssource install/setup.bash. install/setup.bashcall install/setup.batNow run the node using the launch file we have just created:ros2 launch cpp_parameters cpp_parameters_launch.pyThe terminal should return the following message the first time:[INFO] [custom_minimal_param_node]: Hello earth!Further outputs should show[INFO][minimal_param_node]:Helloworld!every second.SummaryYou created a node with a custom parameter that can be set either from a launch file or the command line.
+You added the dependencies, executables, and a launch file to the package configuration files so that you could build and run them, and see the parameter in action.Next stepsNow that you have some packages and ROS 2 systems of your own, thenext tutorialwill show you how to examine issues in your environment and systems in case you have problems.
+
+Code Examples:
+
+Language: unknown
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 cpp_parameters --dependencies rclcpp
+
+Language: unknown
+<description>C++parametertutorial</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>
+
+Language: unknown
+#include<chrono>#include<functional>#include<string>#include<rclcpp/rclcpp.hpp>usingnamespacestd::chrono_literals;classMinimalParam:publicrclcpp::Node{public:MinimalParam():Node("minimal_param_node"){this->declare_parameter("my_parameter","world");autotimer_callback=[this](){std::stringmy_param=this->get_parameter("my_parameter").as_string();RCLCPP_INFO(this->get_logger(),"Hello %s!",my_param.c_str());std::vector<rclcpp::Parameter>all_new_parameters{rclcpp::Parameter("my_parameter","world")};this->set_parameters(all_new_parameters);};timer_=this->create_wall_timer(1000ms,timer_callback);}private:rclcpp::TimerBase::SharedPtrtimer_;};intmain(intargc,char**argv){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalParam>());rclcpp::shutdown();return0;}
+
+Language: unknown
+classMinimalParam:publicrclcpp::Node{public:MinimalParam():Node("minimal_param_node"){this->declare_parameter("my_parameter","world");autotimer_callback=[this](){std::stringmy_param=this->get_parameter("my_parameter").as_string();RCLCPP_INFO(this->get_logger(),"Hello %s!",my_param.c_str());std::vector<rclcpp::Parameter>all_new_parameters{rclcpp::Parameter("my_parameter","world")};this->set_parameters(all_new_parameters);};timer_=this->create_wall_timer(1000ms,timer_callback);}
+
+Language: unknown
+private:rclcpp::TimerBase::SharedPtrtimer_;
+
+Language: unknown
+intmain(intargc,char**argv){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalParam>());rclcpp::shutdown();return0;}
+
+Language: unknown
+// ...classMinimalParam:publicrclcpp::Node{public:MinimalParam():Node("minimal_param_node"){autoparam_desc=rcl_interfaces::msg::ParameterDescriptor{};param_desc.description="This parameter is mine!";this->declare_parameter("my_parameter","world",param_desc);autotimer_callback=[this](){std::stringmy_param=this->get_parameter("my_parameter").as_string();RCLCPP_INFO(this->get_logger(),"Hello %s!",my_param.c_str());std::vector<rclcpp::Parameter>all_new_parameters{rclcpp::Parameter("my_parameter","world")};this->set_parameters(all_new_parameters);};timer_=this->create_wall_timer(1000ms,timer_callback);}
+
+Language: unknown
+add_executable(minimal_param_nodesrc/cpp_parameters_node.cpp)ament_target_dependencies(minimal_param_noderclcpp)install(TARGETSminimal_param_nodeDESTINATIONlib/${PROJECT_NAME})
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select cpp_parameters
+
+Language: unknown
+colcon build --packages-select cpp_parameters
+
+Language: unknown
+colcon build --merge-install --packages-select cpp_parameters
+
+Language: unknown
+source install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install/setup.bat
+
+Language: unknown
+ros2 run cpp_parameters minimal_param_node
+
+Language: unknown
+[INFO] [minimal_param_node]: Hello world!
+
+Language: unknown
+ros2 run cpp_parameters minimal_param_node
+
+Language: unknown
+ros2 param list
+
+Language: unknown
+ros2 param set /minimal_param_node my_parameter earth
+
+Language: unknown
+fromlaunchimportLaunchDescriptionfromlaunch_ros.actionsimportNodedefgenerate_launch_description():returnLaunchDescription([Node(package="cpp_parameters",executable="minimal_param_node",name="custom_minimal_param_node",output="screen",emulate_tty=True,parameters=[{"my_parameter":"earth"}])])
+
+Language: unknown
+output="screen",emulate_tty=True,
+
+Language: unknown
+install(DIRECTORY launchDESTINATION share/${PROJECT_NAME})
+
+Language: unknown
+colcon build --packages-select cpp_parameters
+
+Language: unknown
+colcon build --packages-select cpp_parameters
+
+Language: unknown
+colcon build --merge-install --packages-select cpp_parameters
+
+Language: unknown
+source install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install/setup.bat
+
+Language: unknown
+ros2 launch cpp_parameters cpp_parameters_launch.py
+
+Language: unknown
+[INFO] [custom_minimal_param_node]: Hello earth!

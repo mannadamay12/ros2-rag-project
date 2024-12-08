@@ -1,0 +1,7 @@
+Title: Managing nodes with managed lifecycles
+URL: https://docs.ros.org/en/jazzy/Tutorials/Demos/Managed-Nodes.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Managing nodes with managed lifecyclesThis page lives now directly side-by-side with thecode.
+For more information about thelifecyclepackage, refer torosindex.

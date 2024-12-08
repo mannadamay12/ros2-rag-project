@@ -1,0 +1,11 @@
+Title: Build Troubleshooting Guide
+URL: https://docs.nav2.org/development_guides/build_docs/build_troubleshooting_guide.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Common Nav2 Dependencies Build Failures
+Still can’t solve it? Let us know about your issue.Open a ticket.
+
+## Reporting Issue
+

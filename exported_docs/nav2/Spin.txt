@@ -1,0 +1,33 @@
+Title: Spin
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/Spin.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: Spin
+```
+<Spin
+spin_dist=
+"1.57"
+server_name=
+"spin"
+server_timeout=
+"10"
+is_recovery=
+"true"
+error_code_id=
+"{spin_error_code}"
+/>
+```

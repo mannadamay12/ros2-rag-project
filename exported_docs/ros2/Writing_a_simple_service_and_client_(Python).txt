@@ -1,0 +1,95 @@
+Title: Writing a simple service and client (Python)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Writing a simple service and client (Python)Goal:Create and run service and client nodes using Python.Tutorial level:BeginnerTime:20 minutesContentsBackgroundPrerequisitesTasks1 Create a package2 Write the service node3 Write the client node4 Build and runSummaryNext stepsRelated contentBackgroundWhennodescommunicate usingservices, the node that sends a request for data is called the client node, and the one that responds to the request is the service node.
+The structure of the request and response is determined by a.srvfile.The example used here is a simple integer addition system; one node requests the sum of two integers, and the other responds with the result.PrerequisitesIn previous tutorials, you learned how tocreate a workspaceandcreate a package.Tasks1 Create a packageOpen a new terminal andsource your ROS 2 installationso thatros2commands will work.Navigate into theros2_wsdirectory created in aprevious tutorial.Recall that packages should be created in thesrcdirectory, not the root of the workspace.
+Navigate intoros2_ws/srcand create a new package:ros2 pkg create --build-type ament_python --license Apache-2.0 py_srvcli --dependencies rclpy example_interfacesYour terminal will return a message verifying the creation of your packagepy_srvcliand all its necessary files and folders.The--dependenciesargument will automatically add the necessary dependency lines topackage.xml.example_interfacesis the package that includesthe .srv fileyou will need to structure your requests and responses:int64 aint64 b---int64 sumThe first two lines are the parameters of the request, and below the dashes is the response.1.1 Updatepackage.xmlBecause you used the--dependenciesoption during package creation, you don’t have to manually add dependencies topackage.xml.As always, though, make sure to add the description, maintainer email and name, and license information topackage.xml.<description>Pythonclientservertutorial</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>1.2 Updatesetup.pyAdd the same information to thesetup.pyfile for themaintainer,maintainer_email,descriptionandlicensefields:maintainer='Your Name',maintainer_email='you@email.com',description='Python client server tutorial',license='Apache-2.0',2 Write the service nodeInside theros2_ws/src/py_srvcli/py_srvclidirectory, create a new file calledservice_member_function.pyand paste the following code within:fromexample_interfaces.srvimportAddTwoIntsimportrclpyfromrclpy.nodeimportNodeclassMinimalService(Node):def__init__(self):super().__init__('minimal_service')self.srv=self.create_service(AddTwoInts,'add_two_ints',self.add_two_ints_callback)defadd_two_ints_callback(self,request,response):response.sum=request.a+request.bself.get_logger().info('Incoming request\na:%db:%d'%(request.a,request.b))returnresponsedefmain():rclpy.init()minimal_service=MinimalService()rclpy.spin(minimal_service)rclpy.shutdown()if__name__=='__main__':main()2.1 Examine the codeThe firstimportstatement imports theAddTwoIntsservice type from theexample_interfacespackage.
+The followingimportstatement imports the ROS 2 Python client library, and specifically theNodeclass.fromexample_interfaces.srvimportAddTwoIntsimportrclpyfromrclpy.nodeimportNodeTheMinimalServiceclass constructor initializes the node with the nameminimal_service.
+Then, it creates a service and defines the type, name, and callback.def__init__(self):super().__init__('minimal_service')self.srv=self.create_service(AddTwoInts,'add_two_ints',self.add_two_ints_callback)The definition of the service callback receives the request data, sums it, and returns the sum as a response.defadd_two_ints_callback(self,request,response):response.sum=request.a+request.bself.get_logger().info('Incoming request\na:%db:%d'%(request.a,request.b))returnresponseFinally, the main class initializes the ROS 2 Python client library, instantiates theMinimalServiceclass to create the service node and spins the node to handle callbacks.2.2 Add an entry pointTo allow theros2runcommand to run your node, you must add the entry point tosetup.py(located in theros2_ws/src/py_srvclidirectory).Add the following line between the'console_scripts':brackets:'service = py_srvcli.service_member_function:main',3 Write the client nodeInside theros2_ws/src/py_srvcli/py_srvclidirectory, create a new file calledclient_member_function.pyand paste the following code within:importsysfromexample_interfaces.srvimportAddTwoIntsimportrclpyfromrclpy.nodeimportNodeclassMinimalClientAsync(Node):def__init__(self):super().__init__('minimal_client_async')self.cli=self.create_client(AddTwoInts,'add_two_ints')whilenotself.cli.wait_for_service(timeout_sec=1.0):self.get_logger().info('service not available, waiting again...')self.req=AddTwoInts.Request()defsend_request(self,a,b):self.req.a=aself.req.b=breturnself.cli.call_async(self.req)defmain():rclpy.init()minimal_client=MinimalClientAsync()future=minimal_client.send_request(int(sys.argv[1]),int(sys.argv[2]))rclpy.spin_until_future_complete(minimal_client,future)response=future.result()minimal_client.get_logger().info('Result of add_two_ints: for%d+%d=%d'%(int(sys.argv[1]),int(sys.argv[2]),response.sum))minimal_client.destroy_node()rclpy.shutdown()if__name__=='__main__':main()3.1 Examine the codeAs with the service code, we firstimportthe necessary libraries.importsysfromexample_interfaces.srvimportAddTwoIntsimportrclpyfromrclpy.nodeimportNodeTheMinimalClientAsyncclass constructor initializes the node with the nameminimal_client_async.
+The constructor definition creates a client with the same type and name as the service node.
+The type and name must match for the client and service to be able to communicate.
+Thewhileloop in the constructor checks if a service matching the type and name of the client is available once a second.
+Finally it creates a newAddTwoIntsrequest object.def__init__(self):super().__init__('minimal_client_async')self.cli=self.create_client(AddTwoInts,'add_two_ints')whilenotself.cli.wait_for_service(timeout_sec=1.0):self.get_logger().info('service not available, waiting again...')self.req=AddTwoInts.Request()Below the constructor is thesend_requestmethod, which will send the request and spin until it receives the response or fails.defsend_request(self,a,b):self.req.a=aself.req.b=breturnself.cli.call_async(self.req)Finally we have themainmethod, which constructs aMinimalClientAsyncobject, sends the request using the passed-in command-line arguments, callsrclpy.spin_until_future_completeto wait for the result, and logs the results.defmain():rclpy.init()minimal_client=MinimalClientAsync()future=minimal_client.send_request(int(sys.argv[1]),int(sys.argv[2]))rclpy.spin_until_future_complete(minimal_client,future)response=future.result()minimal_client.get_logger().info('Result of add_two_ints: for%d+%d=%d'%(int(sys.argv[1]),int(sys.argv[2]),response.sum))minimal_client.destroy_node()rclpy.shutdown()WarningDo not userclpy.spin_until_future_completein a ROS 2 callback.
+For more details see thesync deadlock article.3.2 Add an entry pointLike the service node, you also have to add an entry point to be able to run the client node.Theentry_pointsfield of yoursetup.pyfile should look like this:entry_points={'console_scripts':['service = py_srvcli.service_member_function:main','client = py_srvcli.client_member_function:main',],},4 Build and runIt’s good practice to runrosdepin the root of your workspace (ros2_ws) to check for missing dependencies before building:LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you can skip ahead to next step.rosdep only runs on Linux, so you can skip ahead to next step.Navigate back to the root of your workspace,ros2_ws, and build your new package:colcon build --packages-select py_srvcliOpen a new terminal, navigate toros2_ws, and source the setup files:LinuxmacOSWindowssource install/setup.bash. install/setup.bashcall install/setup.batNow run the service node:ros2 run py_srvcli serviceThe node will wait for the client’s request.Open another terminal and source the setup files from insideros2_wsagain.
+Start the client node, followed by any two integers separated by a space:ros2 run py_srvcli client 2 3If you chose2and3, for example, the client would receive a response like this:[INFO] [minimal_client_async]: Result of add_two_ints: for 2 + 3 = 5Return to the terminal where your service node is running.
+You will see that it published log messages when it received the request:[INFO] [minimal_service]: Incoming requesta: 2 b: 3EnterCtrl+Cin the server terminal to stop the node from spinning.SummaryYou created two nodes to request and respond to data over a service.
+You added their dependencies and executables to the package configuration files so that you could build and run them, allowing you to see a service/client system at work.Next stepsIn the last few tutorials you’ve been utilizing interfaces to pass data across topics and services.
+Next, you’ll learn how tocreate custom interfaces.Related contentThere are several ways you could write a service and client in Python; check out theminimal_clientandminimal_servicepackages in theros2/examplesrepo.In this tutorial, you used thecall_async()API in your client node to call the service.
+There is another service call API available for Python called synchronous calls.
+We do not recommend using synchronous calls, but if you’d like to learn more about them, read the guide toSynchronous vs. asynchronous clients.
+
+Code Examples:
+
+Language: unknown
+ros2 pkg create --build-type ament_python --license Apache-2.0 py_srvcli --dependencies rclpy example_interfaces
+
+Language: unknown
+int64 aint64 b---int64 sum
+
+Language: unknown
+<description>Pythonclientservertutorial</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>
+
+Language: unknown
+maintainer='Your Name',maintainer_email='you@email.com',description='Python client server tutorial',license='Apache-2.0',
+
+Language: unknown
+fromexample_interfaces.srvimportAddTwoIntsimportrclpyfromrclpy.nodeimportNodeclassMinimalService(Node):def__init__(self):super().__init__('minimal_service')self.srv=self.create_service(AddTwoInts,'add_two_ints',self.add_two_ints_callback)defadd_two_ints_callback(self,request,response):response.sum=request.a+request.bself.get_logger().info('Incoming request\na:%db:%d'%(request.a,request.b))returnresponsedefmain():rclpy.init()minimal_service=MinimalService()rclpy.spin(minimal_service)rclpy.shutdown()if__name__=='__main__':main()
+
+Language: unknown
+fromexample_interfaces.srvimportAddTwoIntsimportrclpyfromrclpy.nodeimportNode
+
+Language: unknown
+def__init__(self):super().__init__('minimal_service')self.srv=self.create_service(AddTwoInts,'add_two_ints',self.add_two_ints_callback)
+
+Language: unknown
+defadd_two_ints_callback(self,request,response):response.sum=request.a+request.bself.get_logger().info('Incoming request\na:%db:%d'%(request.a,request.b))returnresponse
+
+Language: unknown
+'service = py_srvcli.service_member_function:main',
+
+Language: unknown
+importsysfromexample_interfaces.srvimportAddTwoIntsimportrclpyfromrclpy.nodeimportNodeclassMinimalClientAsync(Node):def__init__(self):super().__init__('minimal_client_async')self.cli=self.create_client(AddTwoInts,'add_two_ints')whilenotself.cli.wait_for_service(timeout_sec=1.0):self.get_logger().info('service not available, waiting again...')self.req=AddTwoInts.Request()defsend_request(self,a,b):self.req.a=aself.req.b=breturnself.cli.call_async(self.req)defmain():rclpy.init()minimal_client=MinimalClientAsync()future=minimal_client.send_request(int(sys.argv[1]),int(sys.argv[2]))rclpy.spin_until_future_complete(minimal_client,future)response=future.result()minimal_client.get_logger().info('Result of add_two_ints: for%d+%d=%d'%(int(sys.argv[1]),int(sys.argv[2]),response.sum))minimal_client.destroy_node()rclpy.shutdown()if__name__=='__main__':main()
+
+Language: unknown
+importsysfromexample_interfaces.srvimportAddTwoIntsimportrclpyfromrclpy.nodeimportNode
+
+Language: unknown
+def__init__(self):super().__init__('minimal_client_async')self.cli=self.create_client(AddTwoInts,'add_two_ints')whilenotself.cli.wait_for_service(timeout_sec=1.0):self.get_logger().info('service not available, waiting again...')self.req=AddTwoInts.Request()
+
+Language: unknown
+defsend_request(self,a,b):self.req.a=aself.req.b=breturnself.cli.call_async(self.req)
+
+Language: unknown
+defmain():rclpy.init()minimal_client=MinimalClientAsync()future=minimal_client.send_request(int(sys.argv[1]),int(sys.argv[2]))rclpy.spin_until_future_complete(minimal_client,future)response=future.result()minimal_client.get_logger().info('Result of add_two_ints: for%d+%d=%d'%(int(sys.argv[1]),int(sys.argv[2]),response.sum))minimal_client.destroy_node()rclpy.shutdown()
+
+Language: unknown
+entry_points={'console_scripts':['service = py_srvcli.service_member_function:main','client = py_srvcli.client_member_function:main',],},
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select py_srvcli
+
+Language: unknown
+source install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install/setup.bat
+
+Language: unknown
+ros2 run py_srvcli service
+
+Language: unknown
+ros2 run py_srvcli client 2 3
+
+Language: unknown
+[INFO] [minimal_client_async]: Result of add_two_ints: for 2 + 3 = 5
+
+Language: unknown
+[INFO] [minimal_service]: Incoming requesta: 2 b: 3

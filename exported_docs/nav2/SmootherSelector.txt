@@ -1,0 +1,29 @@
+Title: SmootherSelector
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/SmootherSelector.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: transientlocal
+```
+<SmootherSelector
+selected_smoother=
+"{selected_smoother}"
+default_smoother=
+"SimpleSmoother"
+topic_name=
+"smoother_selector"
+/>
+```

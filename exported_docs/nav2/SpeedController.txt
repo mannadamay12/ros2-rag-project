@@ -1,0 +1,32 @@
+Title: SpeedController
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/decorators/SpeedController.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: GoalReached
+```
+<SpeedController
+min_rate=
+"0.1"
+max_rate=
+"1.0"
+min_speed=
+"0.0"
+max_speed=
+"0.5"
+filter_duration=
+"0.3"
+>
+<!--Add tree components here--->
+</SpeedController>
+```

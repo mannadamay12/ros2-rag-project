@@ -1,0 +1,7 @@
+Title: Basic Concepts
+URL: https://docs.ros.org/en/jazzy/Concepts/Basic.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Basic ConceptsROS 2 is a middleware based on a strongly-typed, anonymous publish/subscribe mechanism that allows for message passing between different processes.At the heart of any ROS 2 system is the ROS graph.
+The ROS graph refers to the network of nodes in a ROS system and the connections between them by which they communicate.These are the concepts that will help you get started understanding the basics of ROS 2.NodesDiscoveryInterfacesTopicsServicesActionsParametersIntrospection with command line toolsLaunchClient libraries

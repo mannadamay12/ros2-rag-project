@@ -1,0 +1,61 @@
+Title: macOS (source)
+URL: https://docs.ros.org/en/jazzy/Installation/Alternatives/macOS-Development-Setup.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+macOS (source)Table of ContentsSystem requirementsSystem setupInstall prerequisitesDisable System Integrity Protection (SIP)Build ROS 2Get ROS 2 codeInstall additional RMW implementations (optional)Build the code in the workspaceSetup environmentTry some examplesNext stepsUse the ROS 1 bridge (optional)Stay up to dateTroubleshootUninstallSystem requirementsWe currently support macOS Mojave (10.14).System setupInstall prerequisitesYou need the following things installed to build ROS 2:XcodeIf you don’t already have it installed, install [Xcode](https://apps.apple.com/app/xcode/id497799835).Note: Versions of Xcode later than 11.3.1 can no longer be installed on macOS Mojave, so you will need to install an older version manually, see:https://stackoverflow.com/a/61046761Also, if you don’t already have it installed, install the Command Line Tools:xcode-select--install# This command will not succeed if you have not installed Xcode.appsudoxcode-select--switch/Applications/Xcode.app/Contents/Developer# If you installed Xcode.app manually, you need to either open it or run:sudoxcodebuild-license# To accept the Xcode.app licensebrew(needed to install more stuff; you probably already have this):Follow installation instructions athttp://brew.sh/Optional: Check thatbrewis happy with your system configuration by running:brewdoctorFix any problems that it identifies.Usebrewto install more stuff:brewinstallasioassimpbisonbulletcmakeconsole_bridgecppcheck\cuniteigenfreetypegraphvizopencvopensslorocos-kdlpcrepoco\pyqt@5pythonqt@5sipspdlogtinyxml2Setup some environment variables:# Add the openssl dir for DDS-Security# if you are using BASH, then replace '.zshrc' with '.bashrc'echo"export OPENSSL_ROOT_DIR=$(brew--prefixopenssl)">>~/.zshrc# Add the Qt directory to the PATH and CMAKE_PREFIX_PATHexportCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$(brew--prefixqt@5)exportPATH=$PATH:$(brew--prefixqt@5)/binUsepython3-mpip(justpipmay install Python3 or Python2) to install more stuff:python3-mpipinstall--upgradepip
+
+python3-mpipinstall-U\--config-settings="--global-option=build_ext"\--config-settings="--global-option=-I$(brew--prefixgraphviz)/include/"\--config-settings="--global-option=-L$(brew--prefixgraphviz)/lib/"\argcompletecatkin_pkgcolcon-common-extensionscoverage\cryptographyempyflake8flake8-blind-except==0.1.1flake8-builtins\flake8-class-newlineflake8-comprehensionsflake8-deprecated\flake8-docstringsflake8-import-orderflake8-quotes\importlib-metadatajsonschemalark==1.1.1lxmlmatplotlibmockmypy==0.931netifaces\nosepep8psutilpydocstylepydotpygraphvizpyparsing==2.4.7\pytest-mockrosdeprosdistrosetuptools==59.6.0vcstoolPlease ensure that the$PATHenvironment variable contains the install location of the binaries ($(brew--prefix)/bin)Optional: if you want to build the ROS 1<->2 bridge, then you must also install ROS 1:Start with the normal install instructions:http://wiki.ros.org/kinetic/Installation/OSX/Homebrew/SourceWhen you get to the step where you callrosinstall_generatorto get the source code, here’s an alternate invocation that brings in just the minimum required to produce a useful bridge:rosinstall_generatorcatkincommon_msgsroscpprosmsg--rosdistrokinetic--deps--wet-only--tar>kinetic-ros2-bridge-deps.rosinstall
+wstoolinit-j8srckinetic-ros2-bridge-deps.rosinstallOtherwise, just follow the normal instructions, then source the resultinginstall_isolated/setup.bashbefore proceeding here to build ROS 2.Disable System Integrity Protection (SIP)macOS/OS X versions >=10.11 have System Integrity Protection enabled by default.
+So that SIP doesn’t prevent processes from inheriting dynamic linker environment variables, such asDYLD_LIBRARY_PATH, you’ll need to disable itfollowing these instructions.Build ROS 2Get ROS 2 codeCreate a workspace and clone all repos:mkdir-p~/ros2_jazzy/srccd~/ros2_jazzy
+vcsimport--inputhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repossrcInstall additional RMW implementations (optional)The default middleware that ROS 2 uses isFastDDS, but the middleware (RMW) can be replaced at build or runtime.
+See theguideon how to work with multiple RMWs.Build the code in the workspaceRun thecolcontool to build everything (more on usingcolconinthis tutorial):cd~/ros2_jazzy/
+colconbuild--symlink-install--packages-skip-by-deppython_qt_bindingNote: due to an unresolved issue with SIP, Qt@5, and PyQt5, we need to disablepython_qt_bindingto have the build succeed.
+This will be removed when the issue is resolved, see:https://github.com/ros-visualization/python_qt_binding/issues/103Setup environmentSource the ROS 2 setup file:.~/ros2_jazzy/install/setup.zshThis will automatically set up the environment for any DDS vendors that support was built for.Try some examplesIn one terminal, set up the ROS 2 environment as described above and then run a C++talker:ros2rundemo_nodes_cpptalkerIn another terminal source the setup file and then run a Pythonlistener:ros2rundemo_nodes_pylistenerYou should see thetalkersaying that it’sPublishingmessages and thelistenersayingIheardthose messages.
+This verifies both the C++ and Python APIs are working properly.
+Hooray!Next stepsContinue with thetutorials and demosto configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.Use the ROS 1 bridge (optional)The ROS 1 bridge can connect topics from ROS 1 to ROS 2 and vice-versa.
+See the dedicateddocumentationon how to build and use the ROS 1 bridge.Stay up to dateSeeMaintain source checkoutto periodically refresh your source installation.TroubleshootTroubleshooting techniques can be foundhere.UninstallIf you installed your workspace with colcon as instructed above, “uninstalling” could be just a matter of opening a new terminal and not sourcing the workspace’ssetupfile.
+This way, your environment will behave as though there is no Jazzy install on your system.If you’re also trying to free up space, you can delete the entire workspace directory with:rm-rf~/ros2_jazzy
+
+Code Examples:
+
+Language: unknown
+xcode-select--install# This command will not succeed if you have not installed Xcode.appsudoxcode-select--switch/Applications/Xcode.app/Contents/Developer# If you installed Xcode.app manually, you need to either open it or run:sudoxcodebuild-license# To accept the Xcode.app license
+
+Language: unknown
+brewdoctor
+
+Language: unknown
+brewinstallasioassimpbisonbulletcmakeconsole_bridgecppcheck\cuniteigenfreetypegraphvizopencvopensslorocos-kdlpcrepoco\pyqt@5pythonqt@5sipspdlogtinyxml2
+
+Language: unknown
+# Add the openssl dir for DDS-Security# if you are using BASH, then replace '.zshrc' with '.bashrc'echo"export OPENSSL_ROOT_DIR=$(brew--prefixopenssl)">>~/.zshrc# Add the Qt directory to the PATH and CMAKE_PREFIX_PATHexportCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$(brew--prefixqt@5)exportPATH=$PATH:$(brew--prefixqt@5)/bin
+
+Language: unknown
+python3-mpipinstall--upgradepip
+
+python3-mpipinstall-U\--config-settings="--global-option=build_ext"\--config-settings="--global-option=-I$(brew--prefixgraphviz)/include/"\--config-settings="--global-option=-L$(brew--prefixgraphviz)/lib/"\argcompletecatkin_pkgcolcon-common-extensionscoverage\cryptographyempyflake8flake8-blind-except==0.1.1flake8-builtins\flake8-class-newlineflake8-comprehensionsflake8-deprecated\flake8-docstringsflake8-import-orderflake8-quotes\importlib-metadatajsonschemalark==1.1.1lxmlmatplotlibmockmypy==0.931netifaces\nosepep8psutilpydocstylepydotpygraphvizpyparsing==2.4.7\pytest-mockrosdeprosdistrosetuptools==59.6.0vcstool
+
+Language: unknown
+rosinstall_generatorcatkincommon_msgsroscpprosmsg--rosdistrokinetic--deps--wet-only--tar>kinetic-ros2-bridge-deps.rosinstall
+wstoolinit-j8srckinetic-ros2-bridge-deps.rosinstall
+
+Language: unknown
+mkdir-p~/ros2_jazzy/srccd~/ros2_jazzy
+vcsimport--inputhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repossrc
+
+Language: unknown
+cd~/ros2_jazzy/
+colconbuild--symlink-install--packages-skip-by-deppython_qt_binding
+
+Language: unknown
+.~/ros2_jazzy/install/setup.zsh
+
+Language: unknown
+ros2rundemo_nodes_cpptalker
+
+Language: unknown
+ros2rundemo_nodes_pylistener
+
+Language: unknown
+rm-rf~/ros2_jazzy

@@ -1,0 +1,11 @@
+Title: Nodes
+URL: https://docs.ros.org/en/jazzy/Concepts/Basic/About-Nodes.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+NodesA node is a participant in the ROS 2 graph, which uses aclient libraryto communicate with other nodes.
+Nodes can communicate with other nodes within the same process, in a different process, or on a different machine.
+Nodes are typically the unit of computation in a ROS graph; each node should do one logical thing.Nodes canpublishto named topics to deliver data to other nodes, orsubscribeto named topics to get data from other nodes.
+They can also act as aservice clientto have another node perform a computation on their behalf, or as aservice serverto provide functionality to other nodes.
+For long-running computations, a node can act as anaction clientto have another node perform it on their behalf, or as anaction serverto provide functionality to other nodes.
+Nodes can provide configurableparametersto change behavior during run-time.Nodes are often a complex combination of publishers, subscribers, service servers, service clients, action servers, and action clients, all at the same time.Connections between nodes are established through a distributeddiscoveryprocess.

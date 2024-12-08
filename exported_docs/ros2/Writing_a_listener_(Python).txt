@@ -1,0 +1,75 @@
+Title: Writing a listener (Python)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Writing-A-Tf2-Listener-Py.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Writing a listener (Python)Goal:Learn how to use tf2 to get access to frame transformations.Tutorial level:IntermediateTime:10 minutesContentsBackgroundPrerequisitesTasks1 Write the listener node2 Update the launch file3 Build4 RunSummaryBackgroundIn previous tutorials we created a tf2 broadcaster to publish the pose of a turtle to tf2.In this tutorial we’ll create a tf2 listener to start using tf2.PrerequisitesThis tutorial assumes you have completed thetf2 static broadcaster tutorial (Python)andtf2 broadcaster tutorial (Python).
+In the previous tutorial, we created alearning_tf2_pypackage, which is where we will continue working from.Tasks1 Write the listener nodeLet’s first create the source files.
+Go to thelearning_tf2_pypackage we created in the previous tutorial.
+Inside thesrc/learning_tf2_py/learning_tf2_pydirectory download the example listener code by entering the following command:LinuxmacOSWindowswget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/turtle_tf2_listener.pywget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/turtle_tf2_listener.pyIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/turtle_tf2_listener.py -o turtle_tf2_listener.pyOr in powershell:curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/turtle_tf2_listener.py -o turtle_tf2_listener.pyNow open the file calledturtle_tf2_listener.pyusing your preferred text editor.importmathfromgeometry_msgs.msgimportTwistimportrclpyfromrclpy.nodeimportNodefromtf2_rosimportTransformExceptionfromtf2_ros.bufferimportBufferfromtf2_ros.transform_listenerimportTransformListenerfromturtlesim.srvimportSpawnclassFrameListener(Node):def__init__(self):super().__init__('turtle_tf2_frame_listener')# Declare and acquire `target_frame` parameterself.target_frame=self.declare_parameter('target_frame','turtle1').get_parameter_value().string_valueself.tf_buffer=Buffer()self.tf_listener=TransformListener(self.tf_buffer,self)# Create a client to spawn a turtleself.spawner=self.create_client(Spawn,'spawn')# Boolean values to store the information# if the service for spawning turtle is availableself.turtle_spawning_service_ready=False# if the turtle was successfully spawnedself.turtle_spawned=False# Create turtle2 velocity publisherself.publisher=self.create_publisher(Twist,'turtle2/cmd_vel',1)# Call on_timer function every secondself.timer=self.create_timer(1.0,self.on_timer)defon_timer(self):# Store frame names in variables that will be used to# compute transformationsfrom_frame_rel=self.target_frameto_frame_rel='turtle2'ifself.turtle_spawning_service_ready:ifself.turtle_spawned:# Look up for the transformation between target_frame and turtle2 frames# and send velocity commands for turtle2 to reach target_frametry:t=self.tf_buffer.lookup_transform(to_frame_rel,from_frame_rel,rclpy.time.Time())exceptTransformExceptionasex:self.get_logger().info(f'Could not transform{to_frame_rel}to{from_frame_rel}:{ex}')returnmsg=Twist()scale_rotation_rate=1.0msg.angular.z=scale_rotation_rate*math.atan2(t.transform.translation.y,t.transform.translation.x)scale_forward_speed=0.5msg.linear.x=scale_forward_speed*math.sqrt(t.transform.translation.x**2+t.transform.translation.y**2)self.publisher.publish(msg)else:ifself.result.done():self.get_logger().info(f'Successfully spawned{self.result.result().name}')self.turtle_spawned=Trueelse:self.get_logger().info('Spawn is not finished')else:ifself.spawner.service_is_ready():# Initialize request with turtle name and coordinates# Note that x, y and theta are defined as floats in turtlesim/srv/Spawnrequest=Spawn.Request()request.name='turtle2'request.x=float(4)request.y=float(2)request.theta=float(0)# Call requestself.result=self.spawner.call_async(request)self.turtle_spawning_service_ready=Trueelse:# Check if the service is readyself.get_logger().info('Service is not ready')defmain():rclpy.init()node=FrameListener()try:rclpy.spin(node)exceptKeyboardInterrupt:passrclpy.shutdown()1.1 Examine the codeTo understand how the service behind spawning turtle works, please refer towriting a simple service and client (Python)tutorial.Now, let’s take a look at the code that is relevant to get access to frame transformations.
+Thetf2_rospackage provides an implementation of aTransformListenerto help make the task of receiving transforms easier.fromtf2_ros.transform_listenerimportTransformListenerHere, we create aTransformListenerobject.
+Once the listener is created, it starts receiving tf2 transformations over the wire, and buffers them for up to 10 seconds.self.tf_listener=TransformListener(self.tf_buffer,self)Finally, we query the listener for a specific transformation.
+We calllookup_transformmethod with following arguments:Target frameSource frameThe time at which we want to transformProvidingrclpy.time.Time()will just get us the latest available transform.
+All this is wrapped in a try-except block to handle possible exceptions.t=self.tf_buffer.lookup_transform(to_frame_rel,from_frame_rel,rclpy.time.Time())1.2 Add an entry pointTo allow theros2runcommand to run your node, you must add the entry point tosetup.py(located in thesrc/learning_tf2_pydirectory).Add the following line between the'console_scripts':brackets:'turtle_tf2_listener = learning_tf2_py.turtle_tf2_listener:main',2 Update the launch fileOpen the launch file calledturtle_tf2_demo_launch.pyin thesrc/learning_tf2_py/launchdirectory with your text editor, add two new nodes to the launch description, add a launch argument, and add the imports.
+The resulting file should look like:fromlaunchimportLaunchDescriptionfromlaunch.actionsimportDeclareLaunchArgumentfromlaunch.substitutionsimportLaunchConfigurationfromlaunch_ros.actionsimportNodedefgenerate_launch_description():returnLaunchDescription([Node(package='turtlesim',executable='turtlesim_node',name='sim'),Node(package='learning_tf2_py',executable='turtle_tf2_broadcaster',name='broadcaster1',parameters=[{'turtlename':'turtle1'}]),DeclareLaunchArgument('target_frame',default_value='turtle1',description='Target frame name.'),Node(package='learning_tf2_py',executable='turtle_tf2_broadcaster',name='broadcaster2',parameters=[{'turtlename':'turtle2'}]),Node(package='learning_tf2_py',executable='turtle_tf2_listener',name='listener',parameters=[{'target_frame':LaunchConfiguration('target_frame')}]),])This will declare atarget_framelaunch argument, start a broadcaster for second turtle that we will spawn and listener that will subscribe to those transformations.3 BuildRunrosdepin the root of your workspace to check for missing dependencies.LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfrosdep only runs on Linux, so you will need to installgeometry_msgsandturtlesimdependencies yourselfStill in the root of your workspace, build your package:LinuxmacOSWindowscolcon build --packages-select learning_tf2_pycolcon build --packages-select learning_tf2_pycolcon build --merge-install --packages-select learning_tf2_pyOpen a new terminal, navigate to the root of your workspace, and source the setup files:LinuxmacOSWindows. install/setup.bash. install/setup.bash#CMDcall install\setup.bat#Powershell.\install\setup.ps14 RunNow you’re ready to start your full turtle demo:ros2 launch learning_tf2_py turtle_tf2_demo_launch.pyYou should see the turtle sim with two turtles.
+In the second terminal window type the following command:ros2 run turtlesim turtle_teleop_keyTo see if things work, simply drive around the first turtle using the arrow keys (make sure your terminal window is active, not your simulator window), and you’ll see the second turtle following the first one!SummaryIn this tutorial you learned how to use tf2 to get access to frame transformations.
+You also have finished writing your own turtlesim demo that you first tried inIntroduction to tf2tutorial.
+
+Code Examples:
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/turtle_tf2_listener.py
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/turtle_tf2_listener.py
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/turtle_tf2_listener.py -o turtle_tf2_listener.py
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros/geometry_tutorials/ros2/turtle_tf2_py/turtle_tf2_py/turtle_tf2_listener.py -o turtle_tf2_listener.py
+
+Language: unknown
+importmathfromgeometry_msgs.msgimportTwistimportrclpyfromrclpy.nodeimportNodefromtf2_rosimportTransformExceptionfromtf2_ros.bufferimportBufferfromtf2_ros.transform_listenerimportTransformListenerfromturtlesim.srvimportSpawnclassFrameListener(Node):def__init__(self):super().__init__('turtle_tf2_frame_listener')# Declare and acquire `target_frame` parameterself.target_frame=self.declare_parameter('target_frame','turtle1').get_parameter_value().string_valueself.tf_buffer=Buffer()self.tf_listener=TransformListener(self.tf_buffer,self)# Create a client to spawn a turtleself.spawner=self.create_client(Spawn,'spawn')# Boolean values to store the information# if the service for spawning turtle is availableself.turtle_spawning_service_ready=False# if the turtle was successfully spawnedself.turtle_spawned=False# Create turtle2 velocity publisherself.publisher=self.create_publisher(Twist,'turtle2/cmd_vel',1)# Call on_timer function every secondself.timer=self.create_timer(1.0,self.on_timer)defon_timer(self):# Store frame names in variables that will be used to# compute transformationsfrom_frame_rel=self.target_frameto_frame_rel='turtle2'ifself.turtle_spawning_service_ready:ifself.turtle_spawned:# Look up for the transformation between target_frame and turtle2 frames# and send velocity commands for turtle2 to reach target_frametry:t=self.tf_buffer.lookup_transform(to_frame_rel,from_frame_rel,rclpy.time.Time())exceptTransformExceptionasex:self.get_logger().info(f'Could not transform{to_frame_rel}to{from_frame_rel}:{ex}')returnmsg=Twist()scale_rotation_rate=1.0msg.angular.z=scale_rotation_rate*math.atan2(t.transform.translation.y,t.transform.translation.x)scale_forward_speed=0.5msg.linear.x=scale_forward_speed*math.sqrt(t.transform.translation.x**2+t.transform.translation.y**2)self.publisher.publish(msg)else:ifself.result.done():self.get_logger().info(f'Successfully spawned{self.result.result().name}')self.turtle_spawned=Trueelse:self.get_logger().info('Spawn is not finished')else:ifself.spawner.service_is_ready():# Initialize request with turtle name and coordinates# Note that x, y and theta are defined as floats in turtlesim/srv/Spawnrequest=Spawn.Request()request.name='turtle2'request.x=float(4)request.y=float(2)request.theta=float(0)# Call requestself.result=self.spawner.call_async(request)self.turtle_spawning_service_ready=Trueelse:# Check if the service is readyself.get_logger().info('Service is not ready')defmain():rclpy.init()node=FrameListener()try:rclpy.spin(node)exceptKeyboardInterrupt:passrclpy.shutdown()
+
+Language: unknown
+fromtf2_ros.transform_listenerimportTransformListener
+
+Language: unknown
+self.tf_listener=TransformListener(self.tf_buffer,self)
+
+Language: unknown
+t=self.tf_buffer.lookup_transform(to_frame_rel,from_frame_rel,rclpy.time.Time())
+
+Language: unknown
+'turtle_tf2_listener = learning_tf2_py.turtle_tf2_listener:main',
+
+Language: unknown
+fromlaunchimportLaunchDescriptionfromlaunch.actionsimportDeclareLaunchArgumentfromlaunch.substitutionsimportLaunchConfigurationfromlaunch_ros.actionsimportNodedefgenerate_launch_description():returnLaunchDescription([Node(package='turtlesim',executable='turtlesim_node',name='sim'),Node(package='learning_tf2_py',executable='turtle_tf2_broadcaster',name='broadcaster1',parameters=[{'turtlename':'turtle1'}]),DeclareLaunchArgument('target_frame',default_value='turtle1',description='Target frame name.'),Node(package='learning_tf2_py',executable='turtle_tf2_broadcaster',name='broadcaster2',parameters=[{'turtlename':'turtle2'}]),Node(package='learning_tf2_py',executable='turtle_tf2_listener',name='listener',parameters=[{'target_frame':LaunchConfiguration('target_frame')}]),])
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select learning_tf2_py
+
+Language: unknown
+colcon build --packages-select learning_tf2_py
+
+Language: unknown
+colcon build --merge-install --packages-select learning_tf2_py
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+#CMDcall install\setup.bat#Powershell.\install\setup.ps1
+
+Language: unknown
+ros2 launch learning_tf2_py turtle_tf2_demo_launch.py
+
+Language: unknown
+ros2 run turtlesim turtle_teleop_key

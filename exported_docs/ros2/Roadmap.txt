@@ -1,0 +1,11 @@
+Title: Roadmap
+URL: https://docs.ros.org/en/jazzy/The-ROS2-Project/Roadmap.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+RoadmapTable of ContentsKilted RoadmapPlanned releasesContributing to ROS 2This page describes planned work for ROS 2.
+The set of planned features and development efforts should provide insight into the overall direction of ROS 2.
+If you would like to see other features on the roadmap, please get in touch with us atinfo@openrobotics.org.Kilted RoadmapKilted Kaiju is the ROS 2 release expected in May 2025.
+See therelease pagefor a detailed timeline.The items in the roadmap below are the major features being worked on by the ROS 2 community.
+The “Size” is an estimated size of the task, whereSmallmeans person-days to complete,Mediummeans person-weeks to complete, andLargemeans person-months to complete.If you are working on a feature for ROS 2 and would like to have it listed, please open a pull request toROS 2 Documentation.
+If you’d like to take on one of these tasks, pleaseget in touch with us.TaskSizeOwnerExpected CompletionMakermw_zenoh_cppa Tier-1 RMWLargeIntrinsicMay 2025Planned releasesPlease see theDistributions pagefor the timeline of and information about future distributions.Contributing to ROS 2Looking for something to work on, or just want to help out? Here are a few resources to get you going.TheContributingguide describes how to make a contribution to ROS 2.Check out the list ofFeature Ideasfor inspiration.For more information on the design of ROS 2 please seedesign.ros2.org.The core code for ROS 2 is in theros2 GitHub organization.The Discourse forum/mailing list for discussing ROS 2 design isng-ros.Questions should be asked onRobotics Stack Exchange, make sure to include at least theros2tag and the rosdistro version you are running, e.g.jazzy.

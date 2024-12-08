@@ -1,0 +1,5 @@
+Title: Voxel Layer Parameters
+URL: https://docs.nav2.org/configuration/packages/costmap-plugins/voxel.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+

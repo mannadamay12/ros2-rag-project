@@ -1,0 +1,35 @@
+Title: ComputePathThroughPoses
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/ComputePathThroughPoses.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: ComputePathThroughPoses
+```
+<ComputePathThroughPoses
+goals=
+"{goals}"
+path=
+"{path}"
+planner_id=
+"GridBased"
+server_name=
+"ComputePathThroughPoses"
+server_timeout=
+"10"
+error_code_id=
+"{compute_path_error_code}"
+/>
+```

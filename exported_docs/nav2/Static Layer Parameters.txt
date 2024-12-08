@@ -1,0 +1,5 @@
+Title: Static Layer Parameters
+URL: https://docs.nav2.org/configuration/packages/costmap-plugins/static.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+

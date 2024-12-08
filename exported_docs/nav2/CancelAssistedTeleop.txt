@@ -1,0 +1,24 @@
+Title: CancelAssistedTeleop
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/CancelAssistedTeleop.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: assisted_teleop
+```
+<CancelAssistedTeleop
+server_name=
+"assisted_teleop"
+server_timeout=
+"10"
+/>
+```

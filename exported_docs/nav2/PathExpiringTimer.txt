@@ -1,0 +1,21 @@
+Title: PathExpiringTimer
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/PathExpiringTimer.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<PathExpiringTimer
+seconds=
+"15"
+path=
+"{path}"
+/>
+```

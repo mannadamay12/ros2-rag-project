@@ -1,0 +1,5 @@
+Title: First-Time Robot Setup Guide
+URL: https://docs.nav2.org/setup_guides/index.html#setup-guides
+Section: tuning/index.html
+--------------------------------------------------------------------------------
+

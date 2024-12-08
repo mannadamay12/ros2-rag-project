@@ -1,0 +1,22 @@
+Title: WouldAControllerRecoveryHelp
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/WouldAControllerRecoveryHelp.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Port
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: FAILURE
+```
+<WouldAControllerRecoveryHelp
+error_code=
+"{follow_path_error_code}"
+/>
+```

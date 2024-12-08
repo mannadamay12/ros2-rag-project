@@ -1,0 +1,10 @@
+Title: Metrics
+URL: https://docs.ros.org/en/jazzy/The-ROS2-Project/Metrics.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+MetricsTable of ContentsMetrics.ros.orgPeriodic Metrics ReportHistorical Metrics ReportsWe measure aspects of the ROS community to understand and track the impact of our work and identify areas for improvement.
+We take inspiration from the MeeGo Project’s metrics.Metrics.ros.orgAtmetrics.ros.orgyou can find many visualizations of metrics about ROS.Periodic Metrics ReportWe periodically publish a metrics report that provides a quantitative view of the ROS community.
+We’re collectively learning what to measure and how and evoloving as systems change.
+Please provide feedback!
+Add your suggestions on how to improve these reports by posting them toROS Discourse Site Feedback Category.Historical Metrics Reports2023202220212020201920182017201620152014201320122011

@@ -1,0 +1,48 @@
+Title: Installation (Ubuntu)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Installation-Ubuntu.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Installation (Ubuntu)Goal:Install thewebots_ros2package and run simulation examples on Ubuntu.Tutorial level:AdvancedTime:10 minutesContentsBackgroundPrerequisitesMultiple Installations of WebotsTasks1 Installwebots_ros22 Launch thewebots_ros2_universal_robotexampleBackgroundThewebots_ros2package provides an interface between ROS 2 and Webots.
+It includes several sub-packages, includingwebots_ros2_driver, which allows you to start Webots and communicate with it.
+This interface is used in most of the following tutorials, so it is required to install it beforehand.
+Other sub-packages are mainly examples that show multiple possible implementations using the interface.
+In this tutorial, you are going to install the package and learn how to run one of these examples.PrerequisitesIt is recommended to understand basic ROS principles covered in the beginnerTutorials.
+In particular,Creating a workspaceandCreating a packageare useful prerequisites.The Webots software should be installed in order to use thewebots_ros2interface.
+You can follow theinstallation procedureorbuild it from sources.Alternatively, you can also letwebots_ros2download and install Webots automatically.
+This option appears when you launch an example of the package and no Webots installation is found.Multiple Installations of WebotsIf you have installed different versions of Webots on your computer,webots_ros2will look for Webots at the following locations (in this order):If theROS2_WEBOTS_HOMEenvironment variable is set, ROS 2 will use the Webots in this folder, regardless of its version.If theWEBOTS_HOMEenvironment variable is set, ROS 2 will use the Webots in this folder, regardless of its version.If none of these variables is set,webots_ros2will look for Webots in the default installation paths for a compatible version:/usr/local/webotsand/snap/webots/current/usr/share/webots.If Webots couldn’t be found,webots_ros2will show a window offering the automatic installation of the latest compatible version of Webots.Tasks1 Installwebots_ros2You can either install the official released package, or install it from the latest up-to-date sources fromGithub.Installwebots_ros2distributed packageInstallwebots_ros2from sourcesRun the following command in a terminal.sudo apt-get install ros-jazzy-webots-ros2Create a ROS 2 workspace with itssrcdirectory.mkdir -p ~/ros2_ws/srcSource the ROS 2 environment.source /opt/ros/jazzy/setup.bashRetrieve the sources from Github.cd ~/ros2_wsgit clone --recurse-submodules https://github.com/cyberbotics/webots_ros2.git src/webots_ros2Install the package dependencies.sudo apt install python3-pip python3-rosdep python3-colcon-common-extensionssudo rosdep init && rosdep updaterosdep install --from-paths src --ignore-src --rosdistro jazzyBuild the package usingcolcon.colcon buildSource this workspace.source install/local_setup.bash2 Launch thewebots_ros2_universal_robotexampleThe following instructions explain how to start a provided example.First source the ROS 2 environment, if not done already.source /opt/ros/jazzy/setup.bashSetting theWEBOTS_HOMEenvironment variable allows you to start a specific Webots installation.export WEBOTS_HOME=/usr/local/webotsIf installed from sources, source your ROS 2 workspace, if not done already.cd ~/ros2_wssource install/local_setup.bashUse the ROS 2 launch command to start demo packages (e.g.webots_ros2_universal_robot).ros2 launch webots_ros2_universal_robot multirobot_launch.py
+
+Code Examples:
+
+Language: unknown
+sudo apt-get install ros-jazzy-webots-ros2
+
+Language: unknown
+mkdir -p ~/ros2_ws/src
+
+Language: unknown
+source /opt/ros/jazzy/setup.bash
+
+Language: unknown
+cd ~/ros2_wsgit clone --recurse-submodules https://github.com/cyberbotics/webots_ros2.git src/webots_ros2
+
+Language: unknown
+sudo apt install python3-pip python3-rosdep python3-colcon-common-extensionssudo rosdep init && rosdep updaterosdep install --from-paths src --ignore-src --rosdistro jazzy
+
+Language: unknown
+colcon build
+
+Language: unknown
+source install/local_setup.bash
+
+Language: unknown
+source /opt/ros/jazzy/setup.bash
+
+Language: unknown
+export WEBOTS_HOME=/usr/local/webots
+
+Language: unknown
+cd ~/ros2_wssource install/local_setup.bash
+
+Language: unknown
+ros2 launch webots_ros2_universal_robot multirobot_launch.py

@@ -1,0 +1,29 @@
+Title: GoalCheckerSelector
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/GoalCheckerSelector.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: transientlocal
+```
+<GoalCheckerSelector
+selected_goal_checker=
+"{selected_goal_checker}"
+default_goal_checker=
+"precise_goal_checker"
+topic_name=
+"goal_checker_selector"
+/>
+```

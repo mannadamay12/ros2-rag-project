@@ -1,0 +1,29 @@
+Title: ControllerSelector
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/ControllerSelector.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: transientlocal
+```
+<ControllerSelector
+selected_controller=
+"{selected_controller}"
+default_controller=
+"FollowPath"
+topic_name=
+"controller_selector"
+/>
+```

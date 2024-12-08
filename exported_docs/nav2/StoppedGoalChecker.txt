@@ -1,0 +1,8 @@
+Title: StoppedGoalChecker
+URL: https://docs.nav2.org/configuration/packages/nav2_controller-plugins/stopped_goal_checker.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<nav2_controllerplugin>: nav2_controller plugin name defined in thegoal_checker_plugin_idparameter inController Server.

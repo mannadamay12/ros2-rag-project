@@ -1,0 +1,24 @@
+Title: RateController
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/decorators/RateController.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: GoalReached
+```
+<RateController
+hz=
+"1.0"
+>
+<!--Add tree components here--->
+</RateController>
+```

@@ -1,0 +1,102 @@
+Title: Monitoring for parameter changes (Python)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Monitoring-For-Parameter-Changes-Python.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Monitoring for parameter changes (Python)Goal:Learn to use the ParameterEventHandler class to monitor and respond to parameter changes.Tutorial level:IntermediateTime:20 minutesContentsBackgroundPrerequisitesTasks1 Create a package2 Write the Python node3 Build and runSummaryRelated contentBackgroundOften a node needs to respond to changes to its own parameters or another node’s parameters.
+The ParameterEventHandler class makes it easy to listen for parameter changes so that your code can respond to them.
+This tutorial will show you how to use the Python version of the ParameterEventHandler class to monitor for changes to a node’s own parameters as well as changes to another node’s parameters.PrerequisitesBefore starting this tutorial, you should first complete the following tutorials:Understanding parametersUsing parameters in a class (Python)TasksIn this tutorial, you will create a new package to contain some sample code, write some Python code to use the ParameterEventHandler class, and test the resulting code.1 Create a packageFirst, open a new terminal andsource your ROS 2 installationso thatros2commands will work.Followthese instructionsto create a new workspace namedros2_ws.Recall that packages should be created in thesrcdirectory, not the root of the workspace.
+So, navigate intoros2_ws/srcand then create a new package there:ros2 pkg create --build-type ament_python --license Apache-2.0 python_parameter_event_handler --dependencies rclpyYour terminal will return a message verifying the creation of your packagepython_parameter_event_handlerand all its necessary files and folders.The--dependenciesargument will automatically add the necessary dependency lines topackage.xmlandCMakeLists.txt.1.1 Updatepackage.xmlBecause you used the--dependenciesoption during package creation, you don’t have to manually add dependencies topackage.xml.
+As always, though, make sure to add the description, maintainer email and name, and license information topackage.xml.<description>Pythonparametereventsclienttutorial</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>2 Write the Python nodeInside theros2_ws/src/python_parameter_event_handler/python_parameter_event_handlerdirectory, create a new file calledparameter_event_handler.pyand paste the following code within:importrclpyimportrclpy.nodeimportrclpy.parameterfromrclpy.parameter_event_handlerimportParameterEventHandlerclassSampleNodeWithParameters(rclpy.node.Node):def__init__(self):super().__init__('node_with_parameters')self.declare_parameter('an_int_param',0)self.handler=ParameterEventHandler(self)self.callback_handle=self.handler.add_parameter_callback(parameter_name="an_int_param",node_name="node_with_parameters",callback=self.callback,)defcallback(self,p:rclpy.parameter.Parameter)->None:self.get_logger().info(f"Received an update to parameter:{p.name}:{rclpy.parameter.parameter_value_to_python(p.value)}")defmain():rclpy.init()node=SampleNodeWithParameters()rclpy.spin(node)rclpy.shutdown()2.1 Examine the codeTheimportstatements at the top are used to import the package dependencies.importrclpyimportrclpy.nodeimportrclpy.parameterfromrclpy.parameter_event_handlerimportParameterEventHandlerThe next piece of code creates the classSampleNodeWithParametersand the constructor.
+The constructor for the class declares an integer parameteran_int_param,  with a default value of 0.
+Next, the code creates aParameterEventHandlerthat will be used to monitor changes to parameters.classSampleNodeWithParameters(rclpy.node.Node):def__init__(self):super().__init__('node_with_parameters')self.declare_parameter('an_int_param',0)self.handler=ParameterEventHandler(self)Finally, we add parameter callback and get callback handler for the new callback.NoteIt is very important to save the handle that is returned byadd_parameter_callback; otherwise, the callback will not be properly registered.self.callback_handle=self.handler.add_parameter_callback(parameter_name="an_int_param",node_name="node_with_parameters",callback=self.callback,)For the callback function, we use thecallbackmethod of theSampleNodeWithParametersclass.defcallback(self,p:rclpy.parameter.Parameter)->None:self.get_logger().info(f"Received an update to parameter:{p.name}:{rclpy.parameter.parameter_value_to_python(p.value)}")Following theSampleNodeWithParametersis a typicalmainfunction which initializes ROS, spins the sample node so that it can send and receive messages, and then shuts down after the user enters ^C at the console.defmain():rclpy.init()node=SampleNodeWithParameters()rclpy.spin(node)rclpy.shutdown()2.2 Add an entry pointOpen thesetup.pyfile.
+Again, match themaintainer,maintainer_email,descriptionandlicensefields to yourpackage.xml:maintainer='YourName',maintainer_email='you@email.com',description='Python parameter tutorial',license='Apache-2.0',Add the following line within theconsole_scriptsbrackets of theentry_pointsfield:entry_points={'console_scripts':['node_with_parameters = python_parameter_event_handler.parameter_event_handler:main',],},3 Build and runIt’s good practice to runrosdepin the root of your workspace (ros2_ws) to check for missing dependencies before building:LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro $ROS_DISTRO -yrosdep only runs on Linux, so you can skip ahead to next step.rosdep only runs on Linux, so you can skip ahead to next step.Navigate back to the root of your workspace,ros2_ws, and build your new package:colcon build --packages-select python_parameter_event_handlerOpen a new terminal, navigate toros2_ws, and source the setup files:LinuxmacOSWindows. install/setup.bash. install/setup.bashcall install\setup.batNow run the node:ros2 run python_parameter_event_handler node_with_parametersThe node is now active and has a single parameter and will print a message whenever this parameter is updated.
+To test this, open up another terminal and source the ROS setup file as before and execute the following command:ros2 param set node_with_parameters an_int_param 43The terminal running the node will display a message similar to the following:[INFO] [1698483083.315084660] [node_with_parameters]: Received an update to parameter: an_int_param: 43The callback we set previously in the node has been invoked and has displayed the new updated value.
+You can now terminate the running parameter_event_handler sample using ^C in the terminal.3.1 Monitor changes to another node’s parametersYou can also use the ParameterEventHandler to monitor parameter changes to another node’s parameters.
+Let’s update the SampleNodeWithParameters class to monitor for changes to a parameter in another node.
+We will use the parameter_blackboard demo application to host a double parameter that we will monitor for updates.First update the constructor to add the following code after the existing code:def__init__(...):...self.callback_handle=self.handler.add_parameter_callback(parameter_name="a_double_param",node_name="parameter_blackboard",callback=self.callback,)In a terminal, navigate back to the root of your workspace,ros2_ws, and build your updated package as before:colcon build --packages-select python_parameter_event_handlerThen source the setup files:LinuxmacOSWindows. install/setup.bash. install/setup.bashcall install\setup.batNow, to test monitoring of remote parameters, first run the newly-built parameter_event_handler code:ros2 run python_parameter_event_handler node_with_parametersNext, from another teminal (with ROS initialized), run the parameter_blackboard demo application, as follows:ros2 run demo_nodes_cpp parameter_blackboardFinally, from a third terminal (with ROS initialized), let’s set a parameter on the parameter_blackboard node:ros2 param set parameter_blackboard a_double_param 3.45Upon executing this command, you should see output in the parameter_event_handler window, indicating that the callback function was invoked upon the parameter update:[INFO] [1699821958.757770223] [node_with_parameters]: Received an update to parameter: a_double_param: 3.45SummaryYou created a node with a parameter and used the ParameterEventHandler class to set a callback to monitor changes to that parameter.
+You also used the same class to monitor changes to a remote node.
+The ParameterEventHandler is a convenient way to monitor for parameter changes so that you can then respond to the updated values.Related contentTo learn how to adapt ROS 1 parameter files for ROS 2, see theMigrating YAML parameter files from ROS 1 to ROS2tutorial.
+
+Code Examples:
+
+Language: unknown
+ros2 pkg create --build-type ament_python --license Apache-2.0 python_parameter_event_handler --dependencies rclpy
+
+Language: unknown
+<description>Pythonparametereventsclienttutorial</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>
+
+Language: unknown
+importrclpyimportrclpy.nodeimportrclpy.parameterfromrclpy.parameter_event_handlerimportParameterEventHandlerclassSampleNodeWithParameters(rclpy.node.Node):def__init__(self):super().__init__('node_with_parameters')self.declare_parameter('an_int_param',0)self.handler=ParameterEventHandler(self)self.callback_handle=self.handler.add_parameter_callback(parameter_name="an_int_param",node_name="node_with_parameters",callback=self.callback,)defcallback(self,p:rclpy.parameter.Parameter)->None:self.get_logger().info(f"Received an update to parameter:{p.name}:{rclpy.parameter.parameter_value_to_python(p.value)}")defmain():rclpy.init()node=SampleNodeWithParameters()rclpy.spin(node)rclpy.shutdown()
+
+Language: unknown
+importrclpyimportrclpy.nodeimportrclpy.parameterfromrclpy.parameter_event_handlerimportParameterEventHandler
+
+Language: unknown
+classSampleNodeWithParameters(rclpy.node.Node):def__init__(self):super().__init__('node_with_parameters')self.declare_parameter('an_int_param',0)self.handler=ParameterEventHandler(self)
+
+Language: unknown
+self.callback_handle=self.handler.add_parameter_callback(parameter_name="an_int_param",node_name="node_with_parameters",callback=self.callback,)
+
+Language: unknown
+defcallback(self,p:rclpy.parameter.Parameter)->None:self.get_logger().info(f"Received an update to parameter:{p.name}:{rclpy.parameter.parameter_value_to_python(p.value)}")
+
+Language: unknown
+defmain():rclpy.init()node=SampleNodeWithParameters()rclpy.spin(node)rclpy.shutdown()
+
+Language: unknown
+maintainer='YourName',maintainer_email='you@email.com',description='Python parameter tutorial',license='Apache-2.0',
+
+Language: unknown
+entry_points={'console_scripts':['node_with_parameters = python_parameter_event_handler.parameter_event_handler:main',],},
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y
+
+Language: unknown
+colcon build --packages-select python_parameter_event_handler
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install\setup.bat
+
+Language: unknown
+ros2 run python_parameter_event_handler node_with_parameters
+
+Language: unknown
+ros2 param set node_with_parameters an_int_param 43
+
+Language: unknown
+[INFO] [1698483083.315084660] [node_with_parameters]: Received an update to parameter: an_int_param: 43
+
+Language: unknown
+def__init__(...):...self.callback_handle=self.handler.add_parameter_callback(parameter_name="a_double_param",node_name="parameter_blackboard",callback=self.callback,)
+
+Language: unknown
+colcon build --packages-select python_parameter_event_handler
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install\setup.bat
+
+Language: unknown
+ros2 run python_parameter_event_handler node_with_parameters
+
+Language: unknown
+ros2 run demo_nodes_cpp parameter_blackboard
+
+Language: unknown
+ros2 param set parameter_blackboard a_double_param 3.45
+
+Language: unknown
+[INFO] [1699821958.757770223] [node_with_parameters]: Received an update to parameter: a_double_param: 3.45

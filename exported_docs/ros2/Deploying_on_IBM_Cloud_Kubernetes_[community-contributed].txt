@@ -1,0 +1,296 @@
+Title: Deploying on IBM Cloud Kubernetes [community-contributed]
+URL: https://docs.ros.org/en/jazzy/Tutorials/Miscellaneous/Deploying-ROS-2-on-IBM-Cloud.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Deploying on IBM Cloud Kubernetes [community-contributed]Table of ContentsAboutROS 2 on IBM CloudStep 1: Setting up your systema) Docker files?b) ROS 2 ImageStep 2: Running the image on IBM CloudStep 3: Using Custom ROS 2 PackagesExtra: Deleting Docker ImagesStep 4: Kubernetesa) Creating the Clusterb) Deploying your Docker ImageFinally!Step 5: Using CLI for your Docker ImageFinal RemarksAboutThis article describes how to get ROS 2 running on IBM Cloud using Docker files. It first gives a brief overview of docker images and how they work locally and then explores IBM Cloud and how the user can deploy their containers on it.
+Afterwards, a short description of how the user can use their own custom packages for ROS 2 from github on IBM Cloud is provided.
+A walkthrough of how to create a cluster and utilize Kubernetes on IBM Cloud is provided and finally the Docker image is deployed on the cluster.
+Originally publishedhereandhere.ROS 2 on IBM CloudIn this tutorial, we show how you can easily integrate and run ROS 2 on
+IBM Cloud with your custom packages.ROS 2 is the new generation of ROS which gives more control over
+multi-robot formations. With the advancements of cloud computing, cloud
+robotics are becoming more important in today’s age. In this tutorial,
+we will go through a short introduction on running ROS 2 on IBM Cloud. By
+the end of the tutorial, you will be able to create your own packages in
+ROS 2 and deploy them to the cloud using docker files.The following instructions assume you’re using Linux and have been
+tested with Ubuntu 18.04 (Bionic Beaver).Step 1: Setting up your systemBefore we go into how the exact process works, lets first make sure all
+the required software is properly installed. We’ll point you towards the
+appropriate sources to set up your system and only highlight the details
+that pertain to our use-case.a) Docker files?Docker files are a form of containers that can run separate from your
+system, this way, you can set-up potentially hundreds of different
+projects without affecting one another. You can even set-up different
+versions of Linux on one machine, without the need for virtual machine.
+Docker files have an advantage of saving space and only utilizing your
+system resources when running. In addition, dockers are versatile and
+transferable. They contain all the required pre-requisites to run
+separately, meaning that you can easily use a docker file for a specific
+system or service without any cubersome steps!Excited yet? Let’s start off by installing docker to your system by
+following the followinglink.
+From the tutorial, you should have done some sanity checks to make sure
+docker is properly set-up. Just in case, however, let’s run the
+following command once again that uses the hello-world docker image:$sudodockerrunhello-worldYou should obtain the following output:HellofromDocker!
+Thismessageshowsthatyourinstallationappearstobeworkingcorrectly.
+
+Togeneratethismessage,Dockertookthefollowingsteps:1.TheDockerclientcontactedtheDockerdaemon.2.TheDockerdaemonpulledthe"hello-world"imagefromtheDockerHub.(amd64)3.TheDockerdaemoncreatedanewcontainerfromthatimagewhichrunstheexecutablethatproducestheoutputyouarecurrentlyreading.4.TheDockerdaemonstreamedthatoutputtotheDockerclient,whichsentittoyourterminal.
+
+Totrysomethingmoreambitious,youcanrunanUbuntucontainerwith:$dockerrun-itubuntubash
+
+Shareimages,automateworkflows,andmorewithafreeDockerID:https://hub.docker.com/
+
+Formoreexamplesandideas,visit:https://docs.docker.com/get-started/b) ROS 2 ImageROSannouncedimage containers for several ROS distributions in January 2019. More
+detailed instructions on the use of ROS 2 docker images can be foundhere.Let’s skip through that and get to real-deal right away; creating a
+local ROS 2 docker. We’ll create our own Dockerfile (instead of using a
+ready Image) since we’ll need this method for deployment on IBM Cloud.
+First, we create a new directory which will hold our Dockerfile and any
+other files we need later on and navigate to it. Using your favorite
+$EDITOR of choice, open a new file namedDockerfile(make sure the
+file naming is correct):$mkdir~/ros2_docker
+
+$cd~/ros2_docker
+
+$$EDITORDockerfileInsert the following in theDockerfile, and save it (also foundhere):FROMros:foxy# install ros packageRUNapt-getupdate&&apt-getinstall-y\ros-${ROS_DISTRO}-demo-nodes-cpp\ros-${ROS_DISTRO}-demo-nodes-py&&\rm-rf/var/lib/apt/lists/*&&mkdir/ros2_home
+
+WORKDIR/ros2_home# launch ros packageCMD["ros2","launch","demo_nodes_cpp","talker_listener_launch.py"]FROM: creates a layer from the ros:foxy Docker imageRUN: builds your container by installing vim into it and creating
+a directory called /ros2_homeWORKDIR: informs the container where the working directory should
+be for itOf course, you are free to change the ROS distribution (foxyis used
+here) or change the directory name. The above docker file sets up
+ROS-foxy and installs the demo nodes for C++ and Python. Then it
+launches a file which runs a talker and a listener node. We will see it
+in action in just a few, but they act very similar to the
+publisher-subscriber example found in theROS
+wikiNow, we are ready to build the docker image to run ROS 2 in it (yes, it
+is THAT easy!).Note: if you have errors due to insufficient privileges orpermission denied, try running the command withsudoprivileges:$dockerbuild.# You will see a bunch of lines that execute the docker file instructions followed by:Successfullybuilt0dc6ce7cb4870dc6ce7cb487will most probably be different for you, so keep note of
+it and copy it somewhere for reference. You can always go back and check
+the docker images you have on your system using:$sudodockerps-asNow, run the docker file using:$dockerrun-it0dc6ce7cb487[INFO][launch]:Alllogfilescanbefoundbelow/root/.ros/log/2020-10-28-02-41-45-177546-0b5d9ed123be-1[INFO][launch]:DefaultloggingverbosityissettoINFO[INFO][talker-1]:processstartedwithpid[28][INFO][listener-2]:processstartedwithpid[30][talker-1][INFO][1603852907.249886590][talker]:Publishing:'Hello World: 1'[listener-2][INFO][1603852907.250964490][listener]:Iheard:[HelloWorld:1][talker-1][INFO][1603852908.249786312][talker]:Publishing:'Hello World: 2'[listener-2][INFO][1603852908.250453386][listener]:Iheard:[HelloWorld:2][talker-1][INFO][1603852909.249882257][talker]:Publishing:'Hello World: 3'[listener-2][INFO][1603852909.250536089][listener]:Iheard:[HelloWorld:3][talker-1][INFO][1603852910.249845718][talker]:Publishing:'Hello World: 4'[listener-2][INFO][1603852910.250509355][listener]:Iheard:[HelloWorld:4][talker-1][INFO][1603852911.249506058][talker]:Publishing:'Hello World: 5'[listener-2][INFO][1603852911.250152324][listener]:Iheard:[HelloWorld:5][talker-1][INFO][1603852912.249556670][talker]:Publishing:'Hello World: 6'[listener-2][INFO][1603852912.250212678][listener]:Iheard:[HelloWorld:6]If it works correctly, you should see something similar to what is shown
+above. As can be seen, there are two ROS nodes (a publisher and a
+subscriber) running and their output is provided to us through ROS INFO.Step 2: Running the image on IBM CloudThe following steps assume you have an IBM cloud account and have
+ibmcloud CLI installed. If not, please check thislinkout to get that done first.We also need to make sure that the CLI plug-in for the IBM Cloud
+Container Registry is installed by running the command$ibmcloudplugininstallcontainer-registryAfterwards, login to your ibmcloud account through the terminal:$ibmcloudlogin--ssoFrom here, let’s create a container registry name-space. Make sure you
+use a unique name that is also descriptive as to what it is. Here, I
+usedros2nasr.$ibmcloudcrnamespace-addros2nasrIBM cloud has a lot of shortcuts that would help us get our container
+onto the cloud right away. The command below builds the container and
+tags it with the nameros2foxyand the version of1. Make sure
+you use the correct registry name you created and you are free to change
+the container name as you wish. The.at the end indicates that theDockerfileis in the current directory (and it is important), if not,
+change it to point to the directory containing the Dockerfile.$ibmcloudcrbuild--tagregistry.bluemix.net/ros2nasr/ros2foxy:1.You can now make sure that the container has been pushed to the registry
+you created by running the following command$ibmcloudcrimage-list
+Listingimages...
+
+REPOSITORYTAGDIGESTNAMESPACECREATEDSIZESECURITYSTATUS
+us.icr.io/ros2nasr/ros2foxy1031be29301e6ros2nasr36secondsago120MBNoIssues
+
+OKNext, it is important to log-in to your registry to run the docker
+image. Again, if you face apermission deniederror, perform the
+command with sudo privileges. Afterwards, run your docker file as shown
+below.$ibmcloudcrlogin
+Logginginto'registry.ng.bluemix.net'...
+Loggedinto'registry.ng.bluemix.net'.
+Logginginto'us.icr.io'...
+Loggedinto'us.icr.io'.
+
+OK
+
+$dockerrun-v-itregistry.ng.bluemix.net/ros2nasr/ros2foxy:1Whereros2nasris the name of the registry you created andros2foxy:1is the tag of the docker container and the version as
+explained previously.You should now see your docker file running and providing similar output
+to that you saw when you ran it locally on your machine.Step 3: Using Custom ROS 2 PackagesSo now we have the full pipeline working, from creating the Dockerfile,
+all the way to deploying it and seeing it work on IBM Cloud. But, what
+if we want to use a custom set of packages we (or someone else) created?Well that all has to do with how you set-up your Dockerfile. Lets use
+the example provided by ROS 2here.
+Create a new directory with a new Dockerfile (or overwrite the existing
+one) and add the following in it (or download the filehere)ARGFROM_IMAGE=ros:foxy
+ARGOVERLAY_WS=/opt/ros/overlay_ws# multi-stage for cachingFROM$FROM_IMAGEAScacher# clone overlay sourceARGOVERLAY_WS
+WORKDIR$OVERLAY_WS/src
+RUNecho"\repositories: \n\ros2/demos: \n\type: git \n\url: https://github.com/ros2/demos.git \n\version:${ROS_DISTRO}\n\">../overlay.repos
+RUNvcsimport./<../overlay.repos# copy manifests for cachingWORKDIR/opt
+RUNmkdir-p/tmp/opt&&\find./-name"package.xml"|\xargscp--parents-t/tmp/opt&&\find./-name"COLCON_IGNORE"|\xargscp--parents-t/tmp/opt||true# multi-stage for buildingFROM$FROM_IMAGEASbuilder# install overlay dependenciesARGOVERLAY_WS
+WORKDIR$OVERLAY_WSCOPY--from=cacher/tmp/$OVERLAY_WS/src./src
+RUN./opt/ros/$ROS_DISTRO/setup.sh&&\apt-getupdate&&rosdepinstall-y\--from-paths\src/ros2/demos/demo_nodes_cpp\src/ros2/demos/demo_nodes_py\--ignore-src\&&rm-rf/var/lib/apt/lists/*# build overlay sourceCOPY--from=cacher$OVERLAY_WS/src./src
+ARGOVERLAY_MIXINS="release"RUN./opt/ros/$ROS_DISTRO/setup.sh&&\colconbuild\--packages-select\demo_nodes_cpp\demo_nodes_py\--mixin$OVERLAY_MIXINS# source entrypoint setupENVOVERLAY_WS$OVERLAY_WSRUNsed--in-place--expression\'$isource "$OVERLAY_WS/install/setup.bash"'\/ros_entrypoint.sh# run launch fileCMD["ros2","launch","demo_nodes_cpp","talker_listener_launch.py"]Going through the lines shown, we can see how we can add custom packages
+from github in 4 steps:Create an overlay with custom packages cloned from Github:ARGOVERLAY_WS
+WORKDIR$OVERLAY_WS/src
+RUNecho"\repositories: \n\ros2/demos: \n\type: git \n\url: https://github.com/ros2/demos.git \n\version:${ROS_DISTRO}\n\">../overlay.repos
+RUNvcsimport./<../overlay.reposInstall package dependencies using rosdep# install overlay dependenciesARGOVERLAY_WS
+WORKDIR$OVERLAY_WSCOPY--from=cacher/tmp/$OVERLAY_WS/src./src
+RUN./opt/ros/$ROS_DISTRO/setup.sh&&\apt-getupdate&&rosdepinstall-y\--from-paths\src/ros2/demos/demo_nodes_cpp\src/ros2/demos/demo_nodes_py\--ignore-src\&&rm-rf/var/lib/apt/lists/*Build the packagesyou need# build overlay sourceCOPY--from=cacher$OVERLAY_WS/src./src
+ARGOVERLAY_MIXINS="release"RUN./opt/ros/$ROS_DISTRO/setup.sh&&\colconbuild\--packages-select\demo_nodes_cpp\demo_nodes_py\--mixin$OVERLAY_MIXINSRunning the launch file# run launch fileCMD["ros2","launch","demo_nodes_cpp","talker_listener_launch.py"]Likewise, we can change the packages used, install their dependencies,
+and then run them.Back to IBM CloudWith this Dockerfile, we can follow the same steps we did before to
+deploy it on IBM Cloud. Since we already have our registry created, and
+we’re logged in to IBM Cloud, we directly build our new Dockerfile.
+Notice how I kept the tag the same but changed the version, this way I
+can update the docker image created previously. (You are free to create
+a completely new one if you want)$ibmcloudcrbuild--tagregistry.bluemix.net/ros2nasr/ros2foxy:2.Then, make sure you are logged in to the registry and run the new docker
+image:$ibmcloudcrlogin
+Logginginto'registry.ng.bluemix.net'...
+Loggedinto'registry.ng.bluemix.net'.
+Logginginto'us.icr.io'...
+Loggedinto'us.icr.io'.
+
+OK
+
+$dockerrun-v-itregistry.ng.bluemix.net/ros2nasr/ros2foxy:2You should see, again, the same output. However, this time we did it
+through custom packages from github, which allows us to utilize our
+personally created packages for ROS 2 on IBM Cloud.Extra: Deleting Docker ImagesAs you may find yourself in need of deleting a specific docker image(s)
+from IBM Cloud, this is how you should go about it!List all the images you have and find all the ones that share theIMAGEname corresponding toregistry.ng.bluemix.net/ros2nasr/ros2foxy:2(in my case). Then
+delete them using theirNAMES$dockerrmyour_docker_NAMESDelete the docker image from IBM Cloud using itsIMAGEname$dockerrmiregistry.ng.bluemix.net/ros2nasr/ros2foxy:2Step 4: Kubernetesa) Creating the ClusterCreate a cluster using the Console. The instructions are foundhere.
+The settings used are detailed below. These are merely suggestions and
+can be changed if you need to. However, make sure you understand the
+implications of your choices:Plan:StandardOrchestration Service:Kubernetes v1.18.10Infrastructure:ClassicLocation:Resource group:DefaultGeography:North America(you are free to change this)Availability:Single zone(you are free to change this but make
+sure you understand the impact of your choices by checking the IBM
+Cloud documentation.)Worker Zone:Toronto 01(choose the location that is physically
+closest to you)Worker Pool:Virtual - shared, Ubuntu 18Memory: 16 GBWorker nodes per zone:1Master service endpoint:Both private & public endpointsResource details (Totally flexible):Cluster name:mycluster-tor01-rosibmTags:version:1After you create your cluster, you will be redirected to a page which
+details how you can set up the CLI tools and access your cluster. Please
+follow these instructions (or check the instructionshere)and
+wait for the progress bar to show that the worker nodes you created are
+ready by indicatingNormalnext to the cluster name. You can also
+reach this screen from the IBM Cloud Console inside the Kubernetes.b) Deploying your Docker ImageFinally!Create a deployment configuration yaml file namedros2-deployment.yamlusing your favorite $EDITOR and insert the
+following in it:apiVersion:apps/v1
+kind:Deployment
+metadata:name:<deployment>
+spec:replicas:<number_of_replicas>selector:matchLabels:app:<app_name>template:metadata:labels:app:<app_name>spec:containers:-name:<app_name>image:<region>.icr.io/<namespace>/<image>:<tag>You should replace the tags shown between“<” “>”as describedhere.
+The file in my case would look something like this:apiVersion:apps/v1
+kind:Deployment
+metadata:name:ros2-deployment
+spec:replicas:1selector:matchLabels:app:ros2-ibmcloudtemplate:metadata:labels:app:ros2-ibmcloudspec:containers:-name:ros2-ibmcloudimage:us.icr.io/ros2nasr/ros2foxy:2Deploy the file using the following command$kubectlapply-fros2-deployment.yaml
+deployment.apps/ros2-deploymentcreatedNow your docker image is fully deployed on your cluster!Step 5: Using CLI for your Docker ImageNavigate to your cluster through the IBM Cloud console Kubernetes.Click onKubernetes dashboardon the top right corner of the page.You should now be able to see a full list of all the different
+parameters of your cluster as well as its CPU and Memory Usage.Navigate toPodsand click on your deployment.On the top right corner, click onExec into podNow you are inside your docker image! You can source your workspace (if
+needed) and run ROS 2! For example:root@ros2-deployment-xxxxxxxx:/opt/ros/overlay_ws#.install/setup.sh
+root@ros2-deployment-xxxxxxxx:/opt/ros/overlay_ws#ros2launchdemo_nodes_cpptalker_listener_launch.pyFinal RemarksAt this point, you are capable of creating your own docker image using ROS 2 packages on github. It is also possible, with little changes to utilize local ROS 2 packages as well. This could be the topic of another article. However, you are encouraged to check out the followingDockerfilewhich uses a local copy of the demos repository. Similarly, you can use your own local package.
+
+Code Examples:
+
+Language: unknown
+$sudodockerrunhello-world
+
+Language: unknown
+HellofromDocker!
+Thismessageshowsthatyourinstallationappearstobeworkingcorrectly.
+
+Togeneratethismessage,Dockertookthefollowingsteps:1.TheDockerclientcontactedtheDockerdaemon.2.TheDockerdaemonpulledthe"hello-world"imagefromtheDockerHub.(amd64)3.TheDockerdaemoncreatedanewcontainerfromthatimagewhichrunstheexecutablethatproducestheoutputyouarecurrentlyreading.4.TheDockerdaemonstreamedthatoutputtotheDockerclient,whichsentittoyourterminal.
+
+Totrysomethingmoreambitious,youcanrunanUbuntucontainerwith:$dockerrun-itubuntubash
+
+Shareimages,automateworkflows,andmorewithafreeDockerID:https://hub.docker.com/
+
+Formoreexamplesandideas,visit:https://docs.docker.com/get-started/
+
+Language: unknown
+$mkdir~/ros2_docker
+
+$cd~/ros2_docker
+
+$$EDITORDockerfile
+
+Language: unknown
+FROMros:foxy# install ros packageRUNapt-getupdate&&apt-getinstall-y\ros-${ROS_DISTRO}-demo-nodes-cpp\ros-${ROS_DISTRO}-demo-nodes-py&&\rm-rf/var/lib/apt/lists/*&&mkdir/ros2_home
+
+WORKDIR/ros2_home# launch ros packageCMD["ros2","launch","demo_nodes_cpp","talker_listener_launch.py"]
+
+Language: unknown
+$dockerbuild.# You will see a bunch of lines that execute the docker file instructions followed by:Successfullybuilt0dc6ce7cb487
+
+Language: unknown
+$sudodockerps-as
+
+Language: unknown
+$dockerrun-it0dc6ce7cb487[INFO][launch]:Alllogfilescanbefoundbelow/root/.ros/log/2020-10-28-02-41-45-177546-0b5d9ed123be-1[INFO][launch]:DefaultloggingverbosityissettoINFO[INFO][talker-1]:processstartedwithpid[28][INFO][listener-2]:processstartedwithpid[30][talker-1][INFO][1603852907.249886590][talker]:Publishing:'Hello World: 1'[listener-2][INFO][1603852907.250964490][listener]:Iheard:[HelloWorld:1][talker-1][INFO][1603852908.249786312][talker]:Publishing:'Hello World: 2'[listener-2][INFO][1603852908.250453386][listener]:Iheard:[HelloWorld:2][talker-1][INFO][1603852909.249882257][talker]:Publishing:'Hello World: 3'[listener-2][INFO][1603852909.250536089][listener]:Iheard:[HelloWorld:3][talker-1][INFO][1603852910.249845718][talker]:Publishing:'Hello World: 4'[listener-2][INFO][1603852910.250509355][listener]:Iheard:[HelloWorld:4][talker-1][INFO][1603852911.249506058][talker]:Publishing:'Hello World: 5'[listener-2][INFO][1603852911.250152324][listener]:Iheard:[HelloWorld:5][talker-1][INFO][1603852912.249556670][talker]:Publishing:'Hello World: 6'[listener-2][INFO][1603852912.250212678][listener]:Iheard:[HelloWorld:6]
+
+Language: unknown
+$ibmcloudplugininstallcontainer-registry
+
+Language: unknown
+$ibmcloudlogin--sso
+
+Language: unknown
+$ibmcloudcrnamespace-addros2nasr
+
+Language: unknown
+$ibmcloudcrbuild--tagregistry.bluemix.net/ros2nasr/ros2foxy:1.
+
+Language: unknown
+$ibmcloudcrimage-list
+Listingimages...
+
+REPOSITORYTAGDIGESTNAMESPACECREATEDSIZESECURITYSTATUS
+us.icr.io/ros2nasr/ros2foxy1031be29301e6ros2nasr36secondsago120MBNoIssues
+
+OK
+
+Language: unknown
+$ibmcloudcrlogin
+Logginginto'registry.ng.bluemix.net'...
+Loggedinto'registry.ng.bluemix.net'.
+Logginginto'us.icr.io'...
+Loggedinto'us.icr.io'.
+
+OK
+
+$dockerrun-v-itregistry.ng.bluemix.net/ros2nasr/ros2foxy:1
+
+Language: unknown
+ARGFROM_IMAGE=ros:foxy
+ARGOVERLAY_WS=/opt/ros/overlay_ws# multi-stage for cachingFROM$FROM_IMAGEAScacher# clone overlay sourceARGOVERLAY_WS
+WORKDIR$OVERLAY_WS/src
+RUNecho"\repositories: \n\ros2/demos: \n\type: git \n\url: https://github.com/ros2/demos.git \n\version:${ROS_DISTRO}\n\">../overlay.repos
+RUNvcsimport./<../overlay.repos# copy manifests for cachingWORKDIR/opt
+RUNmkdir-p/tmp/opt&&\find./-name"package.xml"|\xargscp--parents-t/tmp/opt&&\find./-name"COLCON_IGNORE"|\xargscp--parents-t/tmp/opt||true# multi-stage for buildingFROM$FROM_IMAGEASbuilder# install overlay dependenciesARGOVERLAY_WS
+WORKDIR$OVERLAY_WSCOPY--from=cacher/tmp/$OVERLAY_WS/src./src
+RUN./opt/ros/$ROS_DISTRO/setup.sh&&\apt-getupdate&&rosdepinstall-y\--from-paths\src/ros2/demos/demo_nodes_cpp\src/ros2/demos/demo_nodes_py\--ignore-src\&&rm-rf/var/lib/apt/lists/*# build overlay sourceCOPY--from=cacher$OVERLAY_WS/src./src
+ARGOVERLAY_MIXINS="release"RUN./opt/ros/$ROS_DISTRO/setup.sh&&\colconbuild\--packages-select\demo_nodes_cpp\demo_nodes_py\--mixin$OVERLAY_MIXINS# source entrypoint setupENVOVERLAY_WS$OVERLAY_WSRUNsed--in-place--expression\'$isource "$OVERLAY_WS/install/setup.bash"'\/ros_entrypoint.sh# run launch fileCMD["ros2","launch","demo_nodes_cpp","talker_listener_launch.py"]
+
+Language: unknown
+ARGOVERLAY_WS
+WORKDIR$OVERLAY_WS/src
+RUNecho"\repositories: \n\ros2/demos: \n\type: git \n\url: https://github.com/ros2/demos.git \n\version:${ROS_DISTRO}\n\">../overlay.repos
+RUNvcsimport./<../overlay.repos
+
+Language: unknown
+# install overlay dependenciesARGOVERLAY_WS
+WORKDIR$OVERLAY_WSCOPY--from=cacher/tmp/$OVERLAY_WS/src./src
+RUN./opt/ros/$ROS_DISTRO/setup.sh&&\apt-getupdate&&rosdepinstall-y\--from-paths\src/ros2/demos/demo_nodes_cpp\src/ros2/demos/demo_nodes_py\--ignore-src\&&rm-rf/var/lib/apt/lists/*
+
+Language: unknown
+# build overlay sourceCOPY--from=cacher$OVERLAY_WS/src./src
+ARGOVERLAY_MIXINS="release"RUN./opt/ros/$ROS_DISTRO/setup.sh&&\colconbuild\--packages-select\demo_nodes_cpp\demo_nodes_py\--mixin$OVERLAY_MIXINS
+
+Language: unknown
+# run launch fileCMD["ros2","launch","demo_nodes_cpp","talker_listener_launch.py"]
+
+Language: unknown
+$ibmcloudcrbuild--tagregistry.bluemix.net/ros2nasr/ros2foxy:2.
+
+Language: unknown
+$ibmcloudcrlogin
+Logginginto'registry.ng.bluemix.net'...
+Loggedinto'registry.ng.bluemix.net'.
+Logginginto'us.icr.io'...
+Loggedinto'us.icr.io'.
+
+OK
+
+$dockerrun-v-itregistry.ng.bluemix.net/ros2nasr/ros2foxy:2
+
+Language: unknown
+$dockerrmyour_docker_NAMES
+
+Language: unknown
+$dockerrmiregistry.ng.bluemix.net/ros2nasr/ros2foxy:2
+
+Language: unknown
+apiVersion:apps/v1
+kind:Deployment
+metadata:name:<deployment>
+spec:replicas:<number_of_replicas>selector:matchLabels:app:<app_name>template:metadata:labels:app:<app_name>spec:containers:-name:<app_name>image:<region>.icr.io/<namespace>/<image>:<tag>
+
+Language: unknown
+apiVersion:apps/v1
+kind:Deployment
+metadata:name:ros2-deployment
+spec:replicas:1selector:matchLabels:app:ros2-ibmcloudtemplate:metadata:labels:app:ros2-ibmcloudspec:containers:-name:ros2-ibmcloudimage:us.icr.io/ros2nasr/ros2foxy:2
+
+Language: unknown
+$kubectlapply-fros2-deployment.yaml
+deployment.apps/ros2-deploymentcreated
+
+Language: unknown
+root@ros2-deployment-xxxxxxxx:/opt/ros/overlay_ws#.install/setup.sh
+root@ros2-deployment-xxxxxxxx:/opt/ros/overlay_ws#ros2launchdemo_nodes_cpptalker_listener_launch.py

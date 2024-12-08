@@ -1,0 +1,198 @@
+Title: Build and Install
+URL: https://docs.nav2.org/development_guides/build_docs/index.html#generate-doxygen
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Install
+Nav2 and its dependencies are released as binaries.
+You may install it via the following to get the latest stable released version:
+
+## For Iron and Older
+
+
+## For Jazzy and Newer
+
+
+## Build
+There are a few ways to build Nav2 using:
+
+## Released Distribution Binaries
+To build Nav2, you’ll first need to build or install ROS 2 and related development tools, including:colcon,rosdepandvcstool.
+Once your environment is setup, clone the repo, install all dependencies, and build the workspace:
+You can thensource~/nav2_ws/install/setup.bashto get ready for demonstrations!
+
+## Rolling Development Source
+Building Nav2 using rolling development source is similar to building Nav2 from released distribution binaries, where instead you build dependencies from source using the main development branches for all ROS based packages.
+Nav2 does not currently release binaries on rolling, so it must be build from source.
+Once your environment is setup, clone the repo and build the workspace:
+You can thensource~/nav2_ws/install/setup.bashto get ready for demonstrations! It is safe
+to ignore the rosdep error of from the missingslam_toolboxkey.
+
+## Docker Container Images
+Building Nav2 using Docker container images provides a repeatable and reproducible environment to automate and self document the entire setup process. Instead of manually invoking the development tools as documented above, you can leverage the project’s Dockerfiles to build and install Nav2 for various distributions.
+Once your system is setup, you can build the Nav2 Dockerfile from the root of the repo:
+Thedocker buildcommand above creates a tagged image using theDockerfilefrom the context specified using the path to the repo, where build-time variables are set using additional arguments, e.g. passing a set ofcolcon mixinsto configure the workspace build. Check theARGdirectives in theDockerfileto discover all build-time variables available. The command also specifies anexternal cache sourceto pull the latest cached image from Nav2’sContainer Registryto speed up the build process.
+
+## Generate Doxygen
+Rundoxygenin the root of the Nav2 repository.
+It will generate a/doc/*directory containing the documentation.
+The documentation entrypoint in a browser is index.html.
+
+## Help
+Build Troubleshooting Guide
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+source
+/opt/ros/<distro>/setup.bash
+sudo
+apt
+install
+\
+ros-
+$ROS_DISTRO
+-navigation2
+\
+ros-
+$ROS_DISTRO
+-nav2-bringup
+\
+ros-
+$ROS_DISTRO
+-turtlebot3*
+
+```
+
+Language: unknown
+File: use_cancel_deceleration
+```
+source
+/opt/ros/<distro>/setup.bash
+sudo
+apt
+install
+\
+ros-
+$ROS_DISTRO
+-navigation2
+\
+ros-
+$ROS_DISTRO
+-nav2-bringup
+\
+ros-
+$ROS_DISTRO
+-nav2-minimal-tb*
+
+```
+
+Language: unknown
+File: main
+```
+source
+/opt/ros/<distro>/setup.bash
+mkdir
+-p
+~/nav2_ws/src
+&&
+cd
+~/nav2_ws
+git
+clone
+https://github.com/ros-navigation/navigation2.git
+--branch
+$ROS_DISTRO
+./src/navigation2
+rosdep
+install
+-y
+\
+--from-paths
+./src
+\
+--ignore-src
+colcon
+build
+\
+--symlink-install
+
+```
+
+Language: unknown
+File: source~/nav2_ws/install/setup.bash
+```
+source
+<ros_ws>/install/setup.bash
+mkdir
+-p
+~/nav2_ws/src
+&&
+cd
+~/nav2_ws
+git
+clone
+https://github.com/ros-navigation/navigation2.git
+--branch
+main
+./src/navigation2
+git
+clone
+https://github.com/ros-navigation/nav2_minimal_turtlebot_simulation.git
+--branch
+main
+./src/nav2_minimal_turtlebot_simulation
+rosdep
+install
+-r
+-y
+\
+--from-paths
+./src
+\
+--ignore-src
+colcon
+build
+\
+--symlink-install
+
+```
+
+Language: unknown
+File: slam_toolbox
+```
+export
+ROS_DISTRO
+=
+rolling
+git
+clone
+https://github.com/ros-navigation/navigation2.git
+--branch
+main
+docker
+build
+--tag
+navigation2:
+$ROS_DISTRO
+\
+--build-arg
+FROM_IMAGE
+=
+ros:
+$ROS_DISTRO
+\
+--build-arg
+OVERLAY_MIXINS
+=
+"release ccache lld"
+\
+--cache-from
+ghcr.io/ros-navigation/navigation2:main
+\
+./navigation2
+
+```

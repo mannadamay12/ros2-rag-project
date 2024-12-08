@@ -1,0 +1,139 @@
+Title: Writing a simple publisher and subscriber (Python)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Publisher-And-Subscriber.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Writing a simple publisher and subscriber (Python)Goal:Create and run a publisher and subscriber node using Python.Tutorial level:BeginnerTime:20 minutesContentsBackgroundPrerequisitesTasks1 Create a package2 Write the publisher node3 Write the subscriber node4 Build and runSummaryNext stepsRelated contentBackgroundIn this tutorial, you will createnodesthat pass information in the form of string messages to each other over atopic.
+The example used here is a simple “talker” and “listener” system;
+one node publishes data and the other subscribes to the topic so it can receive that data.The code used in these examples can be foundhere.PrerequisitesIn previous tutorials, you learned how tocreate a workspaceandcreate a package.A basic understanding of Python is recommended, but not entirely necessary.Tasks1 Create a packageOpen a new terminal andsource your ROS 2 installationso thatros2commands will work.Navigate into theros2_wsdirectory created in aprevious tutorial.Recall that packages should be created in thesrcdirectory, not the root of the workspace.
+So, navigate intoros2_ws/src, and run the package creation command:ros2 pkg create --build-type ament_python --license Apache-2.0 py_pubsubYour terminal will return a message verifying the creation of your packagepy_pubsuband all its necessary files and folders.2 Write the publisher nodeNavigate intoros2_ws/src/py_pubsub/py_pubsub.
+Recall that this directory is aPython packagewith the same name as the ROS 2 package it’s nested in.Download the example talker code by entering the following command:LinuxmacOSWindowswget https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.pywget https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.pyIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.py -o publisher_member_function.pyOr in powershell:curl https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.py -o publisher_member_function.pyNow there will be a new file namedpublisher_member_function.pyadjacent to__init__.py.Open the file using your preferred text editor.importrclpyfromrclpy.nodeimportNodefromstd_msgs.msgimportStringclassMinimalPublisher(Node):def__init__(self):super().__init__('minimal_publisher')self.publisher_=self.create_publisher(String,'topic',10)timer_period=0.5# secondsself.timer=self.create_timer(timer_period,self.timer_callback)self.i=0deftimer_callback(self):msg=String()msg.data='Hello World:%d'%self.iself.publisher_.publish(msg)self.get_logger().info('Publishing: "%s"'%msg.data)self.i+=1defmain(args=None):rclpy.init(args=args)minimal_publisher=MinimalPublisher()rclpy.spin(minimal_publisher)# Destroy the node explicitly# (optional - otherwise it will be done automatically# when the garbage collector destroys the node object)minimal_publisher.destroy_node()rclpy.shutdown()if__name__=='__main__':main()2.1 Examine the codeThe first lines of code after the comments importrclpyso itsNodeclass can be used.importrclpyfromrclpy.nodeimportNodeThe next statement imports the built-in string message type that the node uses to structure the data that it passes on the topic.fromstd_msgs.msgimportStringThese lines represent the node’s dependencies.
+Recall that dependencies have to be added topackage.xml, which you’ll do in the next section.Next, theMinimalPublisherclass is created, which inherits from (or is a subclass of)Node.classMinimalPublisher(Node):Following is the definition of the class’s constructor.super().__init__calls theNodeclass’s constructor and gives it your node name, in this caseminimal_publisher.create_publisherdeclares that the node publishes messages of typeString(imported from thestd_msgs.msgmodule), over a topic namedtopic, and that the “queue size” is 10.
+Queue size is a required QoS (quality of service) setting that limits the amount of queued messages if a subscriber is not receiving them fast enough.Next, a timer is created with a callback to execute every 0.5 seconds.self.iis a counter used in the callback.def__init__(self):super().__init__('minimal_publisher')self.publisher_=self.create_publisher(String,'topic',10)timer_period=0.5# secondsself.timer=self.create_timer(timer_period,self.timer_callback)self.i=0timer_callbackcreates a message with the counter value appended, and publishes it to the console withget_logger().info.deftimer_callback(self):msg=String()msg.data='Hello World:%d'%self.iself.publisher_.publish(msg)self.get_logger().info('Publishing: "%s"'%msg.data)self.i+=1Lastly, the main function is defined.defmain(args=None):rclpy.init(args=args)minimal_publisher=MinimalPublisher()rclpy.spin(minimal_publisher)# Destroy the node explicitly# (optional - otherwise it will be done automatically# when the garbage collector destroys the node object)minimal_publisher.destroy_node()rclpy.shutdown()First therclpylibrary is initialized, then the node is created, and then it “spins” the node so its callbacks are called.2.2 Add dependenciesNavigate one level back to theros2_ws/src/py_pubsubdirectory, where thesetup.py,setup.cfg, andpackage.xmlfiles have been created for you.Openpackage.xmlwith your text editor.As mentioned in theprevious tutorial, make sure to fill in the<description>,<maintainer>and<license>tags:<description>Examplesofminimalpublisher/subscriberusingrclpy</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>After the lines above, add the following dependencies corresponding to your node’s import statements:<exec_depend>rclpy</exec_depend><exec_depend>std_msgs</exec_depend>This declares the package needsrclpyandstd_msgswhen its code is executed.Make sure to save the file.2.3 Add an entry pointOpen thesetup.pyfile.
+Again, match themaintainer,maintainer_email,descriptionandlicensefields to yourpackage.xml:maintainer='YourName',maintainer_email='you@email.com',description='Examples of minimal publisher/subscriber using rclpy',license='Apache-2.0',Add the following line within theconsole_scriptsbrackets of theentry_pointsfield:entry_points={'console_scripts':['talker = py_pubsub.publisher_member_function:main',],},Don’t forget to save.2.4 Check setup.cfgThe contents of thesetup.cfgfile should be correctly populated automatically, like so:[develop]script_dir=$base/lib/py_pubsub[install]install_scripts=$base/lib/py_pubsubThis is simply telling setuptools to put your executables inlib, becauseros2runwill look for them there.You could build your package now, source the local setup files, and run it, but let’s create the subscriber node first so you can see the full system at work.3 Write the subscriber nodeReturn toros2_ws/src/py_pubsub/py_pubsubto create the next node.
+Enter the following code in your terminal:LinuxmacOSWindowswget https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.pywget https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.pyIn a Windows command line prompt:curl -sk https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.py -o subscriber_member_function.pyOr in powershell:curl https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.py -o subscriber_member_function.pyNow the directory should have these files:__init__.py  publisher_member_function.py  subscriber_member_function.py3.1 Examine the codeOpen thesubscriber_member_function.pywith your text editor.importrclpyfromrclpy.nodeimportNodefromstd_msgs.msgimportStringclassMinimalSubscriber(Node):def__init__(self):super().__init__('minimal_subscriber')self.subscription=self.create_subscription(String,'topic',self.listener_callback,10)self.subscription# prevent unused variable warningdeflistener_callback(self,msg):self.get_logger().info('I heard: "%s"'%msg.data)defmain(args=None):rclpy.init(args=args)minimal_subscriber=MinimalSubscriber()rclpy.spin(minimal_subscriber)# Destroy the node explicitly# (optional - otherwise it will be done automatically# when the garbage collector destroys the node object)minimal_subscriber.destroy_node()rclpy.shutdown()if__name__=='__main__':main()The subscriber node’s code is nearly identical to the publisher’s.
+The constructor creates a subscriber with the same arguments as the publisher.
+Recall from thetopics tutorialthat the topic name and message type used by the publisher and subscriber must match to allow them to communicate.self.subscription=self.create_subscription(String,'topic',self.listener_callback,10)The subscriber’s constructor and callback don’t include any timer definition, because it doesn’t need one.
+Its callback gets called as soon as it receives a message.The callback definition simply prints an info message to the console, along with the data it received.
+Recall that the publisher definesmsg.data='HelloWorld:%d'%self.ideflistener_callback(self,msg):self.get_logger().info('I heard: "%s"'%msg.data)Themaindefinition is almost exactly the same, replacing the creation and spinning of the publisher with the subscriber.minimal_subscriber=MinimalSubscriber()rclpy.spin(minimal_subscriber)Since this node has the same dependencies as the publisher, there’s nothing new to add topackage.xml.
+Thesetup.cfgfile can also remain untouched.3.2 Add an entry pointReopensetup.pyand add the entry point for the subscriber node below the publisher’s entry point.
+Theentry_pointsfield should now look like this:entry_points={'console_scripts':['talker = py_pubsub.publisher_member_function:main','listener = py_pubsub.subscriber_member_function:main',],},Make sure to save the file, and then your pub/sub system should be ready.4 Build and runYou likely already have therclpyandstd_msgspackages installed as part of your ROS 2 system.
+It’s good practice to runrosdepin the root of your workspace (ros2_ws) to check for missing dependencies before building:LinuxmacOSWindowsrosdep install -i --from-path src --rosdistro jazzy -yrosdep only runs on Linux, so you can skip ahead to next step.rosdep only runs on Linux, so you can skip ahead to next step.Still in the root of your workspace,ros2_ws, build your new package:LinuxmacOSWindowscolcon build --packages-select py_pubsubcolcon build --packages-select py_pubsubcolcon build --merge-install --packages-select py_pubsubOpen a new terminal, navigate toros2_ws, and source the setup files:LinuxmacOSWindowssource install/setup.bash. install/setup.bashcall install/setup.batNow run the talker node:ros2 run py_pubsub talkerThe terminal should start publishing info messages every 0.5 seconds, like so:[INFO] [minimal_publisher]: Publishing: "Hello World: 0"[INFO] [minimal_publisher]: Publishing: "Hello World: 1"[INFO] [minimal_publisher]: Publishing: "Hello World: 2"[INFO] [minimal_publisher]: Publishing: "Hello World: 3"[INFO] [minimal_publisher]: Publishing: "Hello World: 4"...Open another terminal, source the setup files from insideros2_wsagain, and then start the listener node:ros2 run py_pubsub listenerThe listener will start printing messages to the console, starting at whatever message count the publisher is on at that time, like so:[INFO] [minimal_subscriber]: I heard: "Hello World: 10"[INFO] [minimal_subscriber]: I heard: "Hello World: 11"[INFO] [minimal_subscriber]: I heard: "Hello World: 12"[INFO] [minimal_subscriber]: I heard: "Hello World: 13"[INFO] [minimal_subscriber]: I heard: "Hello World: 14"EnterCtrl+Cin each terminal to stop the nodes from spinning.SummaryYou created two nodes to publish and subscribe to data over a topic.
+Before running them, you added their dependencies and entry points to the package configuration files.Next stepsNext you’ll create another simple ROS 2 package using the service/client model.
+Again, you can choose to write it in eitherC++orPython.Related contentThere are several ways you could write a publisher and subscriber in Python; check out theminimal_publisherandminimal_subscriberpackages in theros2/examplesrepo.
+
+Code Examples:
+
+Language: unknown
+ros2 pkg create --build-type ament_python --license Apache-2.0 py_pubsub
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.py
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.py
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.py -o publisher_member_function.py
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_publisher/examples_rclpy_minimal_publisher/publisher_member_function.py -o publisher_member_function.py
+
+Language: unknown
+importrclpyfromrclpy.nodeimportNodefromstd_msgs.msgimportStringclassMinimalPublisher(Node):def__init__(self):super().__init__('minimal_publisher')self.publisher_=self.create_publisher(String,'topic',10)timer_period=0.5# secondsself.timer=self.create_timer(timer_period,self.timer_callback)self.i=0deftimer_callback(self):msg=String()msg.data='Hello World:%d'%self.iself.publisher_.publish(msg)self.get_logger().info('Publishing: "%s"'%msg.data)self.i+=1defmain(args=None):rclpy.init(args=args)minimal_publisher=MinimalPublisher()rclpy.spin(minimal_publisher)# Destroy the node explicitly# (optional - otherwise it will be done automatically# when the garbage collector destroys the node object)minimal_publisher.destroy_node()rclpy.shutdown()if__name__=='__main__':main()
+
+Language: unknown
+importrclpyfromrclpy.nodeimportNode
+
+Language: unknown
+fromstd_msgs.msgimportString
+
+Language: unknown
+classMinimalPublisher(Node):
+
+Language: unknown
+def__init__(self):super().__init__('minimal_publisher')self.publisher_=self.create_publisher(String,'topic',10)timer_period=0.5# secondsself.timer=self.create_timer(timer_period,self.timer_callback)self.i=0
+
+Language: unknown
+deftimer_callback(self):msg=String()msg.data='Hello World:%d'%self.iself.publisher_.publish(msg)self.get_logger().info('Publishing: "%s"'%msg.data)self.i+=1
+
+Language: unknown
+defmain(args=None):rclpy.init(args=args)minimal_publisher=MinimalPublisher()rclpy.spin(minimal_publisher)# Destroy the node explicitly# (optional - otherwise it will be done automatically# when the garbage collector destroys the node object)minimal_publisher.destroy_node()rclpy.shutdown()
+
+Language: unknown
+<description>Examplesofminimalpublisher/subscriberusingrclpy</description><maintaineremail="you@email.com">YourName</maintainer><license>Apache-2.0</license>
+
+Language: unknown
+<exec_depend>rclpy</exec_depend><exec_depend>std_msgs</exec_depend>
+
+Language: unknown
+maintainer='YourName',maintainer_email='you@email.com',description='Examples of minimal publisher/subscriber using rclpy',license='Apache-2.0',
+
+Language: unknown
+entry_points={'console_scripts':['talker = py_pubsub.publisher_member_function:main',],},
+
+Language: unknown
+[develop]script_dir=$base/lib/py_pubsub[install]install_scripts=$base/lib/py_pubsub
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.py
+
+Language: unknown
+wget https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.py
+
+Language: unknown
+curl -sk https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.py -o subscriber_member_function.py
+
+Language: unknown
+curl https://raw.githubusercontent.com/ros2/examples/jazzy/rclpy/topics/minimal_subscriber/examples_rclpy_minimal_subscriber/subscriber_member_function.py -o subscriber_member_function.py
+
+Language: unknown
+__init__.py  publisher_member_function.py  subscriber_member_function.py
+
+Language: unknown
+importrclpyfromrclpy.nodeimportNodefromstd_msgs.msgimportStringclassMinimalSubscriber(Node):def__init__(self):super().__init__('minimal_subscriber')self.subscription=self.create_subscription(String,'topic',self.listener_callback,10)self.subscription# prevent unused variable warningdeflistener_callback(self,msg):self.get_logger().info('I heard: "%s"'%msg.data)defmain(args=None):rclpy.init(args=args)minimal_subscriber=MinimalSubscriber()rclpy.spin(minimal_subscriber)# Destroy the node explicitly# (optional - otherwise it will be done automatically# when the garbage collector destroys the node object)minimal_subscriber.destroy_node()rclpy.shutdown()if__name__=='__main__':main()
+
+Language: unknown
+self.subscription=self.create_subscription(String,'topic',self.listener_callback,10)
+
+Language: unknown
+deflistener_callback(self,msg):self.get_logger().info('I heard: "%s"'%msg.data)
+
+Language: unknown
+minimal_subscriber=MinimalSubscriber()rclpy.spin(minimal_subscriber)
+
+Language: unknown
+entry_points={'console_scripts':['talker = py_pubsub.publisher_member_function:main','listener = py_pubsub.subscriber_member_function:main',],},
+
+Language: unknown
+rosdep install -i --from-path src --rosdistro jazzy -y
+
+Language: unknown
+colcon build --packages-select py_pubsub
+
+Language: unknown
+colcon build --packages-select py_pubsub
+
+Language: unknown
+colcon build --merge-install --packages-select py_pubsub
+
+Language: unknown
+source install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install/setup.bat
+
+Language: unknown
+ros2 run py_pubsub talker
+
+Language: unknown
+[INFO] [minimal_publisher]: Publishing: "Hello World: 0"[INFO] [minimal_publisher]: Publishing: "Hello World: 1"[INFO] [minimal_publisher]: Publishing: "Hello World: 2"[INFO] [minimal_publisher]: Publishing: "Hello World: 3"[INFO] [minimal_publisher]: Publishing: "Hello World: 4"...
+
+Language: unknown
+ros2 run py_pubsub listener
+
+Language: unknown
+[INFO] [minimal_subscriber]: I heard: "Hello World: 10"[INFO] [minimal_subscriber]: I heard: "Hello World: 11"[INFO] [minimal_subscriber]: I heard: "Hello World: 12"[INFO] [minimal_subscriber]: I heard: "Hello World: 13"[INFO] [minimal_subscriber]: I heard: "Hello World: 14"

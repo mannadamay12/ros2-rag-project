@@ -1,0 +1,62 @@
+Title: Usingturtlesim,ros2, andrqt
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools/Introducing-Turtlesim/Introducing-Turtlesim.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Usingturtlesim,ros2, andrqtGoal:Install and use the turtlesim package and rqt tools to prepare for upcoming tutorials.Tutorial level:BeginnerTime:15 minutesContentsBackgroundPrerequisitesTasks1 Install turtlesim2 Start turtlesim3 Use turtlesim4 Install rqt5 Use rqt6 Remapping7 Close turtlesimSummaryNext stepsRelated contentBackgroundTurtlesim is a lightweight simulator for learning ROS 2.
+It illustrates what ROS 2 does at the most basic level to give you an idea of what you will do with a real robot or a robot simulation later on.The ros2 tool is how the user manages, introspects, and interacts with a ROS system.
+It supports multiple commands that target different aspects of the system and its operation.
+One might use it to start a node, set a parameter, listen to a topic, and many more.
+The ros2 tool is part of the core ROS 2 installation.rqt is a graphical user interface (GUI) tool for ROS 2.
+Everything done in rqt can be done on the command line, but rqt provides a more user-friendly way to manipulate ROS 2 elements.This tutorial touches upon core ROS 2 concepts, like nodes, topics, and services.
+All of these concepts will be elaborated on in later tutorials; for now, you will simply set up the tools and get a feel for them.PrerequisitesThe previous tutorial,Configuring environment, will show you how to set up your environment.Tasks1 Install turtlesimAs always, start by sourcing your setup files in a new terminal, as described in theprevious tutorial.Install the turtlesim package for your ROS 2 distro:LinuxmacOSWindowssudo apt updatesudo apt install ros-jazzy-turtlesimAs long as the archive you installed ROS 2 from contains theros_tutorialsrepository, you should already have turtlesim installed.As long as the archive you installed ROS 2 from contains theros_tutorialsrepository, you should already have turtlesim installed.Check that the package is installed:ros2 pkg executables turtlesimThe above command should return a list of turtlesim’s executables:turtlesim draw_squareturtlesim mimicturtlesim turtle_teleop_keyturtlesim turtlesim_node2 Start turtlesimTo start turtlesim, enter the following command in your terminal:ros2 run turtlesim turtlesim_nodeThe simulator window should appear, with a random turtle in the center.In the terminal, under the command, you will see messages from the node:[INFO] [turtlesim]: Starting turtlesim with node name /turtlesim[INFO] [turtlesim]: Spawning turtle [turtle1] at x=[5.544445], y=[5.544445], theta=[0.000000]There you can see the default turtle’s name and the coordinates where it spawns.3 Use turtlesimOpen a new terminal and source ROS 2 again.Now you will run a new node to control the turtle in the first node:ros2 run turtlesim turtle_teleop_keyAt this point you should have three windows open: a terminal runningturtlesim_node, a terminal runningturtle_teleop_keyand the turtlesim window.
+Arrange these windows so that you can see the turtlesim window, but also have the terminal runningturtle_teleop_keyactive so that you can control the turtle in turtlesim.Use the arrow keys on your keyboard to control the turtle.
+It will move around the screen, using its attached “pen” to draw the path it followed so far.NotePressing an arrow key will only cause the turtle to move a short distance and then stop.
+This is because, realistically, you wouldn’t want a robot to continue carrying on an instruction if, for example, the operator lost the connection to the robot.You can see the nodes, and their associated topics, services, and actions, using thelistsubcommands of the respective commands:ros2 node listros2 topic listros2 service listros2 action listYou will learn more about these concepts in the coming tutorials.
+Since the goal of this tutorial is only to get a general overview of turtlesim, you will use rqt to call some of the turtlesim services and interact withturtlesim_node.4 Install rqtOpen a new terminal to installrqtand its plugins:UbuntuRHELmacOSWindowssudo apt updatesudo apt install '~nros-jazzy-rqt*'sudo dnf install 'ros-jazzy-rqt*'The standard archive for installing ROS 2 on macOS containsrqtand its plugins, so you should already haverqtinstalled.The standard archive for installing ROS 2 on Windows containsrqtand its plugins, so you should already haverqtinstalled.To run rqt:rqt5 Use rqtWhen running rqt for the first time, the window will be blank.
+No worries; just selectPlugins>Services>Service Callerfrom the menu bar at the top.NoteIt may take some time for rqt to locate all the plugins.
+If you click onPluginsbut don’t seeServicesor any other options, you should close rqt and enter the commandrqt--force-discoverin your terminal.Use the refresh button to the left of theServicedropdown list to ensure all the services of your turtlesim node are available.Click on theServicedropdown list to see turtlesim’s services, and select the/spawnservice.5.1 Try the spawn serviceLet’s use rqt to call the/spawnservice.
+You can guess from its name that/spawnwill create another turtle in the turtlesim window.Give the new turtle a unique name, liketurtle2, by double-clicking between the empty single quotes in theExpressioncolumn.
+You can see that this expression corresponds to the value ofnameand is of typestring.Next enter some valid coordinates at which to spawn the new turtle, likex=1.0andy=1.0.NoteIf you try to spawn a new turtle with the same name as an existing turtle, like the defaultturtle1, you will get an error message in the terminal runningturtlesim_node:[ERROR] [turtlesim]: A turtle named [turtle1] already existsTo spawnturtle2, you then need to call the service by clicking theCallbutton on the upper right side of the rqt window.If the service call was successful, you should see a new turtle (again with a random design) spawn at the coordinates you input forxandy.If you refresh the service list in rqt, you will also see that now there are services related to the new turtle,/turtle2/..., in addition to/turtle1/....5.2 Try the set_pen serviceNow let’s giveturtle1a unique pen using the/set_penservice:The values forr,gandb, which are between 0 and 255, set the color of the penturtle1draws with, andwidthsets the thickness of the line.To haveturtle1draw with a distinct red line, change the value ofrto 255, and the value ofwidthto 5.
+Don’t forget to call the service after updating the values.If you return to the terminal whereturtle_teleop_keyis running and press the arrow keys, you will seeturtle1’s pen has changed.You’ve probably also noticed that there’s no way to moveturtle2.
+That’s because there is no teleop node forturtle2.6 RemappingYou need a second teleop node in order to controlturtle2.
+However, if you try to run the same command as before, you will notice that this one also controlsturtle1.
+The way to change this behavior is by remapping thecmd_veltopic.In a new terminal, source ROS 2, and run:ros2 run turtlesim turtle_teleop_key --ros-args --remap turtle1/cmd_vel:=turtle2/cmd_velNow, you can moveturtle2when this terminal is active, andturtle1when the other terminal runningturtle_teleop_keyis active.7 Close turtlesimTo stop the simulation, you can enterCtrl+Cin theturtlesim_nodeterminal, andqin theturtle_teleop_keyterminals.SummaryUsing turtlesim and rqt is a great way to learn the core concepts of ROS 2.Next stepsNow that you have turtlesim and rqt up and running, and an idea of how they work, let’s dive into the first core ROS 2 concept with the next tutorial,Understanding nodes.Related contentThe turtlesim package can be found in theros_tutorialsrepo.This community contributed videodemonstrates many of the items covered in this tutorial.
+
+Code Examples:
+
+Language: unknown
+sudo apt updatesudo apt install ros-jazzy-turtlesim
+
+Language: unknown
+ros2 pkg executables turtlesim
+
+Language: unknown
+turtlesim draw_squareturtlesim mimicturtlesim turtle_teleop_keyturtlesim turtlesim_node
+
+Language: unknown
+ros2 run turtlesim turtlesim_node
+
+Language: unknown
+[INFO] [turtlesim]: Starting turtlesim with node name /turtlesim[INFO] [turtlesim]: Spawning turtle [turtle1] at x=[5.544445], y=[5.544445], theta=[0.000000]
+
+Language: unknown
+ros2 run turtlesim turtle_teleop_key
+
+Language: unknown
+ros2 node listros2 topic listros2 service listros2 action list
+
+Language: unknown
+sudo apt updatesudo apt install '~nros-jazzy-rqt*'
+
+Language: unknown
+sudo dnf install 'ros-jazzy-rqt*'
+
+Language: unknown
+rqt
+
+Language: unknown
+[ERROR] [turtlesim]: A turtle named [turtle1] already exists
+
+Language: unknown
+ros2 run turtlesim turtle_teleop_key --ros-args --remap turtle1/cmd_vel:=turtle2/cmd_vel

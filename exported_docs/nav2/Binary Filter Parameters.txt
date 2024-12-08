@@ -1,0 +1,60 @@
+Title: Binary Filter Parameters
+URL: https://docs.nav2.org/configuration/packages/costmap-plugins/binary_filter.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: <filtername>
+```
+global_costmap
+:
+global_costmap
+:
+ros__parameters
+:
+...
+plugins
+:
+[
+"static_layer"
+,
+"obstacle_layer"
+,
+"inflation_layer"
+]
+filters
+:
+[
+"binary_filter"
+]
+...
+binary_filter
+:
+plugin
+:
+"nav2_costmap_2d::BinaryFilter"
+enabled
+:
+True
+filter_info_topic
+:
+"/costmap_filter_info"
+transform_tolerance
+:
+0.1
+default_state
+:
+False
+binary_state_topic
+:
+"/binary_state"
+flip_threshold
+:
+50.0
+```

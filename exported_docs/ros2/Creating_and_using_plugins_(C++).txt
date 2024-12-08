@@ -1,0 +1,74 @@
+Title: Creating and using plugins (C++)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Pluginlib.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Creating and using plugins (C++)Goal:Learn to create and load a simple plugin usingpluginlib.Tutorial level:BeginnerTime:20 minutesContentsBackgroundPrerequisitesTasks1 Create the Base Class Package2 Create the Plugin Package2.1 Source code for the plugins2.2 Plugin Declaration XML2.3 CMake Plugin Declaration3 Use the Plugins4 Build and runSummaryBackgroundThis tutorial is derived fromhttp://wiki.ros.org/pluginlibandWriting and Using a Simple Plugin Tutorial.pluginlibis a C++ library for loading and unloading plugins from within a ROS package.
+Plugins are dynamically loadable classes that are loaded from a runtime library (i.e. shared object, dynamically linked library).
+With pluginlib, you do not have to explicitly link your application against the library containing the classes – insteadpluginlibcan open a library containing exported classes at any point without the application having any prior awareness of the library or the header file containing the class definition.
+Plugins are useful for extending/modifying application behavior without needing the application source code.PrerequisitesThis tutorial assumes basic C++ knowledge and that you have successfullyinstalled ROS 2.TasksIn this tutorial, you will create two new packages, one that defines the base class, and another that provides the plugins.
+The base class will define a generic polygon class, and then our plugins will define specific shapes.1 Create the Base Class PackageCreate a new empty package in yourros2_ws/srcfolder with the following command:ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies pluginlib --node-name area_node polygon_baseOpen your favorite editor, editros2_ws/src/polygon_base/include/polygon_base/regular_polygon.hpp, and paste the following inside of it:#ifndef POLYGON_BASE_REGULAR_POLYGON_HPP#define POLYGON_BASE_REGULAR_POLYGON_HPPnamespacepolygon_base{classRegularPolygon{public:virtualvoidinitialize(doubleside_length)=0;virtualdoublearea()=0;virtual~RegularPolygon(){}protected:RegularPolygon(){}};}// namespace polygon_base#endif// POLYGON_BASE_REGULAR_POLYGON_HPPThe code above creates an abstract class calledRegularPolygon.
+One thing to notice is the presence of the initialize method.
+Withpluginlib, a constructor without parameters is required, so if any parameters to the class are needed, we use the initialize method to pass them to the object.We need to make this header available to other classes, so openros2_ws/src/polygon_base/CMakeLists.txtfor editing.
+Add the following lines after theament_target_dependenciescommand:install(DIRECTORYinclude/DESTINATIONinclude)And add this command before theament_packagecommand:ament_export_include_directories(include)We will return to this package later to write our test node.2 Create the Plugin PackageNow we’re going to write two non-virtual implementations of our abstract class.
+Create a second empty package in yourros2_ws/srcfolder with the following command:ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies polygon_base pluginlib --library-name polygon_plugins polygon_plugins2.1 Source code for the pluginsOpenros2_ws/src/polygon_plugins/src/polygon_plugins.cppfor editing, and paste the following inside of it:#include<polygon_base/regular_polygon.hpp>#include<cmath>namespacepolygon_plugins{classSquare:publicpolygon_base::RegularPolygon{public:voidinitialize(doubleside_length)override{side_length_=side_length;}doublearea()override{returnside_length_*side_length_;}protected:doubleside_length_;};classTriangle:publicpolygon_base::RegularPolygon{public:voidinitialize(doubleside_length)override{side_length_=side_length;}doublearea()override{return0.5*side_length_*getHeight();}doublegetHeight(){returnsqrt((side_length_*side_length_)-((side_length_/2)*(side_length_/2)));}protected:doubleside_length_;};}#include<pluginlib/class_list_macros.hpp>PLUGINLIB_EXPORT_CLASS(polygon_plugins::Square,polygon_base::RegularPolygon)PLUGINLIB_EXPORT_CLASS(polygon_plugins::Triangle,polygon_base::RegularPolygon)The implementation of the Square and Triangle classes is fairly straightforward: save the side length, and use it to calculate the area.
+The only piece that is pluginlib specific is the last three lines, which invokes some magical macros that register the classes as actual plugins.
+Let’s go through the arguments to thePLUGINLIB_EXPORT_CLASSmacro:The fully-qualified type of the plugin class, in this case,polygon_plugins::Square.The fully-qualified type of the base class, in this case,polygon_base::RegularPolygon.2.2 Plugin Declaration XMLThe steps above enable plugin instances to be created when the containing library is loaded, but the plugin loader still needs a way to find that library and to know what to reference within that library.
+To this end, we’ll also create an XML file that, along with a special export line in the package manifest, makes all the necessary information about our plugins available to the ROS toolchain.Createros2_ws/src/polygon_plugins/plugins.xmlwith the following code:<librarypath="polygon_plugins"><classtype="polygon_plugins::Square"base_class_type="polygon_base::RegularPolygon"><description>Thisisasquareplugin.</description></class><classtype="polygon_plugins::Triangle"base_class_type="polygon_base::RegularPolygon"><description>Thisisatriangleplugin.</description></class></library>A couple things to note:Thelibrarytag gives the relative path to a library that contains the plugins that we want to export.
+In ROS 2, that is just the name of the library. In ROS 1, it contained the prefixlibor sometimeslib/lib(i.e.lib/libpolygon_plugins), but here it is simpler.Theclasstag declares a plugin that we want to export from our library.
+Let’s go through its parameters:type: The fully qualified type of the plugin. For us, that’spolygon_plugins::Square.base_class: The fully qualified base class type for the plugin. For us, that’spolygon_base::RegularPolygon.description: A description of the plugin and what it does.2.3 CMake Plugin DeclarationThe last step is to export your plugins viaCMakeLists.txt.
+This is a change from ROS 1, where the exporting was done viapackage.xml.
+Add the following line to yourros2_ws/src/polygon_plugins/CMakeLists.txtafter the line readingfind_package(pluginlibREQUIRED):pluginlib_export_plugin_description_file(polygon_baseplugins.xml)The arguments to thepluginlib_export_plugin_description_filecommand are:The package with the base class, i.e.polygon_base.The relative path to the Plugin Declaration xml, i.e.plugins.xml.3 Use the PluginsNow it’s time to use the plugins.
+This can be done in any package, but here we’re going to do it in the base package.
+Editros2_ws/src/polygon_base/src/area_node.cppto contain the following:#include<pluginlib/class_loader.hpp>#include<polygon_base/regular_polygon.hpp>intmain(intargc,char**argv){// To avoid unused parameter warnings(void)argc;(void)argv;pluginlib::ClassLoader<polygon_base::RegularPolygon>poly_loader("polygon_base","polygon_base::RegularPolygon");try{std::shared_ptr<polygon_base::RegularPolygon>triangle=poly_loader.createSharedInstance("polygon_plugins::Triangle");triangle->initialize(10.0);std::shared_ptr<polygon_base::RegularPolygon>square=poly_loader.createSharedInstance("polygon_plugins::Square");square->initialize(10.0);printf("Triangle area: %.2f\n",triangle->area());printf("Square area: %.2f\n",square->area());}catch(pluginlib::PluginlibException&ex){printf("The plugin failed to load for some reason. Error: %s\n",ex.what());}return0;}TheClassLoaderis the key class to understand, defined in theclass_loader.hppheader file:It is templated with the base class, i.e.polygon_base::RegularPolygon.The first argument is a string for the package name of the base class, i.e.polygon_base.The second argument is a string with the fully qualified base class type for the plugin, i.e.polygon_base::RegularPolygon.There are a number of ways to instantiate an instance of the class.
+In this example, we’re using shared pointers.
+We just need to callcreateSharedInstancewith the fully-qualified type of the plugin class, in this case,polygon_plugins::Square.Important note: thepolygon_basepackage in which this node is defined does NOT depend on thepolygon_pluginsclass.
+The plugins will be loaded dynamically without any dependency needing to be declared.
+Furthermore, we’re instantiating the classes with hardcoded plugin names, but you can also do so dynamically with parameters, etc.4 Build and runNavigate back to the root of your workspace,ros2_ws, and build your new packages:colcon build --packages-select polygon_base polygon_pluginsFromros2_ws, be sure to source the setup files:LinuxmacOSWindowssource install/setup.bash. install/setup.bashcall install/setup.batNow run the node:ros2 run polygon_base area_nodeIt should print:Triangle area: 43.30Square area: 100.00SummaryCongratulations! You’ve just written and used your first plugins.
+
+Code Examples:
+
+Language: unknown
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies pluginlib --node-name area_node polygon_base
+
+Language: unknown
+#ifndef POLYGON_BASE_REGULAR_POLYGON_HPP#define POLYGON_BASE_REGULAR_POLYGON_HPPnamespacepolygon_base{classRegularPolygon{public:virtualvoidinitialize(doubleside_length)=0;virtualdoublearea()=0;virtual~RegularPolygon(){}protected:RegularPolygon(){}};}// namespace polygon_base#endif// POLYGON_BASE_REGULAR_POLYGON_HPP
+
+Language: unknown
+install(DIRECTORYinclude/DESTINATIONinclude)
+
+Language: unknown
+ament_export_include_directories(include)
+
+Language: unknown
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 --dependencies polygon_base pluginlib --library-name polygon_plugins polygon_plugins
+
+Language: unknown
+#include<polygon_base/regular_polygon.hpp>#include<cmath>namespacepolygon_plugins{classSquare:publicpolygon_base::RegularPolygon{public:voidinitialize(doubleside_length)override{side_length_=side_length;}doublearea()override{returnside_length_*side_length_;}protected:doubleside_length_;};classTriangle:publicpolygon_base::RegularPolygon{public:voidinitialize(doubleside_length)override{side_length_=side_length;}doublearea()override{return0.5*side_length_*getHeight();}doublegetHeight(){returnsqrt((side_length_*side_length_)-((side_length_/2)*(side_length_/2)));}protected:doubleside_length_;};}#include<pluginlib/class_list_macros.hpp>PLUGINLIB_EXPORT_CLASS(polygon_plugins::Square,polygon_base::RegularPolygon)PLUGINLIB_EXPORT_CLASS(polygon_plugins::Triangle,polygon_base::RegularPolygon)
+
+Language: unknown
+<librarypath="polygon_plugins"><classtype="polygon_plugins::Square"base_class_type="polygon_base::RegularPolygon"><description>Thisisasquareplugin.</description></class><classtype="polygon_plugins::Triangle"base_class_type="polygon_base::RegularPolygon"><description>Thisisatriangleplugin.</description></class></library>
+
+Language: unknown
+pluginlib_export_plugin_description_file(polygon_baseplugins.xml)
+
+Language: unknown
+#include<pluginlib/class_loader.hpp>#include<polygon_base/regular_polygon.hpp>intmain(intargc,char**argv){// To avoid unused parameter warnings(void)argc;(void)argv;pluginlib::ClassLoader<polygon_base::RegularPolygon>poly_loader("polygon_base","polygon_base::RegularPolygon");try{std::shared_ptr<polygon_base::RegularPolygon>triangle=poly_loader.createSharedInstance("polygon_plugins::Triangle");triangle->initialize(10.0);std::shared_ptr<polygon_base::RegularPolygon>square=poly_loader.createSharedInstance("polygon_plugins::Square");square->initialize(10.0);printf("Triangle area: %.2f\n",triangle->area());printf("Square area: %.2f\n",square->area());}catch(pluginlib::PluginlibException&ex){printf("The plugin failed to load for some reason. Error: %s\n",ex.what());}return0;}
+
+Language: unknown
+colcon build --packages-select polygon_base polygon_plugins
+
+Language: unknown
+source install/setup.bash
+
+Language: unknown
+. install/setup.bash
+
+Language: unknown
+call install/setup.bat
+
+Language: unknown
+ros2 run polygon_base area_node
+
+Language: unknown
+Triangle area: 43.30Square area: 100.00

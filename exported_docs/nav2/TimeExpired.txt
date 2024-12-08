@@ -1,0 +1,19 @@
+Title: TimeExpired
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/conditions/TimeExpired.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<TimeExpired
+seconds=
+"1.0"
+/>
+```

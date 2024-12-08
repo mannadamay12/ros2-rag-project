@@ -1,0 +1,45 @@
+Title: Building ROS 2 with tracing
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Building-ROS-2-with-Tracing.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Building ROS 2 with tracingTable of ContentsPrerequisitesBuild configurationsBuilding without tracepointsBuilding without instrumentationValidatingTracing instrumentation is included in the ROS 2 source code, and Linux installations of ROS 2 include the LTTng tracer as a dependency.
+Therefore, ROS 2 can be traced out-of-the-box on Linux.However, ROS 2 can be built from source to remove the tracepoints or completely remove the instrumentation.
+This guide shows how to do that.
+For more information, seethe repository.NoteThis guide only applies to Linux systems.PrerequisitesSet up your system to build ROS 2 from source.
+Seethe source installation pagefor more information.Build configurationsThe ROS 2 tracing instrumentation is split into two components: function instrumentation and tracepoints.
+First, a ROS 2 core package (e.g.,rclcpp) calls a function provided by thetracetoolspackage.
+Then, that function triggers a tracepoint, which records data if the tracepoint is enabled at runtime.By default, if the tracer is notconfigured to trace or if the tracepoints are not enabled, they will have virtually no impact on the execution.
+However, the tracepoints can still be removed through a CMake option.
+Furthermore, the functions can be completely removed through a CMake option, which implies that tracepoints are also removed.Building without tracepointsThis step depends on whether you arebuilding ROS 2 from sourceor using ROS 2 binaries (deb packagesorbinary archive).
+To remove the tracepoints, (re)buildtracetoolsand set theTRACETOOLS_TRACEPOINTS_EXCLUDEDCMake option toON:Source installationBinary installationcd~/ros2_jazzy
+colconbuild--packages-selecttracetools--cmake-clean-cache--cmake-args-DTRACETOOLS_TRACEPOINTS_EXCLUDED=ONClone theros2_tracingrepository into your workspace and build:cd~/ws
+gitclonehttps://github.com/ros2/ros2_tracing.git-bjazzysrc/ros2_tracing
+colconbuild--packages-selecttracetools--cmake-args-DTRACETOOLS_TRACEPOINTS_EXCLUDED=ONBuilding without instrumentationTo completely remove both tracepoints and function calls,build ROS 2 from sourceand set theTRACETOOLS_DISABLEDCMake option toON:cd~/ros2_jazzy
+colconbuild--cmake-args-DTRACETOOLS_DISABLED=ON--no-warn-unused-cliValidatingValidate that tracing is disabled:cd~/wssourceinstall/setup.bash
+ros2runtracetoolsstatusIt should print out:Without tracepointsWithout instrumentationTracingdisabledTracingdisabledthroughconfigurationIf something else is printed, then something went wrong.
+
+Code Examples:
+
+Language: unknown
+cd~/ros2_jazzy
+colconbuild--packages-selecttracetools--cmake-clean-cache--cmake-args-DTRACETOOLS_TRACEPOINTS_EXCLUDED=ON
+
+Language: unknown
+cd~/ws
+gitclonehttps://github.com/ros2/ros2_tracing.git-bjazzysrc/ros2_tracing
+colconbuild--packages-selecttracetools--cmake-args-DTRACETOOLS_TRACEPOINTS_EXCLUDED=ON
+
+Language: unknown
+cd~/ros2_jazzy
+colconbuild--cmake-args-DTRACETOOLS_DISABLED=ON--no-warn-unused-cli
+
+Language: unknown
+cd~/wssourceinstall/setup.bash
+ros2runtracetoolsstatus
+
+Language: unknown
+Tracingdisabled
+
+Language: unknown
+Tracingdisabledthroughconfiguration

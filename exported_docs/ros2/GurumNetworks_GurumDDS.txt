@@ -1,0 +1,34 @@
+Title: GurumNetworks GurumDDS
+URL: https://docs.ros.org/en/jazzy/Installation/DDS-Implementations/Working-with-GurumNetworks-GurumDDS.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+GurumNetworks GurumDDSrmw_gurumddsis an implementation of the ROS middleware interface using GurumNetworks GurumDDS. For more information about GurumDDS, visit theGurumNetworks website.PrerequisitesThis guide assumes you have completed the ROS 2 environment setup process, either byInstalling ROS 2 via Deb PackagesorBuilding ROS 2 from source on Ubuntu.Version Requirements (see the README for details):ROS 2 DistroGurumDDS Versionrolling>= 3.2.0jazzy>= 3.2.0humble3.1.xDeb packages of GurumDDS are provided in the ROS 2 apt repositories on Ubuntu.
+Windows binary installer of GurumDDS will be available soon.You can obtain a free trial license from theGurumDDS Free Trial page.After acquiring a license, place it in the following location:/etc/gurumnetInstallationOption 1: Install from the ROS 2 apt repository (Recommended)sudoaptinstallros-jazzy-rmw-gurumdds-cppThis installs bothrmw_gurumdds_cppandgurumdds.Option 2: Build from source codeClone the repositorycdros2_ws/src
+gitclonehttps://github.com/ros2/rmw_gurumdds-bjazzyros2/rmw_gurumddsInstall dependencies:cd..
+rosdepinstall--fromsrc-i--rosdistrojazzyBuild the worksapce using Colcon:colconbuild--symlink-installSwitch to rmw_gurumddsSwitch from other RMW implementations to rmw_gurumdds by setting the environment variable:exportRMW_IMPLEMENTATION=rmw_gurumdds_cppFor more information on working with multiple RMW implementations, seeWorking with multiple RMW implementations.Testing the installationRun thetalkerandlistenernodes to verify your installation:ros2rundemo_nodes_cpptalkerros2rundemo_nodes_cpplistenerIf the nodes communicate successfully, your installation is working correctly.NoteRemember to source your ROS 2 setup script before running these commands.
+
+Code Examples:
+
+Language: unknown
+sudoaptinstallros-jazzy-rmw-gurumdds-cpp
+
+Language: unknown
+cdros2_ws/src
+gitclonehttps://github.com/ros2/rmw_gurumdds-bjazzyros2/rmw_gurumdds
+
+Language: unknown
+cd..
+rosdepinstall--fromsrc-i--rosdistrojazzy
+
+Language: unknown
+colconbuild--symlink-install
+
+Language: unknown
+exportRMW_IMPLEMENTATION=rmw_gurumdds_cpp
+
+Language: unknown
+ros2rundemo_nodes_cpptalker
+
+Language: unknown
+ros2rundemo_nodes_cpplistener

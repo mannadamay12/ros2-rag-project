@@ -1,0 +1,101 @@
+Title: Getting Started
+URL: https://docs.nav2.org/getting_started/index.html
+Section: development_guides/index.html
+--------------------------------------------------------------------------------
+
+
+## Installation
+Jazzy introduced the new Gazebo modern simulator, replacing Gazebo Classic.
+Thus, for Jazzy and newer, the installation packages and instructions are slightly different to pull in the appropriate packages.
+ForJazzy and newer, install the Turtlebot 3 & 4 packages for Gazebo Modern. It should be automatically installed withnav2_bringup:
+ForIron and older, install Turtlebot 3 packages for gazebo classic:
+
+## Running the Example
+
+
+## Navigating
+After starting, the robot initially has no idea where it is. By default,
+Nav2 waits for you to give it an approximate starting position. Take a look
+at where the robot is in the Gazebo world, and find that spot on the map. Set
+the initial pose by clicking the “2D Pose Estimate” button in RViz, and then
+down clicking on the map in that location. You set the orientation by dragging
+forward from the down click.
+If you are using the defaults so far, the robot should look roughly like this.
+If you don’t get the location exactly right, that’s fine. Nav2 will refine
+the position as it navigates. You can also, click the “2D Pose
+Estimate” button and try again, if you prefer.
+Once you’ve set the initial pose, the transform tree will be complete and
+Nav2 will be fully active and ready to go. You should see the robot and particle
+cloud now.
+Next, click the “Navigaton2 Goal” button and choose a destination.
+This will call the BT navigator to go to that goal through an action server.
+You can pause (cancel) or reset the action through the Nav2 rviz plugin shown.
+Now watch the robot go!
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+sudo
+apt
+install
+ros-<ros2-distro>-navigation2
+sudo
+apt
+install
+ros-<ros2-distro>-nav2-bringup
+
+```
+
+Language: unknown
+File: nav2_bringup
+```
+sudo
+apt
+install
+ros-<ros2-distro>-nav2-minimal-tb*
+
+```
+
+Language: unknown
+File: nav2_bringup
+```
+sudo
+apt
+install
+ros-<ros2-distro>-turtlebot3-gazebo
+
+```
+
+Language: unknown
+File: nav2_bringup
+```
+source
+/opt/ros/<ros2-distro>/setup.bash
+
+export
+TURTLEBOT3_MODEL
+=
+waffle
+# Iron and older only with Gazebo Classic
+export
+GAZEBO_MODEL_PATH
+=
+$GAZEBO_MODEL_PATH
+:/opt/ros/<ros2-distro>/share/turtlebot3_gazebo/models
+# Iron and older only with Gazebo Classic
+```
+
+Language: unknown
+File: nav2_bringup
+```
+ros2
+launch
+nav2_bringup
+tb3_simulation_launch.py
+headless:
+=
+False
+
+```

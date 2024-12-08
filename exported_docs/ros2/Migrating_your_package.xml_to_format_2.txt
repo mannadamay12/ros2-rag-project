@@ -1,0 +1,54 @@
+Title: Migrating your package.xml to format 2
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Migrating-from-ROS1/Migrating-Package-XML.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Migrating your package.xml to format 2Table of ContentsPrerequisitesMigrate from format 1 to 2Addformatattribute to<package>Replace<run_depend>Convert some<build_depend>to<test_depend>Begin using<doc_depend>Simplify dependencies with<depend>Test your newpackage.xmlROS 2 requirespackage.xmlfiles to use at leastformat 2.
+This guide shows how to migrate apackage.xmlfrom format 1 to format 2.If the<package>tag at the start of yourpackage.xmllooks like either of the following, then it is using format 1 and you must migrate it.<package><packageformat="1">PrerequisitesYou should have a working ROS 1 installation.
+This enables you to check that the convertedpackage.xmlis valid by building and testing the package, since ROS 1 supports allpackage.xmlformat versions.Migrate from format 1 to 2Format 1 and format 2 differ in how they specify dependencies.
+Read thecompatibility section in REP-0140for a summary of the differences.Addformatattribute to<package>Add or set theformatattribute to2to indicate that thepackage.xmluses format 2.<packageformat="2">Replace<run_depend>The<run_depend>tag is no longer allowed.
+If you have a dependency specified like this:<run_depend>foo</run_depend>then replace it with one or both of these tags:<build_export_depend>foo</build_export_depend><exec_depend>foo</exec_depend>If the dependency is needed when something in your package is executed, then use the<exec_depend>tag.
+If packages that depend on your package need the dependency when they are built, then use the<build_export_depend>tag.
+Use both tags if you are unsure.Convert some<build_depend>to<test_depend>In format 1<test_depend>declares dependencies that are needed when running your package’s tests.
+It still does that in format 2, but it additionally declares dependencies that are needed when building your package’s tests.Because of the limitations of this tag in format 1, your package may have a test-only dependency specified as a<build_depend>like this:<build_depend>testfoo</build_depend>If so, change it to a<test_depend>.<test_depend>testfoo</test_depend>NoteIf you are using CMake, then make sure your test dependencies are only referenced within aif(BUILD_TESTING)block:if(BUILD_TESTING)find_package(testfooREQUIRED)endif()Begin using<doc_depend>Use the new<doc_depend>tag to declare dependencies needed for building your package’s documentation.
+For example, C++ packages might have this dependency:<doc_depend>doxygen</doc_depend>while Python packages might have this one:<doc_depend>python3-sphinx</doc_depend>Seethe guide on documenting ROS 2 packagesfor more information.Simplify dependencies with<depend><depend>is a new tag that makespackage.xmlfiles more concise.
+If yourpackage.xmlhas these three tags for the same dependency:<build_depend>foo</build_depend><build_export_depend>foo</build_export_depend><exec_depend>foo</exec_depend>then replace them with a single<depend>like this:<depend>foo</depend>Test your newpackage.xmlBuild and test your package as you normally do usingcatkin_make,cakin_make_isolated, or thecatkinbuild tool.
+If everything succeeds, then yourpackage.xmlis valid.
+
+Code Examples:
+
+Language: unknown
+<package>
+
+Language: unknown
+<packageformat="1">
+
+Language: unknown
+<packageformat="2">
+
+Language: unknown
+<run_depend>foo</run_depend>
+
+Language: unknown
+<build_export_depend>foo</build_export_depend><exec_depend>foo</exec_depend>
+
+Language: unknown
+<build_depend>testfoo</build_depend>
+
+Language: unknown
+<test_depend>testfoo</test_depend>
+
+Language: unknown
+if(BUILD_TESTING)find_package(testfooREQUIRED)endif()
+
+Language: unknown
+<doc_depend>doxygen</doc_depend>
+
+Language: unknown
+<doc_depend>python3-sphinx</doc_depend>
+
+Language: unknown
+<build_depend>foo</build_depend><build_export_depend>foo</build_export_depend><exec_depend>foo</exec_depend>
+
+Language: unknown
+<depend>foo</depend>

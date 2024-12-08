@@ -1,0 +1,35 @@
+Title: The Ros2Supervisor Node
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/Simulators/Webots/Simulation-Supervisor.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+The Ros2Supervisor NodeGoal:Extend the interface with a default Supervisor robot, namedRos2Supervisor.Tutorial level:AdvancedTime:10 minutesContentsBackgroundPrerequisitesTheRos2SupervisorClock topicImport a Webots nodeRemove a Webots imported nodeRecord animationsSummaryBackgroundIn this tutorial, you will learn how to enable theRos2Supervisornode which enhances the interface by creating additional services and topics to interact with the simulation.
+You can, for example, record animations or spawn Webots nodes directly from the ROS 2 interface while the simulation is running.
+These instructions list in details the current implemented features and how to use them.PrerequisitesBefore proceeding with this tutorial, make sure you have completed the following:Understanding of ROS 2 nodes and topics covered in the beginnerTutorials.Knowledge of Webots and ROS 2 and its interface package.Familiarity withSetting up a robot simulation (Basic).TheRos2SupervisorTheRos2Supervisoris made of two main parts:A Webots Robot node added to the simulation world. Itssupervisorfield is set to TRUE.A ROS 2 node that connects to the Webots Robot as an extern controller (in a similar way to your own robot plugin).The ROS 2 node acts as a controller that calls Supervisor API functions to control or interact with the simulation world.
+User interactions with the ROS 2 node are mainly performed through services and topics.These nodes can be automatically created at the Webots launch using theros2_supervisorparameter in theWebotsLauncher.webots=WebotsLauncher(world=PathJoinSubstitution([package_dir,'worlds',world]),mode=mode,ros2_supervisor=True)Thewebots._supervisorobject must also be included in theLaunchDescriptionreturned by the launch file.returnLaunchDescription([webots,webots._supervisor,# This action will kill all nodes once the Webots simulation has exitedlaunch.actions.RegisterEventHandler(event_handler=launch.event_handlers.OnProcessExit(target_action=webots,on_exit=[launch.actions.EmitEvent(event=launch.events.Shutdown())],))])More information about launch files forwebots_ros2projects can be found inSetting up a robot simulation (Basic).Clock topicTheRos2Supervisornode is responsible to get the time of the Webots simulation and publish it to the/clocktopic.
+This means that it is mandatory to spawn theRos2Supervisorif some other nodes have theiruse_sim_timeparameter set totrue.
+More information about the/clocktopic can be found in theROS wiki.Import a Webots nodeTheRos2Supervisornode also allows you to spawn Webots nodes from strings through a service.The service is named/Ros2Supervisor/spawn_node_from_stringand is of typewebots_ros2_msgs/srv/SpawnNodeFromString.
+TheSpawnNodeFromStringtype expects adatastring as input and returns asuccessboolean.From the given string, the Supervisor node is getting the name of the imported node and adding it to an intern list for potential later removal (seeRemove a Webots imported node).The node is imported using theimportMFNodeFromString(nodeString)API function.Here is an example to import a simple Robot namedimported_robot:ros2servicecall/Ros2Supervisor/spawn_node_from_stringwebots_ros2_msgs/srv/SpawnNodeFromString"data: Robot { name \"imported_robot\" }"NoteIf you try to import some PROTOs in the node string, their respective URLs must be declared in the .wbt world file as EXTERNPROTO or as IMPORTABLE EXTERNPROTO.Remove a Webots imported nodeOnce a node has been imported with the/Ros2Supervisor/spawn_node_from_stringservice, it can also be removed.This can be achieved by sending the name of the node to the topic named/Ros2Supervisor/remove_nodeof typestd_msgs/msg/String.If the node is indeed in the imported list, it is removed with theremove()API method.Here is an example on how to remove theimported_robotRobot:ros2topicpub--once/Ros2Supervisor/remove_nodestd_msgs/msg/String"{data: imported_robot}"Record animationsTheRos2Supervisornode also creates two additional services to record HTML5 animations.The/Ros2Supervisor/animation_start_recordingservice is of typewebots_ros2_msgs/srv/SetStringand allows to start the animation.
+TheSetStringtype expects avaluestring as input and returns asuccessboolean.
+The inputvaluerepresents the absolute path to the directory where the animations files should be saved.Here is an example on how to start an animation:ros2servicecall/Ros2Supervisor/animation_start_recordingwebots_ros2_msgs/srv/SetString"{value: "<ABSOLUTE_PATH>/index.html"}"The/Ros2Supervisor/animation_stop_recordingservice is of typewebots_ros2_msgs/srv/GetBooland allows to stop the animation.ros2servicecall/Ros2Supervisor/animation_stop_recordingwebots_ros2_msgs/srv/GetBool"{ask: True}"SummaryIn this tutorial, you learned how to enable theRos2Supervisorand how to extend the interface with the Webots simulation.
+The node creates multiple services and topics to interact with and modify the simulation.
+
+Code Examples:
+
+Language: unknown
+webots=WebotsLauncher(world=PathJoinSubstitution([package_dir,'worlds',world]),mode=mode,ros2_supervisor=True)
+
+Language: unknown
+returnLaunchDescription([webots,webots._supervisor,# This action will kill all nodes once the Webots simulation has exitedlaunch.actions.RegisterEventHandler(event_handler=launch.event_handlers.OnProcessExit(target_action=webots,on_exit=[launch.actions.EmitEvent(event=launch.events.Shutdown())],))])
+
+Language: unknown
+ros2servicecall/Ros2Supervisor/spawn_node_from_stringwebots_ros2_msgs/srv/SpawnNodeFromString"data: Robot { name \"imported_robot\" }"
+
+Language: unknown
+ros2topicpub--once/Ros2Supervisor/remove_nodestd_msgs/msg/String"{data: imported_robot}"
+
+Language: unknown
+ros2servicecall/Ros2Supervisor/animation_start_recordingwebots_ros2_msgs/srv/SetString"{value: "<ABSOLUTE_PATH>/index.html"}"
+
+Language: unknown
+ros2servicecall/Ros2Supervisor/animation_stop_recordingwebots_ros2_msgs/srv/GetBool"{ask: True}"

@@ -1,0 +1,33 @@
+Title: Developing a ROS 2 package
+URL: https://docs.ros.org/en/jazzy/How-To-Guides/Developing-a-ROS-2-Package.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Developing a ROS 2 packageTable of ContentsPrerequisitesCreating a packageC++ PackagesPython PackagesCombined C++ and Python PackagesThis tutorial will teach you how to create your first ROS 2 application.
+It is intended for developers who want to learn how to create custom packages in ROS 2, not for people who want to use ROS 2 with its existing packages.PrerequisitesInstall ROSInstall colconSetup your workspace by sourcing your ROS 2 installation.Creating a packageAll ROS 2 packages begin by running the commandros2pkgcreate--licenseApache-2.0<pkg-name>--dependencies[deps]in your workspace (usually~/ros2_ws/src).To create a package for a specific client library:C++Pythonros2pkgcreate--build-typeament_cmake--licenseApache-2.0<pkg-name>--dependencies[deps]ros2pkgcreate--build-typeament_python--licenseApache-2.0<pkg-name>--dependencies[deps]You can then update thepackage.xmlwith your package info such as dependencies, descriptions, and authorship.C++ PackagesYou will mostly use theadd_executable()CMake macro along withament_target_dependencies(<executable-name>[dependencies])to create executable nodes and link dependencies.To install your launch files and nodes, you can use theinstall()macro placed towards the end of the file but before theament_package()macro.An example for launch files and nodes:# Install launch filesinstall(DIRECTORYlaunchDESTINATIONshare/${PROJECT_NAME})# Install nodesinstall(TARGETS[node-names]DESTINATIONlib/${PROJECT_NAME})Python PackagesROS 2 follows Python’s standard module distribution process that usessetuptools.
+For Python packages, thesetup.pyfile complements a C++ package’sCMakeLists.txt.
+More details on distribution can be found in theofficial documentation.In your ROS 2 package, you should have asetup.cfgfile which looks like:[develop]script_dir=$base/lib/<package-name>[install]install_scripts=$base/lib/<package-name>and asetup.pyfile that looks like:importosfromglobimportglobfromsetuptoolsimportfind_packages,setuppackage_name='my_package'setup(name=package_name,version='0.0.0',# Packages to exportpackages=find_packages(exclude=['test']),# Files we want to install, specifically launch filesdata_files=[# Install marker file in the package index('share/ament_index/resource_index/packages',['resource/'+package_name]),# Include our package.xml file(os.path.join('share',package_name),['package.xml']),# Include all launch files.(os.path.join('share',package_name,'launch'),glob(os.path.join('launch','*launch.[pxy][yma]*'))),],# This is important as wellinstall_requires=['setuptools'],zip_safe=True,author='ROS 2 Developer',author_email='ros2@ros.com',maintainer='ROS 2 Developer',maintainer_email='ros2@ros.com',keywords=['foo','bar'],classifiers=['Intended Audience :: Developers','License :: TODO','Programming Language :: Python','Topic :: Software Development',],description='My awesome package.',license='TODO',# Like the CMakeLists add_executable macro, you can add your python# scripts here.entry_points={'console_scripts':['my_script = my_package.my_script:main'],},)Combined C++ and Python PackagesWhen writing a package with both C++ and Python code, thesetup.pyfile andsetup.cfgfile are not used.
+Instead, useament_cmake_python.
+
+Code Examples:
+
+Language: unknown
+ros2pkgcreate--licenseApache-2.0<pkg-name>--dependencies[deps]
+
+Language: unknown
+ros2pkgcreate--build-typeament_cmake--licenseApache-2.0<pkg-name>--dependencies[deps]
+
+Language: unknown
+ros2pkgcreate--build-typeament_python--licenseApache-2.0<pkg-name>--dependencies[deps]
+
+Language: unknown
+ament_target_dependencies(<executable-name>[dependencies])
+
+Language: unknown
+# Install launch filesinstall(DIRECTORYlaunchDESTINATIONshare/${PROJECT_NAME})# Install nodesinstall(TARGETS[node-names]DESTINATIONlib/${PROJECT_NAME})
+
+Language: unknown
+[develop]script_dir=$base/lib/<package-name>[install]install_scripts=$base/lib/<package-name>
+
+Language: unknown
+importosfromglobimportglobfromsetuptoolsimportfind_packages,setuppackage_name='my_package'setup(name=package_name,version='0.0.0',# Packages to exportpackages=find_packages(exclude=['test']),# Files we want to install, specifically launch filesdata_files=[# Install marker file in the package index('share/ament_index/resource_index/packages',['resource/'+package_name]),# Include our package.xml file(os.path.join('share',package_name),['package.xml']),# Include all launch files.(os.path.join('share',package_name,'launch'),glob(os.path.join('launch','*launch.[pxy][yma]*'))),],# This is important as wellinstall_requires=['setuptools'],zip_safe=True,author='ROS 2 Developer',author_email='ros2@ros.com',maintainer='ROS 2 Developer',maintainer_email='ros2@ros.com',keywords=['foo','bar'],classifiers=['Intended Audience :: Developers','License :: TODO','Programming Language :: Python','Topic :: Software Development',],description='My awesome package.',license='TODO',# Like the CMakeLists add_executable macro, you can add your python# scripts here.entry_points={'console_scripts':['my_script = my_package.my_script:main'],},)

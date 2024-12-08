@@ -1,0 +1,73 @@
+Title: Creating an action
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Creating-an-Action.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Creating an actionGoal:Define an action in a ROS 2 package.Tutorial level:IntermediateTime:5 minutesContentsBackgroundPrerequisitesTasks1 Creating an interface package2 Defining an action3 Building an actionSummaryNext stepsRelated contentBackgroundYou learned about actions previously in theUnderstanding actionstutorial.
+Like the other communication types and their respective interfaces (topics/msg and services/srv),
+you can also custom-define actions in your packages.
+This tutorial shows you how to define and build an action that you can use
+with the action server and action client you will write in the next tutorial.PrerequisitesYou should haveROS 2andcolconinstalled.You should know how to set up aworkspaceand create packages.Remember tosource your ROS 2 installationfirst.Tasks1 Creating an interface packageLinuxmacOSWindowsmkdir-p~/ros2_ws/src# you can reuse an existing workspace with this naming conventioncd~/ros2_ws/src
+ros2pkgcreate--licenseApache-2.0custom_action_interfacesmkdir-p~/ros2_ws/srccd~/ros2_ws/src
+ros2pkgcreate--licenseApache-2.0custom_action_interfacesmd\ros2_ws\srccd\ros2_ws\src
+ros2pkgcreate--licenseApache-2.0custom_action_interfaces2 Defining an actionActions are defined in.actionfiles of the form:# Request---# Result---# FeedbackAn action definition is made up of three message definitions separated by---.Arequestmessage is sent from an action client to an action server initiating a new goal.Aresultmessage is sent from an action server to an action client when a goal is done.Feedbackmessages are periodically sent from an action server to an action client with updates about a goal.An instance of an action is typically referred to as agoal.Say we want to define a new action “Fibonacci” for computing theFibonacci sequence.Create anactiondirectory in our ROS 2 packagecustom_action_interfaces:LinuxmacOSWindowscdcustom_action_interfaces
+mkdiractioncdcustom_action_interfaces
+mkdiractioncdcustom_action_interfaces
+mdactionWithin theactiondirectory, create a file calledFibonacci.actionwith the following contents:int32 order---int32[] sequence---int32[] partial_sequenceThe goal request is theorderof the Fibonacci sequence we want to compute, the result is the finalsequence, and the feedback is thepartial_sequencecomputed so far.3 Building an actionBefore we can use the new Fibonacci action type in our code, we must pass the definition to the rosidl code generation pipeline.This is accomplished by adding the following lines to ourCMakeLists.txtbefore theament_package()line:find_package(rosidl_default_generatorsREQUIRED)rosidl_generate_interfaces(${PROJECT_NAME}"action/Fibonacci.action")We should also add the required dependencies to ourpackage.xml:<buildtool_depend>rosidl_default_generators</buildtool_depend><member_of_group>rosidl_interface_packages</member_of_group>We should now be able to build the package containing theFibonacciaction definition:# Change to the root of the workspacecd~/ros2_ws# BuildcolconbuildWe’re done!By convention, action types will be prefixed by their package name and the wordaction.
+So when we want to refer to our new action, it will have the full namecustom_action_interfaces/action/Fibonacci.We can check that our action built successfully with the command line tool.
+First source our workspace:LinuxmacOSWindowssourceinstall/local_setup.bashsourceinstall/local_setup.bashcallinstall\local_setup.batNow check that our action definition exists:ros2interfaceshowcustom_action_interfaces/action/FibonacciYou should see the Fibonacci action definition printed to the screen.SummaryIn this tutorial, you learned the structure of an action definition.
+You also learned how to correctly build a new action interface usingCMakeLists.txtandpackage.xml,
+and how to verify a successful build.Next stepsNext, let’s utilize your newly defined action interface by creating an action service and client (inPythonorC++).Related contentFor more detailed information about ROS actions, please refer to thedesign article.
+
+Code Examples:
+
+Language: unknown
+mkdir-p~/ros2_ws/src# you can reuse an existing workspace with this naming conventioncd~/ros2_ws/src
+ros2pkgcreate--licenseApache-2.0custom_action_interfaces
+
+Language: unknown
+mkdir-p~/ros2_ws/srccd~/ros2_ws/src
+ros2pkgcreate--licenseApache-2.0custom_action_interfaces
+
+Language: unknown
+md\ros2_ws\srccd\ros2_ws\src
+ros2pkgcreate--licenseApache-2.0custom_action_interfaces
+
+Language: unknown
+# Request---# Result---# Feedback
+
+Language: unknown
+cdcustom_action_interfaces
+mkdiraction
+
+Language: unknown
+cdcustom_action_interfaces
+mkdiraction
+
+Language: unknown
+cdcustom_action_interfaces
+mdaction
+
+Language: unknown
+int32 order---int32[] sequence---int32[] partial_sequence
+
+Language: unknown
+find_package(rosidl_default_generatorsREQUIRED)rosidl_generate_interfaces(${PROJECT_NAME}"action/Fibonacci.action")
+
+Language: unknown
+<buildtool_depend>rosidl_default_generators</buildtool_depend><member_of_group>rosidl_interface_packages</member_of_group>
+
+Language: unknown
+# Change to the root of the workspacecd~/ros2_ws# Buildcolconbuild
+
+Language: unknown
+sourceinstall/local_setup.bash
+
+Language: unknown
+sourceinstall/local_setup.bash
+
+Language: unknown
+callinstall\local_setup.bat
+
+Language: unknown
+ros2interfaceshowcustom_action_interfaces/action/Fibonacci

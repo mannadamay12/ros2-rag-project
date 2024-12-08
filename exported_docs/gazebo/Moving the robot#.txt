@@ -1,0 +1,141 @@
+Title: Moving the robot#
+URL: https://gazebosim.org/docs/latest/moving_robot
+Section: moving_robot
+--------------------------------------------------------------------------------
+
+
+Code Examples:
+
+Language: unknown
+File: vehicle_blue
+```
+<plugin
+filename=
+"gz-sim-diff-drive-system"
+name=
+"gz::sim::systems::DiffDrive"
+>
+<left_joint>
+left_wheel_joint
+</left_joint>
+<right_joint>
+right_wheel_joint
+</right_joint>
+<wheel_separation>
+1.2
+</wheel_separation>
+<wheel_radius>
+0.4
+</wheel_radius>
+<odom_publish_frequency>
+1
+</odom_publish_frequency>
+<topic>
+cmd_vel
+</topic>
+</plugin>
+```
+
+Language: unknown
+File: gztopic-e-t/keyboard/keypress
+```
+$ gz topic -e -t /keyboard/keypress
+data: 68
+
+data: 85
+
+data: 72
+
+data: 74
+
+data: 81
+
+data: 16777235
+
+data: 16777234
+
+data: 16777237
+
+data: 16777236
+
+```
+
+Language: unknown
+File: <world>
+```
+<!-- Moving Forward-->
+<plugin
+filename=
+"gz-sim-triggered-publisher-system"
+name=
+"gz::sim::systems::TriggeredPublisher"
+>
+<input
+type=
+"gz.msgs.Int32"
+topic=
+"/keyboard/keypress"
+>
+<match
+field=
+"data"
+>
+16777235
+</match>
+</input>
+<output
+type=
+"gz.msgs.Twist"
+topic=
+"/cmd_vel"
+>
+linear:
+{x:
+0.5},
+angular:
+{z:
+0.0}
+
+</output>
+</plugin>
+```
+
+Language: unknown
+File: Triggeredpublisher
+```
+<!-- Moving Backward-->
+<plugin
+filename=
+"gz-sim-triggered-publisher-system"
+name=
+"gz::sim::systems::TriggeredPublisher"
+>
+<input
+type=
+"gz.msgs.Int32"
+topic=
+"/keyboard/keypress"
+>
+<match
+field=
+"data"
+>
+16777237
+</match>
+</input>
+<output
+type=
+"gz.msgs.Twist"
+topic=
+"/cmd_vel"
+>
+linear:
+{x:
+-0.5},
+angular:
+{z:
+0.0}
+
+</output>
+</plugin>
+```

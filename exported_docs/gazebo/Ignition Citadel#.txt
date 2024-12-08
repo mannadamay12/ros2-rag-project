@@ -1,0 +1,5 @@
+Title: Ignition Citadel#
+URL: https://gazebosim.org/docs/citadel/install
+Section: getstarted
+--------------------------------------------------------------------------------
+

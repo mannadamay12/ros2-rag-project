@@ -1,0 +1,70 @@
+Title: Enabling topic statistics (C++)
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/Topic-Statistics-Tutorial/Topic-Statistics-Tutorial.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Enabling topic statistics (C++)Goal:Enable ROS 2 Topic Statistics and view the output statistics data.Tutorial level:AdvancedTime:10 minutesTable of ContentsBackgroundPrerequisitesTasks1 Write the subscriber node with statistics enabled1.1 Examine the code1.2 CMakeLists.txt2 Build and run3 Observe published statistic dataSummaryRelated contentBackgroundThis is a short tutorial on how to enable topic statistics in ROS 2 and view the published statistics output using command line tools (ros2topic).ROS 2 provides the integrated measurement of statistics for messages received by any subscription,
+called Topic Statistics.
+With Topic Statistics enabled for your subscription, you can characterize the performance of your
+system or use the data to help diagnose any present issues.For more details please see theTopic Statistics Concepts Page.PrerequisitesAn installation from either binaries or source.In previous tutorials, you learned how tocreate a workspace,create a package, and create aC++publisher and subscriber.This tutorial assumes that you still have yourcpp_pubsubpackage from theC++tutorial.Tasks1 Write the subscriber node with statistics enabledNavigate into theros2_ws/src/cpp_pubsub/srcfolder, created in theprevious tutorial, and
+download the example talker code by entering the following command:LinuxmacOSWindowswget -O member_function_with_topic_statistics.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/member_function_with_topic_statistics.cppwget -O member_function_with_topic_statistics.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/member_function_with_topic_statistics.cppRight click this link and select Save Aspublisher_member_function.cpp:https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/member_function_with_topic_statistics.cppNow there will be a new file namedmember_function_with_topic_statistics.cpp.
+Open the file using your preferred text editor.#include<chrono>#include<memory>#include"rclcpp/rclcpp.hpp"#include"rclcpp/subscription_options.hpp"#include"std_msgs/msg/string.hpp"classMinimalSubscriberWithTopicStatistics:publicrclcpp::Node{public:MinimalSubscriberWithTopicStatistics():Node("minimal_subscriber_with_topic_statistics"){// manually enable topic statistics via optionsautooptions=rclcpp::SubscriptionOptions();options.topic_stats_options.state=rclcpp::TopicStatisticsState::Enable;// configure the collection window and publish period (default 1s)options.topic_stats_options.publish_period=std::chrono::seconds(10);// configure the topic name (default '/statistics')// options.topic_stats_options.publish_topic = "/topic_statistics"autocallback=[this](std_msgs::msg::String::SharedPtrmsg){this->topic_callback(msg);};subscription_=this->create_subscription<std_msgs::msg::String>("topic",10,callback,options);}private:voidtopic_callback(conststd_msgs::msg::String::ConstSharedPtrmsg)const{RCLCPP_INFO(this->get_logger(),"I heard: '%s'",msg->data.c_str());}rclcpp::Subscription<std_msgs::msg::String>::SharedPtrsubscription_;};intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalSubscriberWithTopicStatistics>());rclcpp::shutdown();return0;}1.1 Examine the codeAs in theC++tutorial, we have a subscriber node which receives string messages from thetopictopic from thetopic_callbackfunction.
+However, we’ve now added options to configure the subscription to enable topic statistics with
+therclcpp::SubscriptionOptions()options struct.// manually enable topic statistics via optionsautooptions=rclcpp::SubscriptionOptions();options.topic_stats_options.state=rclcpp::TopicStatisticsState::Enable;Optionally, fields such as the statistics collection/publish period and the topic used to publish
+statistics can be configured as well.// configure the collection window and publish period (default 1s)options.topic_stats_options.publish_period=std::chrono::seconds(10);// configure the topic name (default '/statistics')// options.topic_stats_options.publish_topic = "/my_topic"The configurable fields are described in the following table:Subscription Config FieldPurposetopic_stats_options.stateEnable or disable topic statistics (defaultrclcpp::TopicStatisticsState::Disable)topic_stats_options.publish_periodThe period in which to collect statistics data and publish a statistics message (default1s)topic_stats_options.publish_topicThe topic to use when publishing statistics data (default/statistics)1.2 CMakeLists.txtNow open theCMakeLists.txtfile.Add the executable and name itlistener_with_topic_statisticsso you can run your node usingros2run:add_executable(listener_with_topic_statistics src/member_function_with_topic_statistics.cpp)ament_target_dependencies(listener_with_topic_statistics rclcpp std_msgs)install(TARGETStalkerlistenerlistener_with_topic_statisticsDESTINATION lib/${PROJECT_NAME})Make sure to save the file, and then your pub/sub system, with topic statistics enabled,
+should be ready for use.2 Build and runTo build, see theBuild and runsection in the pub/sub tutorial.Run the subscriber with statistics enabled node:ros2 run cpp_pubsub listener_with_topic_statisticsNow run the talker node:ros2 run cpp_pubsub talkerThe terminal should start publishing info messages every 0.5 seconds, like so:[INFO] [minimal_publisher]: Publishing: "Hello World: 0"[INFO] [minimal_publisher]: Publishing: "Hello World: 1"[INFO] [minimal_publisher]: Publishing: "Hello World: 2"[INFO] [minimal_publisher]: Publishing: "Hello World: 3"[INFO] [minimal_publisher]: Publishing: "Hello World: 4"The listener will start printing messages to the console, starting at whatever message count the publisher is on at that time, like so:[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 10"[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 11"[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 12"[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 13"[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 14"Now that the subscriber node is receiving messages, it will periodically publish statistics messages.
+We will observe these messages in the next section.3 Observe published statistic dataWhile the nodes are running, open a new terminal window.
+Execute the following command:ros2 topic listThis will list all currently active topics.
+You should see the following:/parameter_events/rosout/statistics/topicIf you optionally changed thetopic_stats_options.publish_topicfield earlier in the tutorial,
+then you will see that name instead of/statistics.The subscriber node you created is publishing statistics, for the topictopic, to the output topic/statistics.We can visualize this usingRQtNow we can view the statistics data published to this topic with the following command:ros2 topic echo /statisticsThe terminal should start publishing statistics messages every 10 seconds, because thetopic_stats_options.publish_periodsubscription configuration was optionally changed earlier in the tutorial.---measurement_source_name: minimal_subscriber_with_topic_statisticsmetrics_source: message_ageunit: mswindow_start:sec: 1594856666nanosec: 931527366window_stop:sec: 1594856676nanosec: 930797670statistics:- data_type: 1data: .nan- data_type: 3data: .nan- data_type: 2data: .nan- data_type: 5data: 0.0- data_type: 4data: .nan---measurement_source_name: minimal_subscriber_with_topic_statisticsmetrics_source: message_periodunit: mswindow_start:sec: 1594856666nanosec: 931527366window_stop:sec: 1594856676nanosec: 930797670statistics:- data_type: 1data: 499.2746365105009- data_type: 3data: 500.0- data_type: 2data: 499.0- data_type: 5data: 619.0- data_type: 4data: 0.4463309283488427---From themessage definitionthedata_typesare as followsdata_type valuestatistics1average2minimum3maximum4standard deviation5sample countHere we see the two currently possible calculated statistics for thestd_msgs::msg::Stringmessage published
+to/topicby theminimal_publisher.
+Because thestd_msgs::msg::Stringdoes not have a message header, themessage_agecalculation cannot be performed,
+so NaNs are returned.
+However, themessage_periodcan be calculated and we see the statistics populated
+in the message above.SummaryYou created a subscriber node with topic statistics enabled, which published statistics data from
+theC++’s publisher node. You were able to compile and run this node. While running,
+you were able to observe the statistics data.Related contentTo observe how themessage_ageperiod is calculated please see theROS 2 Topic Statistics demo.
+
+Code Examples:
+
+Language: unknown
+wget -O member_function_with_topic_statistics.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/member_function_with_topic_statistics.cpp
+
+Language: unknown
+wget -O member_function_with_topic_statistics.cpp https://raw.githubusercontent.com/ros2/examples/jazzy/rclcpp/topics/minimal_subscriber/member_function_with_topic_statistics.cpp
+
+Language: unknown
+#include<chrono>#include<memory>#include"rclcpp/rclcpp.hpp"#include"rclcpp/subscription_options.hpp"#include"std_msgs/msg/string.hpp"classMinimalSubscriberWithTopicStatistics:publicrclcpp::Node{public:MinimalSubscriberWithTopicStatistics():Node("minimal_subscriber_with_topic_statistics"){// manually enable topic statistics via optionsautooptions=rclcpp::SubscriptionOptions();options.topic_stats_options.state=rclcpp::TopicStatisticsState::Enable;// configure the collection window and publish period (default 1s)options.topic_stats_options.publish_period=std::chrono::seconds(10);// configure the topic name (default '/statistics')// options.topic_stats_options.publish_topic = "/topic_statistics"autocallback=[this](std_msgs::msg::String::SharedPtrmsg){this->topic_callback(msg);};subscription_=this->create_subscription<std_msgs::msg::String>("topic",10,callback,options);}private:voidtopic_callback(conststd_msgs::msg::String::ConstSharedPtrmsg)const{RCLCPP_INFO(this->get_logger(),"I heard: '%s'",msg->data.c_str());}rclcpp::Subscription<std_msgs::msg::String>::SharedPtrsubscription_;};intmain(intargc,char*argv[]){rclcpp::init(argc,argv);rclcpp::spin(std::make_shared<MinimalSubscriberWithTopicStatistics>());rclcpp::shutdown();return0;}
+
+Language: unknown
+// manually enable topic statistics via optionsautooptions=rclcpp::SubscriptionOptions();options.topic_stats_options.state=rclcpp::TopicStatisticsState::Enable;
+
+Language: unknown
+// configure the collection window and publish period (default 1s)options.topic_stats_options.publish_period=std::chrono::seconds(10);// configure the topic name (default '/statistics')// options.topic_stats_options.publish_topic = "/my_topic"
+
+Language: unknown
+add_executable(listener_with_topic_statistics src/member_function_with_topic_statistics.cpp)ament_target_dependencies(listener_with_topic_statistics rclcpp std_msgs)install(TARGETStalkerlistenerlistener_with_topic_statisticsDESTINATION lib/${PROJECT_NAME})
+
+Language: unknown
+ros2 run cpp_pubsub listener_with_topic_statistics
+
+Language: unknown
+ros2 run cpp_pubsub talker
+
+Language: unknown
+[INFO] [minimal_publisher]: Publishing: "Hello World: 0"[INFO] [minimal_publisher]: Publishing: "Hello World: 1"[INFO] [minimal_publisher]: Publishing: "Hello World: 2"[INFO] [minimal_publisher]: Publishing: "Hello World: 3"[INFO] [minimal_publisher]: Publishing: "Hello World: 4"
+
+Language: unknown
+[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 10"[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 11"[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 12"[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 13"[INFO] [minimal_subscriber_with_topic_statistics]: I heard: "Hello World: 14"
+
+Language: unknown
+ros2 topic list
+
+Language: unknown
+/parameter_events/rosout/statistics/topic
+
+Language: unknown
+ros2 topic echo /statistics
+
+Language: unknown
+---measurement_source_name: minimal_subscriber_with_topic_statisticsmetrics_source: message_ageunit: mswindow_start:sec: 1594856666nanosec: 931527366window_stop:sec: 1594856676nanosec: 930797670statistics:- data_type: 1data: .nan- data_type: 3data: .nan- data_type: 2data: .nan- data_type: 5data: 0.0- data_type: 4data: .nan---measurement_source_name: minimal_subscriber_with_topic_statisticsmetrics_source: message_periodunit: mswindow_start:sec: 1594856666nanosec: 931527366window_stop:sec: 1594856676nanosec: 930797670statistics:- data_type: 1data: 499.2746365105009- data_type: 3data: 500.0- data_type: 2data: 499.0- data_type: 5data: 619.0- data_type: 4data: 0.4463309283488427---

@@ -1,0 +1,126 @@
+Title: Creating a package
+URL: https://docs.ros.org/en/jazzy/Tutorials/Beginner-Client-Libraries/Creating-Your-First-ROS2-Package.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Creating a packageGoal:Create a new package using either CMake or Python, and run its executable.Tutorial level:BeginnerTime:15 minutesContentsBackground1 What is a ROS 2 package?2 What makes up a ROS 2 package?3 Packages in a workspacePrerequisitesTasks1 Create a package2 Build a package3 Source the setup file4 Use the package5 Examine package contents6 Customize package.xmlSummaryNext stepsBackground1 What is a ROS 2 package?A package is an organizational unit for your ROS 2 code.
+If you want to be able to install your code or share it with others, then you’ll need it organized in a package.
+With packages, you can release your ROS 2 work and allow others to build and use it easily.Package creation in ROS 2 uses ament as its build system and colcon as its build tool.
+You can create a package using either CMake or Python, which are officially supported, though other build types do exist.2 What makes up a ROS 2 package?ROS 2 Python and CMake packages each have their own minimum required contents:CMakePythonCMakeLists.txtfile that describes how to build the code within the packageinclude/<package_name>directory containing the public headers for the packagepackage.xmlfile containing meta information about the packagesrcdirectory containing the source code for the packagepackage.xmlfile containing meta information about the packageresource/<package_name>marker file for the packagesetup.cfgis required when a package has executables, soros2runcan find themsetup.pycontaining instructions for how to install the package<package_name>- a directory with the same name as your package, used by ROS 2 tools to find your package, contains__init__.pyThe simplest possible package may have a file structure that looks like:CMakePythonmy_package/CMakeLists.txtinclude/my_package/package.xmlsrc/my_package/package.xmlresource/my_packagesetup.cfgsetup.pymy_package/3 Packages in a workspaceA single workspace can contain as many packages as you want, each in their own folder.
+You can also have packages of different build types in one workspace (CMake, Python, etc.).
+You cannot have nested packages.Best practice is to have asrcfolder within your workspace, and to create your packages in there.
+This keeps the top level of the workspace “clean”.A trivial workspace might look like:workspace_folder/src/cpp_package_1/CMakeLists.txtinclude/cpp_package_1/package.xmlsrc/py_package_1/package.xmlresource/py_package_1setup.cfgsetup.pypy_package_1/...cpp_package_n/CMakeLists.txtinclude/cpp_package_n/package.xmlsrc/PrerequisitesYou should have a ROS 2 workspace after following the instructions in theprevious tutorial.
+You will create your package in this workspace.Tasks1 Create a packageFirst,source your ROS 2 installation.Let’s use the workspace you created in theprevious tutorial,ros2_ws, for your new package.Make sure you are in thesrcfolder before running the package creation command.LinuxmacOSWindowscd ~/ros2_ws/srccd ~/ros2_ws/srccd \ros2_ws\srcThe command syntax for creating a new package in ROS 2 is:CMakePythonros2 pkg create --build-type ament_cmake --license Apache-2.0 <package_name>ros2 pkg create --build-type ament_python --license Apache-2.0 <package_name>For this tutorial, you will use the optional arguments--node-nameand--license.--node-nameoption creates a simple Hello World type executable in the package, and--licensedeclares the license information for the package.Enter the following command in your terminal:CMakePythonros2 pkg create --build-type ament_cmake --license Apache-2.0 --node-name my_node my_packageros2 pkg create --build-type ament_python --license Apache-2.0 --node-name my_node my_packageYou will now have a new folder within your workspace’ssrcdirectory calledmy_package.After running the command, your terminal will return the message:CMakePythongoing to create a new packagepackage name: my_packagedestination directory: /home/user/ros2_ws/srcpackage format: 3version: 0.0.0description: TODO: Package descriptionmaintainer: ['<name> <email>']licenses: ['Apache-2.0']build type: ament_cmakedependencies: []node_name: my_nodecreating folder ./my_packagecreating ./my_package/package.xmlcreating source and include foldercreating folder ./my_package/srccreating folder ./my_package/include/my_packagecreating ./my_package/CMakeLists.txtcreating ./my_package/src/my_node.cppgoing to create a new packagepackage name: my_packagedestination directory: /home/user/ros2_ws/srcpackage format: 3version: 0.0.0description: TODO: Package descriptionmaintainer: ['<name> <email>']licenses: ['Apache-2.0']build type: ament_pythondependencies: []node_name: my_nodecreating folder ./my_packagecreating ./my_package/package.xmlcreating source foldercreating folder ./my_package/my_packagecreating ./my_package/setup.pycreating ./my_package/setup.cfgcreating folder ./my_package/resourcecreating ./my_package/resource/my_packagecreating ./my_package/my_package/__init__.pycreating folder ./my_package/testcreating ./my_package/test/test_copyright.pycreating ./my_package/test/test_flake8.pycreating ./my_package/test/test_pep257.pycreating ./my_package/my_package/my_node.pyYou can see the automatically generated files for the new package.2 Build a packagePutting packages in a workspace is especially valuable because you can build many packages at once by runningcolconbuildin the workspace root.
+Otherwise, you would have to build each package individually.Return to the root of your workspace:LinuxmacOSWindowscd ~/ros2_wscd ~/ros2_wscd \ros2_wsNow you can build your packages:LinuxmacOSWindowscolcon buildcolcon buildcolcon build --merge-installWindows doesn’t allow long paths, somerge-installwill combine all the paths into theinstalldirectory.Recall from the last tutorial that you also have theros_tutorialspackages in yourros2_ws.
+You might have noticed that runningcolconbuildalso built theturtlesimpackage.
+That’s fine when you only have a few packages in your workspace, but when there are many packages,colconbuildcan take a long time.To build only themy_packagepackage next time, you can run:colcon build --packages-select my_package3 Source the setup fileTo use your new package and executable, first open a new terminal and source your main ROS 2 installation.Then, from inside theros2_wsdirectory, run the following command to source your workspace:LinuxmacOSWindowssource install/local_setup.bash. install/local_setup.bashcall install/local_setup.batNow that your workspace has been added to your path, you will be able to use your new package’s executables.4 Use the packageTo run the executable you created using the--node-nameargument during package creation, enter the command:ros2 run my_package my_nodeWhich will return a message to your terminal:CMakePythonhello world my_package packageHi from my_package.5 Examine package contentsInsideros2_ws/src/my_package, you will see the files and folders thatros2pkgcreateautomatically generated:CMakePythonCMakeLists.txt  include  package.xml  srcmy_node.cppis inside thesrcdirectory.
+This is where all your custom C++ nodes will go in the future.my_package  package.xml  resource  setup.cfg  setup.py  testmy_node.pyis inside themy_packagedirectory.
+This is where all your custom Python nodes will go in the future.6 Customize package.xmlYou may have noticed in the return message after creating your package that the fieldsdescriptionandlicensecontainTODOnotes.
+That’s because the package description and license declaration are not automatically set, but are required if you ever want to release your package.
+Themaintainerfield may also need to be filled in.Fromros2_ws/src/my_package, openpackage.xmlusing your preferred text editor:CMakePython<?xml version="1.0"?><?xml-modelhref="http://download.ros.org/schema/package_format3.xsd"schematypens="http://www.w3.org/2001/XMLSchema"?><packageformat="3"><name>my_package</name><version>0.0.0</version><description>TODO:Packagedescription</description><maintaineremail="user@todo.todo">user</maintainer><license>TODO:Licensedeclaration</license><buildtool_depend>ament_cmake</buildtool_depend><test_depend>ament_lint_auto</test_depend><test_depend>ament_lint_common</test_depend><export><build_type>ament_cmake</build_type></export></package><?xml version="1.0"?><?xml-modelhref="http://download.ros.org/schema/package_format3.xsd"schematypens="http://www.w3.org/2001/XMLSchema"?><packageformat="3"><name>my_package</name><version>0.0.0</version><description>TODO:Packagedescription</description><maintaineremail="user@todo.todo">user</maintainer><license>TODO:Licensedeclaration</license><test_depend>ament_copyright</test_depend><test_depend>ament_flake8</test_depend><test_depend>ament_pep257</test_depend><test_depend>python3-pytest</test_depend><export><build_type>ament_python</build_type></export></package>Input your name and email on themaintainerline if it hasn’t been automatically populated for you.
+Then, edit thedescriptionline to summarize the package:<description>Beginnerclientlibrariestutorialspracticepackage</description>Then, update thelicenseline.
+You can read more about open source licenseshere.
+Since this package is only for practice, it’s safe to use any license.
+We’ll useApache-2.0:<license>Apache-2.0</license>Don’t forget to save once you’re done editing.Below the license tag, you will see some tag names ending with_depend.
+This is where yourpackage.xmlwould list its dependencies on other packages, for colcon to search for.my_packageis simple and doesn’t have any dependencies, but you will see this space being utilized in upcoming tutorials.CMakePythonYou’re all done for now!Thesetup.pyfile contains the same description, maintainer and license fields aspackage.xml, so you need to set those as well.
+They need to match exactly in both files.
+The version and name (package_name) also need to match exactly, and should be automatically populated in both files.Opensetup.pywith your preferred text editor.fromsetuptoolsimportfind_packages,setuppackage_name='my_py_pkg'setup(name=package_name,version='0.0.0',packages=find_packages(exclude=['test']),data_files=[('share/ament_index/resource_index/packages',['resource/'+package_name]),('share/'+package_name,['package.xml']),],install_requires=['setuptools'],zip_safe=True,maintainer='TODO',maintainer_email='TODO',description='TODO: Package description',license='TODO: License declaration',tests_require=['pytest'],entry_points={'console_scripts':['my_node = my_py_pkg.my_node:main'],},)Edit themaintainer,maintainer_email, anddescriptionlines to matchpackage.xml.Don’t forget to save the file.SummaryYou’ve created a package to organize your code and make it easy to use for others.Your package was automatically populated with the necessary files, and then you used colcon to build it so you can use its executables in your local environment.Next stepsNext, let’s add something meaningful to a package.
+You’ll start with a simple publisher/subscriber system, which you can choose to write in eitherC++orPython.
+
+Code Examples:
+
+Language: unknown
+my_package/CMakeLists.txtinclude/my_package/package.xmlsrc/
+
+Language: unknown
+my_package/package.xmlresource/my_packagesetup.cfgsetup.pymy_package/
+
+Language: unknown
+workspace_folder/src/cpp_package_1/CMakeLists.txtinclude/cpp_package_1/package.xmlsrc/py_package_1/package.xmlresource/py_package_1setup.cfgsetup.pypy_package_1/...cpp_package_n/CMakeLists.txtinclude/cpp_package_n/package.xmlsrc/
+
+Language: unknown
+cd ~/ros2_ws/src
+
+Language: unknown
+cd ~/ros2_ws/src
+
+Language: unknown
+cd \ros2_ws\src
+
+Language: unknown
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 <package_name>
+
+Language: unknown
+ros2 pkg create --build-type ament_python --license Apache-2.0 <package_name>
+
+Language: unknown
+ros2 pkg create --build-type ament_cmake --license Apache-2.0 --node-name my_node my_package
+
+Language: unknown
+ros2 pkg create --build-type ament_python --license Apache-2.0 --node-name my_node my_package
+
+Language: unknown
+going to create a new packagepackage name: my_packagedestination directory: /home/user/ros2_ws/srcpackage format: 3version: 0.0.0description: TODO: Package descriptionmaintainer: ['<name> <email>']licenses: ['Apache-2.0']build type: ament_cmakedependencies: []node_name: my_nodecreating folder ./my_packagecreating ./my_package/package.xmlcreating source and include foldercreating folder ./my_package/srccreating folder ./my_package/include/my_packagecreating ./my_package/CMakeLists.txtcreating ./my_package/src/my_node.cpp
+
+Language: unknown
+going to create a new packagepackage name: my_packagedestination directory: /home/user/ros2_ws/srcpackage format: 3version: 0.0.0description: TODO: Package descriptionmaintainer: ['<name> <email>']licenses: ['Apache-2.0']build type: ament_pythondependencies: []node_name: my_nodecreating folder ./my_packagecreating ./my_package/package.xmlcreating source foldercreating folder ./my_package/my_packagecreating ./my_package/setup.pycreating ./my_package/setup.cfgcreating folder ./my_package/resourcecreating ./my_package/resource/my_packagecreating ./my_package/my_package/__init__.pycreating folder ./my_package/testcreating ./my_package/test/test_copyright.pycreating ./my_package/test/test_flake8.pycreating ./my_package/test/test_pep257.pycreating ./my_package/my_package/my_node.py
+
+Language: unknown
+cd ~/ros2_ws
+
+Language: unknown
+cd ~/ros2_ws
+
+Language: unknown
+cd \ros2_ws
+
+Language: unknown
+colcon build
+
+Language: unknown
+colcon build
+
+Language: unknown
+colcon build --merge-install
+
+Language: unknown
+colcon build --packages-select my_package
+
+Language: unknown
+source install/local_setup.bash
+
+Language: unknown
+. install/local_setup.bash
+
+Language: unknown
+call install/local_setup.bat
+
+Language: unknown
+ros2 run my_package my_node
+
+Language: unknown
+hello world my_package package
+
+Language: unknown
+Hi from my_package.
+
+Language: unknown
+CMakeLists.txt  include  package.xml  src
+
+Language: unknown
+my_package  package.xml  resource  setup.cfg  setup.py  test
+
+Language: unknown
+<?xml version="1.0"?><?xml-modelhref="http://download.ros.org/schema/package_format3.xsd"schematypens="http://www.w3.org/2001/XMLSchema"?><packageformat="3"><name>my_package</name><version>0.0.0</version><description>TODO:Packagedescription</description><maintaineremail="user@todo.todo">user</maintainer><license>TODO:Licensedeclaration</license><buildtool_depend>ament_cmake</buildtool_depend><test_depend>ament_lint_auto</test_depend><test_depend>ament_lint_common</test_depend><export><build_type>ament_cmake</build_type></export></package>
+
+Language: unknown
+<?xml version="1.0"?><?xml-modelhref="http://download.ros.org/schema/package_format3.xsd"schematypens="http://www.w3.org/2001/XMLSchema"?><packageformat="3"><name>my_package</name><version>0.0.0</version><description>TODO:Packagedescription</description><maintaineremail="user@todo.todo">user</maintainer><license>TODO:Licensedeclaration</license><test_depend>ament_copyright</test_depend><test_depend>ament_flake8</test_depend><test_depend>ament_pep257</test_depend><test_depend>python3-pytest</test_depend><export><build_type>ament_python</build_type></export></package>
+
+Language: unknown
+<description>Beginnerclientlibrariestutorialspracticepackage</description>
+
+Language: unknown
+<license>Apache-2.0</license>
+
+Language: unknown
+fromsetuptoolsimportfind_packages,setuppackage_name='my_py_pkg'setup(name=package_name,version='0.0.0',packages=find_packages(exclude=['test']),data_files=[('share/ament_index/resource_index/packages',['resource/'+package_name]),('share/'+package_name,['package.xml']),],install_requires=['setuptools'],zip_safe=True,maintainer='TODO',maintainer_email='TODO',description='TODO: Package description',license='TODO: License declaration',tests_require=['pytest'],entry_points={'console_scripts':['my_node = my_py_pkg.my_node:main'],},)

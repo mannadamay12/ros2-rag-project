@@ -1,0 +1,33 @@
+Title: RemoveInCollisionGoals
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/RemoveInCollisionGoals.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_footprint=false
+```
+<RemoveInCollisionGoals
+input_goals=
+"{goals}"
+output_goals=
+"{goals}"
+cost_threshold=
+"254.0"
+use_footprint=
+"true"
+service_name=
+"/global_costmap/get_cost_global_costmap"
+/>
+```

@@ -1,0 +1,125 @@
+Title: Composing multiple nodes in a single process
+URL: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Composition.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Composing multiple nodes in a single processTable of ContentsBackgroundPrerequisitesRun the demosDiscover available componentsRun-time composition using ROS services with a publisher and subscriberRun-time composition using ROS services with a server and clientCompile-time composition with hardcoded nodesRun-time composition using dlopenComposition using launch actionsAdvanced TopicsUnloading componentsRemapping container name and namespaceRemap component names and namespacesPassing parameter values into componentsPassing additional arguments into componentsComposable nodes as shared librariesComposing Non-Node Derived ComponentsGoal:Compose multiple nodes into a single process.Tutorial level:IntermediateTime:20 minutesBackgroundSee theconceptual article.For information on how to write a composable node,check out this tutorial.PrerequisitesThis tutorial uses executables from therclcpp_components,ros2component,composition, andimage_toolspackages. If you’ve followed theinstallation instructionsfor your platform, these should already be installed.Run the demosDiscover available componentsTo see what components are registered and available in the workspace, execute the following in a shell:ros2componenttypesThe terminal will return the list of all available components:(...componentsofotherpackageshere)compositioncomposition::Talkercomposition::Listenercomposition::NodeLikeListenercomposition::Servercomposition::Client(...componentsofotherpackageshere)Run-time composition using ROS services with a publisher and subscriberIn the first shell, start the component container:ros2runrclcpp_componentscomponent_containerOpen the second shell and verify that the container is running viaros2command line tools:ros2componentlistYou should see a name of the component:/ComponentManagerIn the second shell load the talker component (seetalkersource code):ros2componentload/ComponentManagercompositioncomposition::TalkerThe command will return the unique ID of the loaded component as well as the node name:Loadedcomponent1into'/ComponentManager'containernodeas'/talker'Now the first shell should show a message that the component was loaded as well as repeated message for publishing a message.Run another command in the second shell to load the listener component (seelistenersource code):ros2componentload/ComponentManagercompositioncomposition::ListenerTerminal will return:Loadedcomponent2into'/ComponentManager'containernodeas'/listener'Theros2command line utility can now be used to inspect the state of the container:ros2componentlistYou will see the following result:/ComponentManager1/talker2/listenerNow the first shell should show repeated output for each received message.Run-time composition using ROS services with a server and clientThe example with a server and a client is very similar.In the first shell:ros2runrclcpp_componentscomponent_containerIn the second shell (seeserverandclientsource code):ros2componentload/ComponentManagercompositioncomposition::Server
+ros2componentload/ComponentManagercompositioncomposition::ClientIn this case the client sends a request to the server, the server processes the request and replies with a response, and the client prints the received response.Compile-time composition with hardcoded nodesThis demo shows that the same shared libraries can be reused to compile a single executable running multiple components without using ROS interfaces.
+The executable contains all four components from above: talker and listener as well as server and client, which is hardcoded in the main function.In the shell call (seesource code):ros2runcompositionmanual_compositionThis should show repeated messages from both pairs, the talker and the listener as well as the server and the client.NoteManually-composed components will not be reflected in theros2componentlistcommand line tool output.Run-time composition using dlopenThis demo presents an alternative to run-time composition by creating a generic container process and explicitly passing the libraries to load without using ROS interfaces.
+The process will open each library and create one instance of each “rclcpp::Node” class in the library (source code).LinuxmacOSWindowsros2runcompositiondlopen_composition`ros2pkgprefixcomposition`/lib/libtalker_component.so`ros2pkgprefixcomposition`/lib/liblistener_component.soros2runcompositiondlopen_composition`ros2pkgprefixcomposition`/lib/libtalker_component.dylib`ros2pkgprefixcomposition`/lib/liblistener_component.dylib>ros2pkgprefixcompositionto get the path to where composition is installed. Then call>ros2runcompositiondlopen_composition<path_to_composition_install>\bin\talker_component.dll<path_to_composition_install>\bin\listener_component.dllNow the shell should show repeated output for each sent and received message.Notedlopen-composed components will not be reflected in theros2componentlistcommand line tool output.Composition using launch actionsWhile the command line tools are useful for debugging and diagnosing component configurations, it is frequently more convenient to start a set of components at the same time.
+To automate this action, we can use alaunch file:ros2launchcompositioncomposition_demo_launch.pyAdvanced TopicsNow that we have seen the basic operation of components, we can discuss a few more advanced topics.Unloading componentsIn the first shell, start the component container:ros2runrclcpp_componentscomponent_containerVerify that the container is running viaros2command line tools:ros2componentlistYou should see a name of the component:/ComponentManagerIn the second shell load both the talker and listener as we have before:ros2componentload/ComponentManagercompositioncomposition::Talker
+ros2componentload/ComponentManagercompositioncomposition::ListenerUse the unique ID to unload the node from the component container.ros2componentunload/ComponentManager12The terminal should return:Unloadedcomponent1from'/ComponentManager'container
+Unloadedcomponent2from'/ComponentManager'containerIn the first shell, verify that the repeated messages from talker and listener have stopped.Remapping container name and namespaceThe component manager name and namespace can be remapped via standard command line arguments:ros2runrclcpp_componentscomponent_container--ros-args-r__node:=MyContainer-r__ns:=/nsIn a second shell, components can be loaded by using the updated container name:ros2componentload/ns/MyContainercompositioncomposition::ListenerNoteNamespace remappings of the container do not affect loaded components.Remap component names and namespacesComponent names and namespaces may be adjusted via arguments to the load command.In the first shell, start the component container:ros2runrclcpp_componentscomponent_containerSome examples of how to remap names and namespaces.Remap node name:ros2componentload/ComponentManagercompositioncomposition::Talker--node-nametalker2Remap namespace:ros2componentload/ComponentManagercompositioncomposition::Talker--node-namespace/nsRemap both:ros2componentload/ComponentManagercompositioncomposition::Talker--node-nametalker3--node-namespace/ns2Now useros2command line utility:ros2componentlistIn the console you should see corresponding entries:/ComponentManager1/talker22/ns/talker3/ns2/talker3NoteNamespace remappings of the container do not affect loaded components.Passing parameter values into componentsTheros2componentloadcommand-line supports passing arbitrary parameters to the node as it is constructed.
+This functionality can be used as follows:ros2componentload/ComponentManagerimage_toolsimage_tools::Cam2Image-pburger_mode:=truePassing additional arguments into componentsTheros2componentloadcommand-line supports passing particular options to the component manager for use when constructing the node.
+As of now, the only command-line option that is supported is to instantiate a node using intra-process communication.
+This functionality can be used as follows:ros2componentload/ComponentManagercompositioncomposition::Talker-euse_intra_process_comms:=trueComposable nodes as shared librariesIf you want to export a composable node as a shared library from a package and use that node in another package that does link-time composition, add code to the CMake file which imports the actual targets in downstream packages.Then install the generated file and export the generated file.A practical example can be seen here:ROS Discourse - Ament best practice for sharing librariesComposing Non-Node Derived ComponentsIn ROS 2, components allow for more efficient use of system resources and provide a powerful feature that enables you to create reusable functionality that is not tied to a specific node.One advantage of using components is that they allow you to create non-node derived functionality as standalone executables or shared libraries that can be loaded into the ROS system as needed.To create a component that is not derived from a node, follow these guidelines:Implement a constructor that takesconstrclcpp::NodeOptions&as its argument.Implement theget_node_base_interface()method, which should return aNodeBaseInterface::SharedPtr. You can use theget_node_base_interface()method of a node that you create in your constructor to provide this interface.Here’s an example of a component that is not derived from a node, which listens to a ROS topic:node_like_listener_component.For more information on this topic, you can refer to thisdiscussion.
+
+Code Examples:
+
+Language: unknown
+ros2componenttypes
+
+Language: unknown
+(...componentsofotherpackageshere)compositioncomposition::Talkercomposition::Listenercomposition::NodeLikeListenercomposition::Servercomposition::Client(...componentsofotherpackageshere)
+
+Language: unknown
+ros2runrclcpp_componentscomponent_container
+
+Language: unknown
+ros2componentlist
+
+Language: unknown
+/ComponentManager
+
+Language: unknown
+ros2componentload/ComponentManagercompositioncomposition::Talker
+
+Language: unknown
+Loadedcomponent1into'/ComponentManager'containernodeas'/talker'
+
+Language: unknown
+ros2componentload/ComponentManagercompositioncomposition::Listener
+
+Language: unknown
+Loadedcomponent2into'/ComponentManager'containernodeas'/listener'
+
+Language: unknown
+ros2componentlist
+
+Language: unknown
+/ComponentManager1/talker2/listener
+
+Language: unknown
+ros2runrclcpp_componentscomponent_container
+
+Language: unknown
+ros2componentload/ComponentManagercompositioncomposition::Server
+ros2componentload/ComponentManagercompositioncomposition::Client
+
+Language: unknown
+ros2runcompositionmanual_composition
+
+Language: unknown
+ros2runcompositiondlopen_composition`ros2pkgprefixcomposition`/lib/libtalker_component.so`ros2pkgprefixcomposition`/lib/liblistener_component.so
+
+Language: unknown
+ros2runcompositiondlopen_composition`ros2pkgprefixcomposition`/lib/libtalker_component.dylib`ros2pkgprefixcomposition`/lib/liblistener_component.dylib
+
+Language: unknown
+>ros2pkgprefixcomposition
+
+Language: unknown
+>ros2runcompositiondlopen_composition<path_to_composition_install>\bin\talker_component.dll<path_to_composition_install>\bin\listener_component.dll
+
+Language: unknown
+ros2launchcompositioncomposition_demo_launch.py
+
+Language: unknown
+ros2runrclcpp_componentscomponent_container
+
+Language: unknown
+ros2componentlist
+
+Language: unknown
+/ComponentManager
+
+Language: unknown
+ros2componentload/ComponentManagercompositioncomposition::Talker
+ros2componentload/ComponentManagercompositioncomposition::Listener
+
+Language: unknown
+ros2componentunload/ComponentManager12
+
+Language: unknown
+Unloadedcomponent1from'/ComponentManager'container
+Unloadedcomponent2from'/ComponentManager'container
+
+Language: unknown
+ros2runrclcpp_componentscomponent_container--ros-args-r__node:=MyContainer-r__ns:=/ns
+
+Language: unknown
+ros2componentload/ns/MyContainercompositioncomposition::Listener
+
+Language: unknown
+ros2runrclcpp_componentscomponent_container
+
+Language: unknown
+ros2componentload/ComponentManagercompositioncomposition::Talker--node-nametalker2
+
+Language: unknown
+ros2componentload/ComponentManagercompositioncomposition::Talker--node-namespace/ns
+
+Language: unknown
+ros2componentload/ComponentManagercompositioncomposition::Talker--node-nametalker3--node-namespace/ns2
+
+Language: unknown
+ros2componentlist
+
+Language: unknown
+/ComponentManager1/talker22/ns/talker3/ns2/talker3
+
+Language: unknown
+ros2componentload/ComponentManagerimage_toolsimage_tools::Cam2Image-pburger_mode:=true
+
+Language: unknown
+ros2componentload/ComponentManagercompositioncomposition::Talker-euse_intra_process_comms:=true

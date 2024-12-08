@@ -1,0 +1,259 @@
+Title: Getting Started
+URL: https://moveit.picknik.ai/main/doc/tutorials/getting_started/getting_started.html
+Section: index.html
+--------------------------------------------------------------------------------
+
+
+## Install ROS 2 and colcon
+MoveIt 2 currently supports multiple versions of ROS.
+Install whichever version you prefer.
+We primarily support ROS installed on Ubuntu 22.04 or 24.04 but other methods and platforms may work with small changes to the instructions listed below.
+If you are just getting started, we recommend you use the latest stable version of ROS (Jazzy) on Ubuntu 24.04 for the most seamless experience.
+It is easy to miss steps when going through the ROS 2 installation tutorial.
+If you run into errors in the next few steps, a good place to start is to go back and make sure you have installed ROS 2 correctly.
+One that users commonly forget is to source the ROS 2 install itself.
+Note to source the version of ROS you installed.
+Installrosdepto install system dependencies :
+Once you have ROS 2 installed, make sure you have the most up to date packages:
+InstallColconthe ROS 2 build system withmixin:
+Installvcstool:
+
+## Create A Colcon Workspace and Download Tutorials
+For tutorials you will need to have acolconworkspace setup.
+
+## Download Source Code of MoveIt and the Tutorials
+Move into your Colcon workspace and pull the MoveIt tutorials source, where<branch>can be e.g.humblefor ROS Humble, ormainfor the latest version of the tutorials :
+Next we will download the source code for the rest of MoveIt:
+The import command may ask for your GitHub credentials.
+You can just press Enter until it moves on (ignore the “Authentication failed” error).
+
+## Build your Colcon Workspace
+First remove all previously installed moveit binaries:
+The following will install from Debian any package dependencies not already in your workspace.
+This is the step that will install MoveIt and all of its dependencies:
+The next command will configure your Colcon workspace:
+This build command will likely take a long time (20+ minutes) depending on your computer speed and amount of RAM available (we recommend 32 GB).
+If everything goes well, you should see the message “Summary: X packages finished” where X might be 50. If you have problems, try re-checking yourROS Installation.
+
+## Setup Your Colcon Workspace
+Source the Colcon workspace:
+Optional: add the previous command to your.bashrc:
+
+## Next Step
+Nice job!
+Next, we willVisualize a robot with the interactive motion planning plugin for RViz
+
+Code Examples:
+
+Language: unknown
+```
+source
+/
+opt
+/
+ros
+/
+jazzy
+/
+setup
+.
+bash
+```
+
+Language: unknown
+File: .bashrc
+```
+sudo
+apt
+install
+python3
+-
+rosdep
+```
+
+Language: unknown
+File: .bashrc
+```
+sudo
+rosdep
+init
+rosdep
+update
+sudo
+apt
+update
+sudo
+apt
+dist
+-
+upgrade
+```
+
+Language: unknown
+File: .bashrc
+```
+sudo
+apt
+install
+python3
+-
+colcon
+-
+common
+-
+extensions
+sudo
+apt
+install
+python3
+-
+colcon
+-
+mixin
+colcon
+mixin
+add
+default
+https
+:
+//
+raw
+.
+githubusercontent
+.
+com
+/
+colcon
+/
+colcon
+-
+mixin
+-
+repository
+/
+master
+/
+index
+.
+yaml
+colcon
+mixin
+update
+default
+```
+
+Language: unknown
+File: .bashrc
+```
+sudo
+apt
+install
+python3
+-
+vcstool
+```
+
+Language: unknown
+File: .bashrc
+```
+mkdir
+-
+p
+~/
+ws_moveit
+/
+src
+```
+
+Language: unknown
+File: main
+```
+cd
+~/
+ws_moveit
+/
+src
+git
+clone
+-
+b
+<
+branch
+>
+https
+:
+//
+github
+.
+com
+/
+moveit
+/
+moveit2_tutorials
+```
+
+Language: unknown
+File: main
+```
+vcs
+import
+--
+recursive
+<
+moveit2_tutorials
+/
+moveit2_tutorials
+.
+repos
+```
+
+Language: unknown
+File: main
+```
+sudo apt remove ros-$ROS_DISTRO-moveit*
+
+```
+
+Language: unknown
+File: main
+```
+sudo apt update && rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
+
+```
+
+Language: unknown
+File: main
+```
+cd
+~/
+ws_moveit
+colcon
+build
+--
+mixin
+release
+```
+
+Language: unknown
+File: MAKEFLAGS="-j4-l1"colconbuild--executorsequential
+```
+source
+~/
+ws_moveit
+/
+install
+/
+setup
+.
+bash
+```
+
+Language: unknown
+File: .bashrc
+```
+echo
+'source ~/ws_moveit/install/setup.bash'
+>>
+~/.
+bashrc
+```

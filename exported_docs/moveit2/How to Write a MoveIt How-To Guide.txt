@@ -1,0 +1,120 @@
+Title: How to Write a MoveIt How-To Guide
+URL: https://moveit.picknik.ai/main/doc/how_to_contribute/how_to_write_how_to_guides.html
+Section: index.html
+--------------------------------------------------------------------------------
+
+
+## Learning Objectives
+
+
+## Requirements
+
+
+## Steps
+
+
+## Template
+
+
+## Further Reading
+
+
+Code Examples:
+
+Language: unknown
+File: .rst
+```
+<
+Title
+>
+-------
+<
+Brief
+description
+of
+the
+How
+-
+To
+Guide
+with
+image
+or
+GIF
+showing
+the
+outcome
+.>
+Learning
+Objectives
+-------------------
+<
+List
+of
+things
+the
+user
+will
+learn
+.>
+Requirements
+----------
+<
+Explanation
+of
+what
+the
+user
+should
+understand
+.
+Unlike
+a
+tutorial
+,
+these
+guides
+stand
+alone
+and
+can
+assume
+the
+user
+has
+much
+more
+background
+.>
+Steps
+-----
+<
+A
+list
+of
+steps
+to
+take
+to
+solve
+the
+problem
+.>
+Further
+Reading
+---------------
+<
+A
+list
+of
+links
+to
+related
+content
+on
+and
+off
+this
+website
+.>
+```

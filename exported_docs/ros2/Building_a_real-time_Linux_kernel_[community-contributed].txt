@@ -1,0 +1,71 @@
+Title: Building a real-time Linux kernel [community-contributed]
+URL: https://docs.ros.org/en/jazzy/Tutorials/Miscellaneous/Building-Realtime-rt_preempt-kernel-for-ROS-2.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Building a real-time Linux kernel [community-contributed]This tutorial begins with a clean Ubuntu 20.04.1 install on Intel x86_64. Actual kernel is 5.4.0-54-generic, but we will install the Latest Stable RT_PREEMPT Version. To build the kernel you need at least 30GB free disk space.Checkhttps://wiki.linuxfoundation.org/realtime/startfor the latest stable version, at the time of writing this is “Latest Stable Version 5.4-rt”.
+If we click on thelink, we get the exact version.
+Currently it is patch-5.4.78-rt44.patch.gz.We create a directory in our home dir withmkdir~/kerneland switch into it withcd~/kernelWe can go with a browser tohttps://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/and see if the version is there. You can download it from the site and move it manually from /Downloads to the /kernel folder, or download it using wget by right clicking the link using “copy link location”. Example:wgethttps://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.78.tar.gzunpack it withtar-xzflinux-5.4.78.tar.gzdownload rt_preempt patch matching the Kernel version we just downloaded over athttp://cdn.kernel.org/pub/linux/kernel/projects/rt/5.4/wgethttp://cdn.kernel.org/pub/linux/kernel/projects/rt/5.4/older/patch-5.4.78-rt44.patch.gzunpack it withgunzippatch-5.4.78-rt44.patch.gzThen switch into the linux directory withcdlinux-5.4.78/and patch the kernel with the realtime patchpatch-p1<../patch-5.4.78-rt44.patchWe simply want to use the config of our Ubuntu installation, so we get the Ubuntu config withcp/boot/config-5.4.0-54-generic.configOpen Software & Updates. in the Ubuntu Software menu tick the ‘Source code’ boxWe need some tools to build kernel, install them withsudoapt-getbuild-deplinux
+sudoapt-getinstalllibncurses-devflexbisonopenssllibssl-devdkmslibelf-devlibudev-devlibpci-devlibiberty-devautoconffakerootTo enable all Ubuntu configurations, we simply useyes''|makeoldconfigThen we need to enable rt_preempt in the kernel. We callmakemenuconfigand set the following# Enable CONFIG_PREEMPT_RT->GeneralSetup->PreemptionModel(FullyPreemptibleKernel(Real-Time))(X)FullyPreemptibleKernel(Real-Time)# Enable CONFIG_HIGH_RES_TIMERS->Generalsetup->Timerssubsystem[*]HighResolutionTimerSupport# Enable CONFIG_NO_HZ_FULL->Generalsetup->Timerssubsystem->Timertickhandling(Fulldyntickssystem(tickless))(X)Fulldyntickssystem(tickless)# Set CONFIG_HZ_1000 (note: this is no longer in the General Setup menu, go back twice)->Processortypeandfeatures->Timerfrequency(1000HZ)(X)1000HZ# Set CPU_FREQ_DEFAULT_GOV_PERFORMANCE [=y]->PowermanagementandACPIoptions->CPUFrequencyscaling->CPUFrequencyscaling(CPU_FREQ[=y])->DefaultCPUFreqgovernor(<choice>[=y])(X)performanceSave and exit menuconfig. Now we’re going to build the kernel which will take quite some time. (10-30min on a modern cpu)make-j`nproc`deb-pkgAfter the build is finished check the deb packagesls../*deb
+../linux-headers-5.4.78-rt41_5.4.78-rt44-1_amd64.deb../linux-image-5.4.78-rt44-dbg_5.4.78-rt44-1_amd64.deb
+../linux-image-5.4.78-rt41_5.4.78-rt44-1_amd64.deb../linux-libc-dev_5.4.78-rt44-1_amd64.debThen we install all kernel deb packagessudodpkg-i../*.debNow the real time kernel should be installed. Reboot the system and check the new kernel versionsudoreboot
+uname-a
+Linuxros2host5.4.78-rt44#1 SMP PREEMPT_RT Fri Nov 6 10:37:59 CET 2020 x86_64 xx
+
+Code Examples:
+
+Language: unknown
+mkdir~/kernel
+
+Language: unknown
+cd~/kernel
+
+Language: unknown
+wgethttps://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.78.tar.gz
+
+Language: unknown
+tar-xzflinux-5.4.78.tar.gz
+
+Language: unknown
+wgethttp://cdn.kernel.org/pub/linux/kernel/projects/rt/5.4/older/patch-5.4.78-rt44.patch.gz
+
+Language: unknown
+gunzippatch-5.4.78-rt44.patch.gz
+
+Language: unknown
+cdlinux-5.4.78/
+
+Language: unknown
+patch-p1<../patch-5.4.78-rt44.patch
+
+Language: unknown
+cp/boot/config-5.4.0-54-generic.config
+
+Language: unknown
+sudoapt-getbuild-deplinux
+sudoapt-getinstalllibncurses-devflexbisonopenssllibssl-devdkmslibelf-devlibudev-devlibpci-devlibiberty-devautoconffakeroot
+
+Language: unknown
+yes''|makeoldconfig
+
+Language: unknown
+makemenuconfig
+
+Language: unknown
+# Enable CONFIG_PREEMPT_RT->GeneralSetup->PreemptionModel(FullyPreemptibleKernel(Real-Time))(X)FullyPreemptibleKernel(Real-Time)# Enable CONFIG_HIGH_RES_TIMERS->Generalsetup->Timerssubsystem[*]HighResolutionTimerSupport# Enable CONFIG_NO_HZ_FULL->Generalsetup->Timerssubsystem->Timertickhandling(Fulldyntickssystem(tickless))(X)Fulldyntickssystem(tickless)# Set CONFIG_HZ_1000 (note: this is no longer in the General Setup menu, go back twice)->Processortypeandfeatures->Timerfrequency(1000HZ)(X)1000HZ# Set CPU_FREQ_DEFAULT_GOV_PERFORMANCE [=y]->PowermanagementandACPIoptions->CPUFrequencyscaling->CPUFrequencyscaling(CPU_FREQ[=y])->DefaultCPUFreqgovernor(<choice>[=y])(X)performance
+
+Language: unknown
+make-j`nproc`deb-pkg
+
+Language: unknown
+ls../*deb
+../linux-headers-5.4.78-rt41_5.4.78-rt44-1_amd64.deb../linux-image-5.4.78-rt44-dbg_5.4.78-rt44-1_amd64.deb
+../linux-image-5.4.78-rt41_5.4.78-rt44-1_amd64.deb../linux-libc-dev_5.4.78-rt44-1_amd64.deb
+
+Language: unknown
+sudodpkg-i../*.deb
+
+Language: unknown
+sudoreboot
+uname-a
+Linuxros2host5.4.78-rt44#1 SMP PREEMPT_RT Fri Nov 6 10:37:59 CET 2020 x86_64 xx

@@ -1,0 +1,5 @@
+Title: Plugin Tutorials
+URL: https://docs.nav2.org/plugin_tutorials/index.html
+Section: plugin_tutorials/index.html
+--------------------------------------------------------------------------------
+

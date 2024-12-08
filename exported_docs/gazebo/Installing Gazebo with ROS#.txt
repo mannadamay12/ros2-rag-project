@@ -1,0 +1,21 @@
+Title: Installing Gazebo with ROS#
+URL: https://gazebosim.org/docs/latest/ros_installation
+Section: ros_installation
+--------------------------------------------------------------------------------
+
+
+Code Examples:
+
+Language: unknown
+File: noetic
+```
+sudo
+apt-get
+install
+ros-
+${
+ROS_DISTRO
+}
+-ros-gz
+
+```

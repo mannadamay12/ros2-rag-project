@@ -1,0 +1,29 @@
+Title: RemovePassedGoals
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/RemovePassedGoals.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: ComputePathThroughPoses
+```
+<RemovePassedGoals
+radius=
+"0.6"
+input_goals=
+"{goals}"
+output_goals=
+"{goals}"
+/>
+```

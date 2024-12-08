@@ -1,0 +1,24 @@
+Title: ClearCostmapExceptRegion
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/ClearCostmapExceptRegion.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<ClearCostmapExceptRegion
+name=
+"ClearLocalCostmap-Subtree"
+service_name=
+"local_costmap/clear_except_local_costmap"
+/>
+```

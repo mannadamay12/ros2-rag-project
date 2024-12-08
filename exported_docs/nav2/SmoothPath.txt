@@ -1,0 +1,39 @@
+Title: SmoothPath
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/Smooth.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: SmoothPath
+```
+<SmoothPath
+unsmoothed_path=
+"{path}"
+smoothed_path=
+"{path}"
+max_smoothing_duration=
+"3.0"
+smoother_id=
+"simple_smoother"
+check_for_collisions=
+"false"
+smoothing_duration=
+"{smoothing_duration_used}"
+was_completed=
+"{smoothing_completed}"
+error_code_id=
+"{smoothing_path_error_code}"
+/>
+```

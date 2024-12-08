@@ -1,0 +1,24 @@
+Title: CancelDriveOnHeading
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/CancelDriveOnHeading.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: drive_on_heading
+```
+<CancelDriveOnHeading
+server_name=
+"drive_on_heading"
+server_timeout=
+"10"
+/>
+```

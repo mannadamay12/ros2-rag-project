@@ -1,0 +1,59 @@
+Title: Planner Server
+URL: https://docs.nav2.org/configuration/packages/configuring-planner-server.html#default-plugins
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+
+
+## Default Plugins
+When theplanner_pluginsparameter is not overridden, the following default plugins are loaded:
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: plugin
+```
+planner_server
+:
+ros__parameters
+:
+planner_plugins
+:
+[
+"GridBased"
+]
+GridBased
+:
+plugin
+:
+"nav2_navfn_planner::NavfnPlanner"
+# In Iron and older versions, "/" was used instead of "::"
+```
+
+Language: unknown
+File: planner_plugins
+```
+planner_server
+:
+ros__parameters
+:
+expected_planner_frequency
+:
+20.0
+planner_plugins
+:
+[
+'GridBased'
+]
+GridBased
+:
+plugin
+:
+'nav2_navfn_planner::NavfnPlanner'
+# In Iron and older versions, "/" was used instead of "::"
+```

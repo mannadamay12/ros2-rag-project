@@ -1,0 +1,24 @@
+Title: CancelSpin
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/CancelSpin.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: spin
+```
+<CancelSpin
+server_name=
+"Spin"
+server_timeout=
+"10"
+/>
+```

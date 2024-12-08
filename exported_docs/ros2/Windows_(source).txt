@@ -1,0 +1,143 @@
+Title: Windows (source)
+URL: https://docs.ros.org/en/jazzy/Installation/Alternatives/Windows-Development-Setup.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Windows (source)Table of ContentsSystem requirementsLanguage supportSystem setupInstall ChocolateyInstall PythonInstall Visual C++ RedistributablesInstall OpenSSLInstall Visual StudioInstall OpenCVInstall dependenciesInstall miscellaneous prerequisitesInstall Qt5RQt dependenciesInstall additional prerequisites from ChocolateyInstall Python prerequisitesBuild ROS 2Get ROS 2 codeInstall additional RMW implementations (optional)Build the code in the workspaceSetup environmentTry some examplesNext stepsExtra stuff for Debug modeStay up to dateTroubleshootUninstallThis guide is about how to setup a development environment for ROS 2 on Windows.System requirementsOnly Windows 10 is supported.Language supportMake sure you have a locale which supportsUTF-8.
+For example, for a Chinese-language Windows 10 installation, you may need to install anEnglish language pack.System setupInstall ChocolateyChocolatey is a package manager for Windows, install it by following their installation instructions:https://chocolatey.org/installYou’ll use Chocolatey to install some other developer tools.Install PythonOpen a Command Prompt and type the following to install Python via Chocolatey:chocoinstall-ypython--version3.8.3NoteChocolatey will install Python inC:\Python38, and the rest of the installation expects it to be there.
+If you’ve installed Python somewhere else, you must copy or link it to that location.Install Visual C++ RedistributablesOpen a Command Prompt and type the following to install them via Chocolatey:chocoinstall-yvcredist2013vcredist140Install OpenSSLOpen a Command Prompt and type the following to install OpenSSL via Chocolatey:chocoinstall-yopenssl--version1.1.1.2100This command sets an environment variable that persists over sessions:setx/mOPENSSL_CONF"C:\Program Files\OpenSSL-Win64\bin\openssl.cfg"You will need to append the OpenSSL-Win64 bin folder to your PATH.
+You can do this by clicking the Windows icon, typing “Environment Variables”, then clicking on “Edit the system environment variables”.
+In the resulting dialog, click “Environment Variables”, then click “Path” on the bottom pane, finally click “Edit” and add the path below.C:\ProgramFiles\OpenSSL-Win64\bin\Install Visual StudioInstall Visual Studio 2019.If you already have a paid version of Visual Studio 2019 (Professional, Enterprise), skip this step.Microsoft provides a free of charge version of Visual Studio 2019, named Community, which can be used to build applications that use ROS 2.You can download the installer directly through this link.Make sure that the Visual C++ features are installed.An easy way to make sure they’re installed is to select theDesktopdevelopmentwithC++workflow during the install.Make sure that no C++ CMake tools are installed by unselecting them in the list of components to be installed.Install OpenCVSome of the examples require OpenCV to be installed.You can download a precompiled version of OpenCV 3.4.6 fromhttps://github.com/ros2/ros2/releases/download/opencv-archives/opencv-3.4.6-vc16.VS2019.zip.Assuming you unpacked it toC:\opencv, type the following on a Command Prompt (requires Admin privileges):setx/mOpenCV_DIRC:\opencvSince you are using a precompiled ROS version, we have to tell it where to find the OpenCV libraries.
+You have to extend thePATHvariable toC:\opencv\x64\vc16\bin.Install dependenciesThere are a few dependencies not available in the Chocolatey package database.
+In order to ease the manual installation process, we provide the necessary Chocolatey packages.As some chocolatey packages rely on it, we start by installing CMakechocoinstall-ycmakeYou will need to append the CMake bin folderC:\ProgramFiles\CMake\binto your PATH.Please download these packages fromthisGitHub repository.asio.1.12.1.nupkgbullet.3.17.nupkgcunit.2.1.3.nupkgeigen.3.3.4.nupkgtinyxml2.6.0.0.nupkgOnce these packages are downloaded, open an administrative shell and execute the following command:chocoinstall-y-s<PATH\TO\DOWNLOADS\>asiocuniteigentinyxml2bulletPlease replace<PATH\TO\DOWNLOADS>with the folder you downloaded the packages to.First upgrade pip and setuptools:python-mpipinstall-Upipsetuptools==59.6.0Now install some additional python dependencies:python-mpipinstall-Ucatkin_pkgcryptographyempyimportlib-metadatajsonschemalark==1.1.1lxmlmatplotlibnetifacesnumpyopencv-pythonPyQt5pillowpsutilpycairopydotpyparsing==2.4.7pytestpyyamlrosdistroInstall miscellaneous prerequisitesNext install xmllint:Download the64 bit binary archivesoflibxml2(and its dependenciesiconvandzlib) fromhttps://www.zlatkovic.com/projects/libxml/Unpack all archives into e.g.C:\xmllintAddC:\xmllint\binto thePATH.Install Qt5Download the5.12.X offline installerfrom Qt’s website.
+Run the installer.
+Make sure to select theMSVC201764-bitcomponent under theQt->Qt5.12.12tree.Finally, in an administratorcmd.exewindow set these environment variables.
+The commands below assume you installed it to the default location ofC:\Qt.setx/mQt5_DIRC:\Qt\Qt5.12.12\5.12.12\msvc2017_64
+setx/mQT_QPA_PLATFORM_PLUGIN_PATHC:\Qt\Qt5.12.12\5.12.12\msvc2017_64\plugins\platformsNoteThis path might change based on the installed MSVC version, the directory Qt was installed to, and the version of Qt installed.RQt dependenciesTo run rqt_graph you need todownloadand installGraphviz.
+The installer will ask if to add graphviz to PATH, choose to either add it to the current user or all users.Install additional prerequisites from Chocolateychocoinstall-ycppcheckcurlgitwinflexbison3You will need to append the Git cmd folderC:\ProgramFiles\Git\cmdto the PATH (you can do this by clicking the Windows icon, typing “Environment Variables”, then clicking on “Edit the system environment variables”.
+In the resulting dialog, click “Environment Variables”, the click “Path” on the bottom pane, then click “Edit” and add the path).Install Python prerequisitesInstall additional Python dependencies:pipinstall-Ucolcon-common-extensionscoverageflake8flake8-blind-exceptflake8-builtinsflake8-class-newlineflake8-comprehensionsflake8-deprecatedflake8-docstringsflake8-import-orderflake8-quotesmockmypy==0.931pep8pydocstylepytestpytest-covpytest-mockpytest-repeatpytest-rerunfailurespytest-runnervcstoolBuild ROS 2Get ROS 2 codeNow that we have the development tools we can get the ROS 2 source code.First setup a development folder, for exampleC:\jazzy:NoteIt is very important that the chosen path is short, due to the short default Windows path limits (260 characters).
+To allow longer paths, seehttps://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry.md\jazzy\srccd\jazzyGet theros2.reposfile which defines the repositories to clone from:vcsimport--inputhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repossrcInstall additional RMW implementations (optional)The default middleware that ROS 2 uses isFastDDS, but the middleware (RMW) can be replaced at build or runtime.
+See theguideon how to work with multiple RMWs.Build the code in the workspaceTo build ROS 2 you will need a Visual Studio Command Prompt (“x64 Native Tools Command Prompt for VS 2019”) running as Administrator.To build the\jazzyfolder tree:colconbuild--merge-installNoteWe’re using--merge-installhere to avoid aPATHvariable that is too long at the end of the build.
+If you’re adapting these instructions to build a smaller workspace then you might be able to use the default behavior which is isolated install, i.e. where each package is installed to a different folder.NoteIf you are doing a debug build usepython_dpath\to\colcon_executablecolcon.
+SeeExtra stuff for debug modefor more info on running Python code in debug builds on Windows.Setup environmentStart a command shell and source the ROS 2 setup file to set up the workspace:callC:\jazzy\install\local_setup.batThis will automatically set up the environment for any DDS vendors that support was built for.It is normal that the previous command, if nothing else went wrong, outputs “The system cannot find the path specified.” exactly once.Try some examplesNote that the first time you run any executable you will have to allow access to the network through a Windows Firewall popup.You can run the tests using this command:colcontest--merge-installNote--merge-installshould only be used if it was also used in the build step.Afterwards you can get a summary of the tests using this command:colcontest-resultTo run the examples, first open a clean newcmd.exeand set up the workspace by sourcing thelocal_setup.batfile.
+Then, run a C++talker:callinstall\local_setup.bat
+ros2rundemo_nodes_cpptalkerIn a separate shell you can do the same, but instead run a Pythonlistener:callinstall\local_setup.bat
+ros2rundemo_nodes_pylistenerYou should see thetalkersaying that it’sPublishingmessages and thelistenersayingIheardthose messages.
+This verifies both the C++ and Python APIs are working properly.
+Hooray!NoteIt is not recommended to build in the same cmd prompt that you’ve sourced thelocal_setup.bat.Next stepsContinue with thetutorials and demosto configure your environment, create your own workspace and packages, and learn ROS 2 core concepts.Extra stuff for Debug modeIf you want to be able to run all the tests in Debug mode, you’ll need to install a few more things:To be able to extract the Python source tarball, you can use PeaZip:chocoinstall-ypeazipYou’ll also need SVN, since some of the Python source-build dependencies are checked out via SVN:chocoinstall-ysvnhgYou’ll need to quit and restart the command prompt after installing the above.Get and extract the Python 3.8.3 source from thetgz:https://www.python.org/ftp/python/3.8.3/Python-3.8.3.tgzTo keep these instructions concise, please extract it toC:\dev\Python-3.8.3Now, build the Python source in debug mode from a Visual Studio command prompt:cdC:\dev\Python-3.8.3\PCbuild
+get_externals.bat
+build.bat-px64-dFinally, copy the build products into the Python38 installation directories, next to the Release-mode Python executable and DLL’s:cdC:\dev\Python-3.8.3\PCbuild\amd64
+copypython_d.exeC:\Python38/Y
+copypython38_d.dllC:\Python38/Y
+copypython3_d.dllC:\Python38/Y
+copypython38_d.libC:\Python38\libs/Y
+copypython3_d.libC:\Python38\libs/Y
+copysqlite3_d.dllC:\Python38\DLLs/Yfor%Iin(*_d.pyd)docopy%IC:\Python38\DLLs/YNow, from a fresh command prompt, make sure thatpython_dworks:python_d-c"import _ctypes ; import coverage"Once you have verified the operation ofpython_d, it is necessary to reinstall a few dependencies with the debug-enabled libraries:python_d-mpipinstall--force-reinstallhttps://github.com/ros2/ros2/releases/download/numpy-archives/numpy-1.18.4-cp38-cp38d-win_amd64.whl
+python_d-mpipinstall--force-reinstallhttps://github.com/ros2/ros2/releases/download/lxml-archives/lxml-4.5.1-cp38-cp38d-win_amd64.whlTo verify the installation of these dependencies:python_d-c"from lxml import etree ; import numpy"When you wish to return to building release binaries, it is necessary to uninstall the debug variants and use the release variants:python-mpipuninstallnumpylxml
+python-mpipinstallnumpylxmlTo create executables python scripts(.exe), python_d should be used to invoke colconpython_dpath\to\colcon_executablebuildHooray, you’re done!Stay up to dateSeeMaintain source checkoutto periodically refresh your source installation.TroubleshootTroubleshooting techniques can be foundhere.UninstallIf you installed your workspace with colcon as instructed above, “uninstalling” could be just a matter of opening a new terminal and not sourcing the workspace’ssetupfile.
+This way, your environment will behave as though there is no Jazzy install on your system.If you’re also trying to free up space, you can delete the entire workspace directory with:rmdir/s/q\ros2_jazzy
+
+Code Examples:
+
+Language: unknown
+chocoinstall-ypython--version3.8.3
+
+Language: unknown
+chocoinstall-yvcredist2013vcredist140
+
+Language: unknown
+chocoinstall-yopenssl--version1.1.1.2100
+
+Language: unknown
+setx/mOPENSSL_CONF"C:\Program Files\OpenSSL-Win64\bin\openssl.cfg"
+
+Language: unknown
+setx/mOpenCV_DIRC:\opencv
+
+Language: unknown
+chocoinstall-ycmake
+
+Language: unknown
+chocoinstall-y-s<PATH\TO\DOWNLOADS\>asiocuniteigentinyxml2bullet
+
+Language: unknown
+python-mpipinstall-Upipsetuptools==59.6.0
+
+Language: unknown
+python-mpipinstall-Ucatkin_pkgcryptographyempyimportlib-metadatajsonschemalark==1.1.1lxmlmatplotlibnetifacesnumpyopencv-pythonPyQt5pillowpsutilpycairopydotpyparsing==2.4.7pytestpyyamlrosdistro
+
+Language: unknown
+setx/mQt5_DIRC:\Qt\Qt5.12.12\5.12.12\msvc2017_64
+setx/mQT_QPA_PLATFORM_PLUGIN_PATHC:\Qt\Qt5.12.12\5.12.12\msvc2017_64\plugins\platforms
+
+Language: unknown
+chocoinstall-ycppcheckcurlgitwinflexbison3
+
+Language: unknown
+pipinstall-Ucolcon-common-extensionscoverageflake8flake8-blind-exceptflake8-builtinsflake8-class-newlineflake8-comprehensionsflake8-deprecatedflake8-docstringsflake8-import-orderflake8-quotesmockmypy==0.931pep8pydocstylepytestpytest-covpytest-mockpytest-repeatpytest-rerunfailurespytest-runnervcstool
+
+Language: unknown
+md\jazzy\srccd\jazzy
+
+Language: unknown
+vcsimport--inputhttps://raw.githubusercontent.com/ros2/ros2/jazzy/ros2.repossrc
+
+Language: unknown
+colconbuild--merge-install
+
+Language: unknown
+callC:\jazzy\install\local_setup.bat
+
+Language: unknown
+colcontest--merge-install
+
+Language: unknown
+colcontest-result
+
+Language: unknown
+callinstall\local_setup.bat
+ros2rundemo_nodes_cpptalker
+
+Language: unknown
+callinstall\local_setup.bat
+ros2rundemo_nodes_pylistener
+
+Language: unknown
+chocoinstall-ypeazip
+
+Language: unknown
+chocoinstall-ysvnhg
+
+Language: unknown
+cdC:\dev\Python-3.8.3\PCbuild
+get_externals.bat
+build.bat-px64-d
+
+Language: unknown
+cdC:\dev\Python-3.8.3\PCbuild\amd64
+copypython_d.exeC:\Python38/Y
+copypython38_d.dllC:\Python38/Y
+copypython3_d.dllC:\Python38/Y
+copypython38_d.libC:\Python38\libs/Y
+copypython3_d.libC:\Python38\libs/Y
+copysqlite3_d.dllC:\Python38\DLLs/Yfor%Iin(*_d.pyd)docopy%IC:\Python38\DLLs/Y
+
+Language: unknown
+python_d-c"import _ctypes ; import coverage"
+
+Language: unknown
+python_d-mpipinstall--force-reinstallhttps://github.com/ros2/ros2/releases/download/numpy-archives/numpy-1.18.4-cp38-cp38d-win_amd64.whl
+python_d-mpipinstall--force-reinstallhttps://github.com/ros2/ros2/releases/download/lxml-archives/lxml-4.5.1-cp38-cp38d-win_amd64.whl
+
+Language: unknown
+python_d-c"from lxml import etree ; import numpy"
+
+Language: unknown
+python-mpipuninstallnumpylxml
+python-mpipinstallnumpylxml
+
+Language: unknown
+python_dpath\to\colcon_executablebuild
+
+Language: unknown
+rmdir/s/q\ros2_jazzy

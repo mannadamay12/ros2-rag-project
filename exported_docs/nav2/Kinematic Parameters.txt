@@ -1,0 +1,8 @@
+Title: Kinematic Parameters
+URL: https://docs.nav2.org/configuration/packages/dwb-params/kinematic.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Parameters
+<dwbplugin>: DWB plugin name defined in thecontroller_plugin_idsparameter inController Server.

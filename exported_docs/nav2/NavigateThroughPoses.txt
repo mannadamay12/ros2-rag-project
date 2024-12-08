@@ -1,0 +1,33 @@
+Title: NavigateThroughPoses
+URL: https://docs.nav2.org/configuration/packages/bt-plugins/actions/NavigateThroughPoses.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+
+
+## Input Ports
+
+
+## Output Ports
+
+
+## Example
+
+
+Code Examples:
+
+Language: unknown
+File: use_cancel_deceleration
+```
+<NavigateThroughPoses
+goals=
+"{goals}"
+server_name=
+"NavigateThroughPoses"
+server_timeout=
+"10"
+error_code_id=
+"{navigate_through_poses_error_code}"
+behavior_tree=
+"<some-path>/behavior_trees/navigate_through_poses_w_replanning_and_recovery.xml"
+/>
+```

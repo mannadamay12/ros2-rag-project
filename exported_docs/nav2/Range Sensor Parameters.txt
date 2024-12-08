@@ -1,0 +1,5 @@
+Title: Range Sensor Parameters
+URL: https://docs.nav2.org/configuration/packages/costmap-plugins/range.html
+Section: getting_started/index.html
+--------------------------------------------------------------------------------
+

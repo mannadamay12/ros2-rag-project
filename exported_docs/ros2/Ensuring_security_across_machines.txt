@@ -1,0 +1,47 @@
+Title: Ensuring security across machines
+URL: https://docs.ros.org/en/jazzy/Tutorials/Advanced/Security/Security-on-Two.html
+Section: Installation
+--------------------------------------------------------------------------------
+
+Ensuring security across machinesGoal:Make two different machines communicate securely.Tutorial level:AdvancedTime:5 minutesContentsBackgroundCreate the second keystoreCopy filesLaunch the nodesBackgroundBefore proceeding ensure you have completed theSetting up securitytutorial.The previous tutorials have used two ROS nodes on the same machine sending all network communications over the localhost interface.
+Let’s extend that scenario to involve multiple machines, since the benefits of authentication and encryption then become more obvious.Suppose that the machine with the keystore created in the previous demo has a hostnameAlice, and that we want to also use another machine with hostnameBobfor our multi-machinetalker/listenerdemo.
+We need to move some keys fromAlicetoBobto allow SROS 2 to authenticate and encrypt the transmissions.Create the second keystoreBegin by creating an empty keystore onBob; the keystore is actually just an empty directory:LinuxMacOSWindowssshBob
+mkdir~/sros2_demoexitsshBob
+mkdir~/sros2_demoexitssh BobmdC:\dev\ros2\sros2_demoexitCopy filesNext copy the keys and certificates for thetalkerprogram fromAlicetoBob.
+Since the keys are just text files, we can usescpto copy them.LinuxMacOSWindowscd~/sros2_demo/demo_keystore
+scp-rtalkerUSERNAME@Bob:~/sros2_demo/demo_keystorecd~/sros2_demo/demo_keystore
+scp-rtalkerUSERNAME@Bob:~/sros2_demo/demo_keystorecdC:\dev\ros2\sros2_demo\demo_keystore
+scp -r talker USERNAME@Bob:/dev/ros2/sros2_demo/demo_keystoreWarningNote that in this case the entire keystore is shared across the different machines which may not be the desired behavior, as it may result in a security risk.
+Please refer toDeployment Guidelinesfor more information in this regard.That will be very quick, since it’s just copying some very small text files.
+Now, we’re ready to run a multi-machine talker/listener demo!Launch the nodesOnce the environment is set up, run the talker onBob:ros2rundemo_nodes_cpptalker--ros-args--enclave/talker_listener/talkerand launch the listener onAlice:ros2rundemo_nodes_pylistener--ros-args--enclave/talker_listener/listenerAlice will now be receiving encrypted messages from Bob.With two machines successfully communicating using both encryption and authentication, you can use the same procedure to add more machines to your ROS graph.
+
+Code Examples:
+
+Language: unknown
+sshBob
+mkdir~/sros2_demoexit
+
+Language: unknown
+sshBob
+mkdir~/sros2_demoexit
+
+Language: unknown
+ssh BobmdC:\dev\ros2\sros2_demoexit
+
+Language: unknown
+cd~/sros2_demo/demo_keystore
+scp-rtalkerUSERNAME@Bob:~/sros2_demo/demo_keystore
+
+Language: unknown
+cd~/sros2_demo/demo_keystore
+scp-rtalkerUSERNAME@Bob:~/sros2_demo/demo_keystore
+
+Language: unknown
+cdC:\dev\ros2\sros2_demo\demo_keystore
+scp -r talker USERNAME@Bob:/dev/ros2/sros2_demo/demo_keystore
+
+Language: unknown
+ros2rundemo_nodes_cpptalker--ros-args--enclave/talker_listener/talker
+
+Language: unknown
+ros2rundemo_nodes_pylistener--ros-args--enclave/talker_listener/listener
