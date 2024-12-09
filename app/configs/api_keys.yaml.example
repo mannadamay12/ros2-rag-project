@@ -1,0 +1,4 @@
+github:
+  access_token: "your_api_key"
+youtube:
+  api_key: "your_api key" 

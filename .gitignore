@@ -24,3 +24,5 @@ models/
 # Logs
 *.log
 clearml.conf
+
+app/configs/keys.yaml
