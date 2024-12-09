@@ -36,17 +36,6 @@ pip install -r requirements.txt
 ### Docker ps
 ![PS image](assets/docker-ps.png)
 
-### Example prompts as per project description
-![dropdown](assets/dropdown.png)
-![Example 1](assets/Example-prompt-1.png)
-![Example 2](assets/Example-prompt-2.png)
-> ⚠️ **Important Note:** 
-> 
-> Since this application uses Hugging Face Spaces and ZeroGPU for model inference, it is subject to usage quotas:
-> - The app may become temporarily unavailable when quota limits are reached
-> - You may need to wait a few minutes before trying again
-
-
 ### Model Cards (fine-tuned) on hugging face
 ![Model Cards](assets/Model-card.png)
 
@@ -174,6 +163,19 @@ The fine-tuned models are publicly available on [Huggingface](https://huggingfac
 ***
 
 ## Deploying the App Milestone
+
+> ⚠️ **Important Note:** 
+> 
+> Since this application uses Hugging Face Spaces and ZeroGPU for model inference, it is subject to usage quotas:
+> - The app may become temporarily unavailable when quota limits are reached
+> - You may need to wait a few minutes before trying again
+
+### Example prompts as per project description
+![dropdown](assets/dropdown.png)
+![Example 1](assets/Example-prompt-1.png)
+![Example 2](assets/Example-prompt-2.png)
+
+
 
 ### Team Member IDs
 - GitHub IDs: [mannadamay12](https://github.com/mannadamay12), [umamicode](https://github.com/umamicode)
