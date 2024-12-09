@@ -1,7 +1,7 @@
 # ROS2 RAG System
 
 ### Team Member IDs
-- GitHub IDs: [mannadamay12](https://github.com/mannadamay12), [umamicode](https://github.com/umamicode)
+- GitHub IDs: [Adamay Mann](https://github.com/mannadamay12), [Dongkyu Cho](https://github.com/umamicode)
 - HuggingFace IDs: [mannadamay12](https://huggingface.co/mannadamay12), [sqvareinch](https://huggingface.co/sqvareinch)
 
 A Retrieval Augmented Generation (RAG) system designed to assist ROS2 robotics developers with navigation stack development. The system provides specific answers and code examples for robotics development queries across ros2, nav2, moveit2, and gazebo subdomains. [Application-rag-ros2](https://huggingface.co/spaces/mannadamay12/rag-ros2)
