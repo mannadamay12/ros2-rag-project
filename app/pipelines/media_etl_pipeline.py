@@ -15,11 +15,9 @@ class MediaETLPipeline:
         self.config = Config()
         self.mongo_client = MongoDBClient()
         
-        # Load API keys
         with open('app/configs/api_keys.yaml', 'r') as f:
             self.api_keys = yaml.safe_load(f)
             
-        # Initialize extractors
         self.github_extractor = GitHubExtractor(
             access_token=self.api_keys['github']['access_token']
         )
@@ -41,8 +39,6 @@ class MediaETLPipeline:
                             repo_name=repo['name'],
                             branch=branch
                         )
-                        
-                        # Store documents
                         for doc in documents:
                             if not self.mongo_client.check_document_exists(doc['source']['url']):
                                 self.mongo_client.insert_document(doc)
@@ -63,7 +59,6 @@ class MediaETLPipeline:
                         
                         for video in videos:
                             if not self.mongo_client.check_document_exists(video['source']['url']):
-                                # Get video transcript
                                 try:
                                     transcript = YouTubeTranscriptApi.get_transcript(
                                         video['source']['video_id']
@@ -82,13 +77,8 @@ class MediaETLPipeline:
     def run(self):
         """Run the media ETL pipeline"""
         try:
-            # Process GitHub repositories
             self.process_github_repos()
-            
-            # Process YouTube content
             self.process_youtube_content()
-            
-            # Log statistics
             stats = self.mongo_client.get_statistics()
             logger.info(f"ETL Pipeline completed. Stats: {stats}")
             

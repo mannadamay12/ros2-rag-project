@@ -14,7 +14,7 @@ class DocumentationETLPipeline:
         self.config = Config()
         self.extractor = DocumentationExtractor()
         self.mongo_client = MongoDBClient()
-        self.iteration = 0  # Add iteration counter
+        self.iteration = 0
         
     async def process_subdomain(self, subdomain: str, config: Dict[str, Any]):
         """Process documentation for a subdomain"""
@@ -23,8 +23,6 @@ class DocumentationETLPipeline:
         base_url = config['base_url']
         sections = config['sections']
         version = config['version']
-        
-        # Extract and process documents
         documents = await self.extractor.extract_docs(
             base_url=base_url,
             sections=sections,
@@ -43,7 +41,7 @@ class DocumentationETLPipeline:
 
         # Log metrics
         self._log_metrics(subdomain, len(documents), successful_saves)
-        self.iteration += 1  # Increment iteration counter
+        self.iteration += 1
 
     def _log_metrics(self, subdomain: str, total_docs: int, saved_docs: int):
         """Log metrics to ClearML"""

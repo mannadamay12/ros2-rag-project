@@ -55,8 +55,6 @@ class DocumentationExtractor:
         
         sections = []
         current_section = {'heading': '', 'content': ''}
-        
-        # Get all content elements
         for element in main_content.find_all(['h2', 'h3', 'p', 'ul', 'ol']):
             if element.name in ['h2', 'h3']:
                 if current_section['content']:

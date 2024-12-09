@@ -1,12 +1,10 @@
 from pymongo import MongoClient
 from pprint import pprint
 
-# Connect to MongoDB
 client = MongoClient("mongodb://localhost:27017/")
 db = client['ros2_rag']
 collection = db['documentation']
 
-# Find the specific document
 doc = collection.find_one({
     "source.url": "https://github.com/ros2/ros2/"
 })

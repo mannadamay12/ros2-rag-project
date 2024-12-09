@@ -1,70 +1,4 @@
-# ROS2 RAG System
-
-A Retrieval Augmented Generation (RAG) system designed to assist ROS2 robotics developers with navigation stack development. The system provides specific answers and code examples for robotics development queries across ros2, nav2, moveit2, and gazebo subdomains. [Application-rag-ros2](https://huggingface.co/spaces/mannadamay12/rag-ros2)
-
-## Features
-- Multi-source data ingestion (documentation, GitHub, tutorials)
-- Vector similarity search for relevant context retrieval
-- Fine-tuned language models available on HuggingFace
-- Interactive query interface with pre-populated robotics questions
-- Docker containerization for easy deployment
-
-## Environment Setup
-
-1. This project uses Docker Compose to set up the development environment.
-2. Virutal env and requirements can be pulled in to run locally
-```
-python3.9 -m venv rag-venv
-pip install -r requirements.txt
-```
-
-### Prerequisites
-- Docker
-- Docker Compose
-
-### Running the project
-1. Clone this repository
-2. Navigate to the project directory
-3. Run `docker-compose up --build`
-
-### Services
-- App: Main application
-- MongoDB: Database for storing RAG raw data
-- Qdrant: Vector search engine
-- ClearML: Orchestrator and experiment tracking system
-
-### Docker ps
-![PS image](assets/docker-ps.png)
-
-### Example prompts as per project description
-![dropdown](assets/dropdown.png)
-![Example 1](assets/Example-prompt-1.png)
-![Example 2](assets/Example-prompt-2.png)
-> ⚠️ **Important Note:** 
-> 
-> Since this application uses Hugging Face Spaces and ZeroGPU for model inference, it is subject to usage quotas:
-> - The app may become temporarily unavailable when quota limits are reached
-> - You may need to wait a few minutes before trying again
-
-
-### Model Cards (fine-tuned) on hugging face
-![Model Cards](assets/Model-card.png)
-
-## Data Collection Milestone
-1. Scraping of documentation urls for ros2, nav2, moveit2, gazeob
-2. Getting GitHub repos(although everything is covered in documention) and youtube tutorial transcripts
-3. Mongodb store for database collection of variuos documents
-4. Clear orchestration using clearml tasks and pipelines to track progress of ingestion
-5. Base crawler and scraper to extract data from provided `sources.yaml`
-
-![ingest urls](assets/etl-ingest.png)
-
-
 ## Featurization Pipelines Milestone
-1. Vector database creation using qdrant.
-2. Use sentence transformers to create chunks and store the vector database in qdrant client.
-3. Simulataneously mark in mongodb collections if the current document has been feature extracted.
-4. Use clearml orchestrator to track progress.
 > 🤖 Please have a look at *'notebooks/04_llama_rag.ipynb'* for a detailed understanding of this section.
 
 After the data is prepared, we implemented a vectorDB using [Chroma](https://www.trychroma.com/) and [Qdrant](https://qdrant.tech/). For our pipeline, we used Chroma owing to its customization features.
@@ -174,7 +108,3 @@ The fine-tuned models are publicly available on [Huggingface](https://huggingfac
 ***
 
 ## Deploying the App Milestone
-
-### Team Member IDs
-- GitHub IDs: [mannadamay12](https://github.com/mannadamay12), [umamicode](https://github.com/umamicode)
-- HuggingFace IDs: [mannadamay12](https://huggingface.co/mannadamay12), [sqvareinch](https://huggingface.co/sqvareinch)

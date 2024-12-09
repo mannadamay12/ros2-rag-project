@@ -1,4 +1,3 @@
-# main.py
 from pipelines.etl_pipeline import DocumentationETLPipeline
 import asyncio
 from loguru import logger
@@ -7,8 +6,6 @@ async def main():
     try:
         pipeline = DocumentationETLPipeline()
         await pipeline.run()
-        
-        # Print statistics after completion
         stats = pipeline.mongo_client.get_statistics()
         logger.info("ETL Pipeline Statistics:")
         logger.info(f"Total Documents: {stats.get('total_documents', 0)}")

@@ -16,6 +16,16 @@ If the information is not in the context, respond with "I don't find that inform
 Keep responses to 1-2 lines maximum.
 """.strip()
 
+# Expanded pre-populated questions
+PREDEFINED_QUESTIONS = [
+    "Select a question...",
+    "Tell me how can I navigate to a specific pose - include replanning aspects in your answer.",
+    "Can you provide me with code for this task?",
+    "How do I set up obstacle avoidance in ROS2 navigation?",
+    "What are the key parameters for tuning the nav2 planner?",
+    "How do I integrate custom recovery behaviors?"
+]
+
 def generate_prompt(context: str, question: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT) -> str:
     return f"""
 [INST] <<SYS>>
@@ -50,18 +60,21 @@ def initialize_model():
     
     return model, tokenizer
 
-class CustomTextStreamer(TextStreamer):
-    def __init__(self, tokenizer, skip_prompt=True, skip_special_tokens=True):
-        super().__init__(tokenizer, skip_prompt=skip_prompt, skip_special_tokens=skip_special_tokens)
-        self.output_text = ""
-
-    def put(self, value):
-        self.output_text += value
-        super().put(value)
+def question_selected(question):
+    if question == "Select a question...":
+        return ""
+    return question
 
 @spaces.GPU
 def respond(message, history, system_message, max_tokens, temperature, top_p):
     try:
+        # Initialize chat history if None
+        history = history or []
+        
+        if not message.strip():
+            history.append((message, "Please enter a question or select one from the dropdown menu."))
+            return history
+            
         model, tokenizer = initialize_model()
         
         # Get context from database
@@ -90,81 +103,125 @@ def respond(message, history, system_message, max_tokens, temperature, top_p):
             max_new_tokens=max_tokens
         )[0]['generated_text']
         
-        yield output.strip()
+        # Add the new exchange to history
+        history.append((message, output.strip()))
+        
+        return history
         
     except Exception as e:
-        yield f"An error occurred: {str(e)}"
-# def respond(message, history, system_message, max_tokens, temperature, top_p):
-#     try:
-#         model, tokenizer = initialize_model()
-        
-#         # Get relevant context from the database
-#         retriever = db.as_retriever(search_kwargs={"k": 2})
-#         docs = retriever.get_relevant_documents(message)
-#         context = "\n".join([doc.page_content for doc in docs])
-        
-#         # Generate the complete prompt
-#         prompt = generate_prompt(context=context, question=message, system_prompt=system_message)
-        
-#         # Set up the streamer
-#         streamer = CustomTextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
-        
-#         # Set up the pipeline
-#         text_pipeline = pipeline(
-#             "text-generation",
-#             model=model,
-#             tokenizer=tokenizer,
-#             max_new_tokens=max_tokens,
-#             temperature=temperature,
-#             top_p=top_p,
-#             repetition_penalty=1.15,
-#             streamer=streamer,
-#         )
-        
-#         # Generate response
-#         _ = text_pipeline(prompt, max_new_tokens=max_tokens)
-        
-#         # Return only the generated response
-#         yield streamer.output_text.strip()
-        
-#     except Exception as e:
-#         yield f"An error occurred: {str(e)}"
+        history.append((message, f"An error occurred: {str(e)}"))
+        return history
 
-# Create Gradio interface
-demo = gr.ChatInterface(
-    respond,
-    additional_inputs=[
-        gr.Textbox(
+def clear_input():
+    return gr.Textbox.update(value="")
+
+# Create the Gradio interface
+with gr.Blocks(title="ROS2 Expert Assistant") as demo:
+    gr.Markdown("# ROS2 Expert Assistant")
+    gr.Markdown("Ask questions about ROS2, navigation, and robotics. I'll provide concise answers based on the available documentation.")
+    
+    with gr.Row():
+        with gr.Column(scale=8):
+            # Dropdown for predefined questions
+            question_dropdown = gr.Dropdown(
+                choices=PREDEFINED_QUESTIONS,
+                value="Select a question...",
+                label="Pre-defined Questions"
+            )
+        
+    with gr.Row():
+        # Chat interface
+        chatbot = gr.Chatbot()
+    
+    with gr.Row():
+        # Message input
+        msg = gr.Textbox(
+            label="Your Question",
+            placeholder="Type your question here or select one from the dropdown above...",
+            lines=2
+        )
+        
+    with gr.Row():
+        submit = gr.Button("Submit")
+        clear = gr.Button("Clear")
+        
+    with gr.Accordion("Advanced Settings", open=False):
+        system_message = gr.Textbox(
             value=DEFAULT_SYSTEM_PROMPT,
             label="System Message",
-            lines=3,
-            visible=False
-        ),
-        gr.Slider(
+            lines=3
+        )
+        max_tokens = gr.Slider(
             minimum=1,
             maximum=2048,
             value=500,
             step=1,
             label="Max new tokens"
-        ),
-        gr.Slider(
+        )
+        temperature = gr.Slider(
             minimum=0.1,
             maximum=4.0,
             value=0.1,
             step=0.1,
             label="Temperature"
-        ),
-        gr.Slider(
+        )
+        top_p = gr.Slider(
             minimum=0.1,
             maximum=1.0,
             value=0.95,
             step=0.05,
             label="Top-p"
-        ),
-    ],
-    title="ROS2 Expert Assistant",
-    description="Ask questions about ROS2, navigation, and robotics. I'll provide concise answers based on the available documentation.",
-)
+        )
+    
+    # Add custom CSS for tooltip
+    gr.Markdown("""
+        <style>
+        .tooltip {
+            cursor: help;
+            font-size: 1.2em;
+        }
+        </style>
+    """)
+    
+    # Event handlers
+    question_dropdown.change(
+        question_selected,
+        inputs=[question_dropdown],
+        outputs=[msg]
+    )
+    
+    def submit_and_clear(message, history, system_message, max_tokens, temperature, top_p):
+        # First get the response
+        new_history = respond(message, history, system_message, max_tokens, temperature, top_p)
+        # Then clear the input
+        return new_history, gr.Textbox.update(value="")
+    
+    submit.click(
+        submit_and_clear,
+        inputs=[
+            msg,
+            chatbot,
+            system_message,
+            max_tokens,
+            temperature,
+            top_p
+        ],
+        outputs=[chatbot, msg]
+    )
+    
+    clear.click(lambda: (None, ""), None, [chatbot, msg], queue=False)
+    msg.submit(
+        submit_and_clear,
+        inputs=[
+            msg,
+            chatbot,
+            system_message,
+            max_tokens,
+            temperature,
+            top_p
+        ],
+        outputs=[chatbot, msg]
+    )
 
 if __name__ == "__main__":
     demo.launch(share=True)
