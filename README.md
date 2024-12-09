@@ -1,6 +1,7 @@
 # ROS2 RAG System
 
 A Retrieval Augmented Generation (RAG) system designed to assist ROS2 robotics developers with navigation stack development. The system provides specific answers and code examples for robotics development queries across ros2, nav2, moveit2, and gazebo subdomains. [Application-rag-ros2](https://huggingface.co/spaces/mannadamay12/rag-ros2)
+![Architecture](assets/architecture.png)
 
 ## Features
 - Multi-source data ingestion (documentation, GitHub, tutorials)
